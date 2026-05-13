@@ -1,0 +1,151 @@
+restaurant_id,review_text,rating,sentiment
+0,Everything was cooked to perfection. Highly recommended for special occasions.,4.3,positive
+1,"Nice place. Food was okay, nothing special.",3.7,neutral
+2,Good restaurant. Decent food and reasonable prices.,3.4,neutral
+3,One of the worst meals I have ever had. Stay away from this place.,2.7,negative
+4,Perfect in every way. Exceeded all expectations.,4.5,positive
+5,Decent food. Service was a bit slow though.,3.1,neutral
+6,Decent food. Service was a bit slow though.,3.8,neutral
+7,Average experience. Could be better but not bad.,3.5,neutral
+8,The freshness of ingredients really stood out. Will be coming back regularly.,4.9,positive
+9,Excellent food and service. Will definitely come back.,4.6,positive
+10,The atmosphere was nice but the food was just average.,3.2,neutral
+11,"Some dishes were good, others were disappointing. Mixed experience.",3.5,neutral
+12,A decent place for a quick meal. Nothing extraordinary.,3.7,neutral
+13,"Nice place. Food was okay, nothing special.",3.3,neutral
+14,Service was friendly but the food took too long to arrive.,3.4,neutral
+15,Reasonable prices for the quality. Not memorable but not bad either.,3.3,neutral
+16,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.2,positive
+17,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.5,positive
+18,"Nice place. Food was okay, nothing special.",3.8,neutral
+19,Decent food. Service was a bit slow though.,3.5,neutral
+20,Decent food. Service was a bit slow though.,3.8,neutral
+21,Loved the ambiance and the staff were so welcoming. Food was superb.,5.0,positive
+22,Best dining experience this year. The dessert was to die for!,4.3,positive
+23,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.1,positive
+24,A decent place for a quick meal. Nothing extraordinary.,3.0,neutral
+25,Decent food. Service was a bit slow though.,3.9,neutral
+26,The freshness of ingredients really stood out. Will be coming back regularly.,4.1,positive
+27,The atmosphere was nice but the food was just average.,3.7,neutral
+28,"Some dishes were good, others were disappointing. Mixed experience.",3.8,neutral
+29,A decent place for a quick meal. Nothing extraordinary.,3.7,neutral
+30,Reasonable prices for the quality. Not memorable but not bad either.,3.7,neutral
+31,Terrible experience. Will not return.,2.8,negative
+32,The menu had good variety but the execution was inconsistent.,3.7,neutral
+33,Service was friendly but the food took too long to arrive.,3.8,neutral
+34,Perfect in every way. Exceeded all expectations.,4.5,positive
+35,Good restaurant. Decent food and reasonable prices.,3.8,neutral
+36,Fantastic atmosphere and delicious food. A must-visit!,4.7,positive
+37,The freshness of ingredients really stood out. Will be coming back regularly.,4.9,positive
+38,Reasonable prices for the quality. Not memorable but not bad either.,3.7,neutral
+39,The flavors were incredible and the presentation was beautiful.,4.9,positive
+40,"It is fine. Nothing to complain about, nothing to praise.",3.2,neutral
+41,Fantastic atmosphere and delicious food. A must-visit!,4.3,positive
+42,Outstanding quality. The chef really knows what they are doing.,4.5,positive
+43,The food was okay but the wait time was longer than expected.,3.0,neutral
+44,Excellent food and service. Will definitely come back.,4.6,positive
+45,Excellent food and service. Will definitely come back.,4.0,positive
+46,Reasonable prices for the quality. Not memorable but not bad either.,3.7,neutral
+47,Excellent food and service. Will definitely come back.,4.4,positive
+48,The food was okay but the wait time was longer than expected.,3.3,neutral
+49,The food was okay but the wait time was longer than expected.,3.7,neutral
+50,Service was friendly but the food took too long to arrive.,3.2,neutral
+51,Perfect in every way. Exceeded all expectations.,4.1,positive
+52,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.2,positive
+53,One of the worst meals I have ever had. Stay away from this place.,2.9,negative
+54,The menu had good variety but the execution was inconsistent.,3.9,neutral
+55,A decent place for a quick meal. Nothing extraordinary.,3.4,neutral
+56,"Nice place. Food was okay, nothing special.",3.1,neutral
+57,Impeccable service from start to finish. Every dish was a masterpiece.,4.5,positive
+58,"Nice place. Food was okay, nothing special.",3.5,neutral
+59,A decent place for a quick meal. Nothing extraordinary.,3.1,neutral
+60,"It is fine. Nothing to complain about, nothing to praise.",3.9,neutral
+61,The atmosphere was nice but the food was just average.,3.4,neutral
+62,Best dining experience this year. The dessert was to die for!,4.4,positive
+63,The food was okay but the wait time was longer than expected.,3.9,neutral
+64,Best dining experience this year. The dessert was to die for!,4.0,positive
+65,Outstanding quality. The chef really knows what they are doing.,4.9,positive
+66,The freshness of ingredients really stood out. Will be coming back regularly.,4.3,positive
+67,Excellent food and service. Will definitely come back.,4.3,positive
+68,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.4,positive
+69,The atmosphere was nice but the food was just average.,3.1,neutral
+70,Outstanding quality. The chef really knows what they are doing.,4.3,positive
+71,Perfect in every way. Exceeded all expectations.,4.6,positive
+72,Excellent food and service. Will definitely come back.,4.4,positive
+73,Decent food. Service was a bit slow though.,3.9,neutral
+74,"Nice place. Food was okay, nothing special.",3.6,neutral
+75,Reasonable prices for the quality. Not memorable but not bad either.,3.6,neutral
+76,"It is fine. Nothing to complain about, nothing to praise.",3.4,neutral
+77,The menu had good variety but the execution was inconsistent.,3.9,neutral
+78,Everything was cooked to perfection. Highly recommended for special occasions.,4.5,positive
+79,The flavors were incredible and the presentation was beautiful.,4.3,positive
+80,Fantastic atmosphere and delicious food. A must-visit!,4.1,positive
+81,The flavors were incredible and the presentation was beautiful.,4.4,positive
+82,The flavors were incredible and the presentation was beautiful.,4.2,positive
+83,Decent food. Service was a bit slow though.,3.6,neutral
+84,The atmosphere was nice but the food was just average.,3.5,neutral
+85,Perfect in every way. Exceeded all expectations.,4.4,positive
+86,One of the worst meals I have ever had. Stay away from this place.,2.7,negative
+87,The atmosphere was nice but the food was just average.,3.6,neutral
+88,The atmosphere was nice but the food was just average.,3.3,neutral
+89,Excellent food and service. Will definitely come back.,4.2,positive
+90,Service was friendly but the food took too long to arrive.,3.8,neutral
+91,Everything was cooked to perfection. Highly recommended for special occasions.,4.3,positive
+92,Fantastic atmosphere and delicious food. A must-visit!,4.4,positive
+93,A decent place for a quick meal. Nothing extraordinary.,3.7,neutral
+94,The freshness of ingredients really stood out. Will be coming back regularly.,4.9,positive
+95,Outstanding quality. The chef really knows what they are doing.,4.5,positive
+96,Average experience. Could be better but not bad.,3.0,neutral
+97,A hidden gem! The portions were generous and the taste was authentic.,4.0,positive
+98,Impeccable service from start to finish. Every dish was a masterpiece.,4.6,positive
+99,Perfect in every way. Exceeded all expectations.,4.5,positive
+100,Everything was cooked to perfection. Highly recommended for special occasions.,4.2,positive
+101,"Some dishes were good, others were disappointing. Mixed experience.",3.4,neutral
+102,A decent place for a quick meal. Nothing extraordinary.,3.5,neutral
+103,Outstanding quality. The chef really knows what they are doing.,4.3,positive
+104,Everything was cooked to perfection. Highly recommended for special occasions.,4.9,positive
+105,The food was okay but the wait time was longer than expected.,3.4,neutral
+106,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.4,positive
+107,Outstanding quality. The chef really knows what they are doing.,4.2,positive
+108,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.3,positive
+109,The flavors were incredible and the presentation was beautiful.,4.7,positive
+110,Impeccable service from start to finish. Every dish was a masterpiece.,4.3,positive
+111,Worst restaurant I have been to. Do not go there.,2.9,negative
+112,Excellent food and service. Will definitely come back.,4.2,positive
+113,Decent food. Service was a bit slow though.,3.9,neutral
+114,Best dining experience this year. The dessert was to die for!,4.4,positive
+115,"Some dishes were good, others were disappointing. Mixed experience.",3.9,neutral
+116,The flavors were incredible and the presentation was beautiful.,4.8,positive
+117,Outstanding quality. The chef really knows what they are doing.,4.3,positive
+118,The atmosphere was nice but the food was just average.,3.5,neutral
+119,A hidden gem! The portions were generous and the taste was authentic.,5.0,positive
+120,Impeccable service from start to finish. Every dish was a masterpiece.,4.0,positive
+121,The atmosphere was nice but the food was just average.,3.3,neutral
+122,A hidden gem! The portions were generous and the taste was authentic.,4.1,positive
+123,Fantastic atmosphere and delicious food. A must-visit!,4.0,positive
+124,"It is fine. Nothing to complain about, nothing to praise.",3.2,neutral
+125,Fantastic atmosphere and delicious food. A must-visit!,4.2,positive
+126,Decent food. Service was a bit slow though.,3.2,neutral
+127,"Some dishes were good, others were disappointing. Mixed experience.",3.3,neutral
+128,A decent place for a quick meal. Nothing extraordinary.,3.4,neutral
+129,A decent place for a quick meal. Nothing extraordinary.,3.5,neutral
+130,"It is fine. Nothing to complain about, nothing to praise.",3.6,neutral
+131,The freshness of ingredients really stood out. Will be coming back regularly.,4.6,positive
+132,Best dining experience this year. The dessert was to die for!,4.2,positive
+133,Reasonable prices for the quality. Not memorable but not bad either.,3.7,neutral
+134,Best dining experience this year. The dessert was to die for!,4.7,positive
+135,Impeccable service from start to finish. Every dish was a masterpiece.,4.2,positive
+136,The flavors were incredible and the presentation was beautiful.,4.1,positive
+137,Decent food. Service was a bit slow though.,3.0,neutral
+138,Fantastic atmosphere and delicious food. A must-visit!,4.1,positive
+139,A decent place for a quick meal. Nothing extraordinary.,3.1,neutral
+140,The menu had good variety but the execution was inconsistent.,3.1,neutral
+141,"Nice place. Food was okay, nothing special.",3.4,neutral
+142,Absolutely amazing! Best restaurant experience ever. Highly recommended!,4.1,positive
+143,"Nice place. Food was okay, nothing special.",3.4,neutral
+144,Fantastic atmosphere and delicious food. A must-visit!,4.0,positive
+145,Unpleasant smell and dirty tables. The staff seemed uninterested.,2.8,negative
+146,Average experience. Could be better but not bad.,3.2,neutral
+147,Unpleasant smell and dirty tables. The staff seemed uninterested.,2.7,negative
+148,Reasonable prices for the quality. Not memorable but not bad either.,3.6,neutral
+149,Best dining experience this year. The dessert was to die for!,4.7,positive

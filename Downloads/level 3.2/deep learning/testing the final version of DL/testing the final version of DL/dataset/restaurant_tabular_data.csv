@@ -1,0 +1,151 @@
+restaurant_id,name,rating,cuisine_type,price_range,review_count,neighborhood,review_text,sentiment,image_url,is_high_tier
+0,La Bella Italia,4.3,Italian,$,225,Downtown,Everything was cooked to perfection. Highly recommended for special occasions.,positive,local_0,1
+1,Dragon Palace,3.7,Asian,$$,190,Midtown,"Nice place. Food was okay, nothing special.",neutral,local_1,0
+2,El Mariachi,3.4,Mexican,$$$,144,Uptown,Good restaurant. Decent food and reasonable prices.,neutral,local_2,0
+3,The American Grill,2.7,American,$$$$,39,Westside,One of the worst meals I have ever had. Stay away from this place.,negative,local_3,0
+4,Mediterranean Breeze,4.5,Mediterranean,$,251,Eastside,Perfect in every way. Exceeded all expectations.,positive,local_4,1
+5,Taj Mahal,3.1,Indian,$$,99,Northside,Decent food. Service was a bit slow though.,neutral,local_5,0
+6,Golden Dragon,3.8,Chinese,$$$,179,Southside,Decent food. Service was a bit slow though.,neutral,local_6,0
+7,Le Petit Bistro,3.5,French,$$$$,157,Downtown,Average experience. Could be better but not bad.,neutral,local_7,0
+8,Tokyo Sushi,4.9,Thai,$,304,Midtown,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_8,1
+9,Thai Orchid,4.6,Japanese,$$,228,Uptown,Excellent food and service. Will definitely come back.,positive,local_9,1
+10,Casa Mexicana,3.2,Italian,$$$,126,Westside,The atmosphere was nice but the food was just average.,neutral,local_10,0
+11,The Steakhouse,3.5,Asian,$$$$,167,Eastside,"Some dishes were good, others were disappointing. Mixed experience.",neutral,local_11,0
+12,Pasta Paradise,3.7,Mexican,$,160,Northside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_12,0
+13,Spice Route,3.3,American,$$,112,Southside,"Nice place. Food was okay, nothing special.",neutral,local_13,0
+14,Ocean Blue,3.4,Mediterranean,$$$,147,Downtown,Service was friendly but the food took too long to arrive.,neutral,local_14,0
+15,Mountain View,3.3,Indian,$$$$,111,Midtown,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_15,0
+16,City Lights,4.2,Chinese,$,215,Uptown,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_16,1
+17,Garden Fresh,4.5,French,$$,264,Westside,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_17,1
+18,Sunset Cafe,3.8,Thai,$$$,198,Eastside,"Nice place. Food was okay, nothing special.",neutral,local_18,0
+19,Midnight Diner,3.5,Japanese,$$$$,153,Northside,Decent food. Service was a bit slow though.,neutral,local_19,0
+20,Restaurant Italian 20,3.8,Italian,$,185,Southside,Decent food. Service was a bit slow though.,neutral,local_20,0
+21,Restaurant Asian 21,5.0,Asian,$$,306,Downtown,Loved the ambiance and the staff were so welcoming. Food was superb.,positive,local_21,1
+22,Restaurant Mexican 22,4.3,Mexican,$$$,267,Midtown,Best dining experience this year. The dessert was to die for!,positive,local_22,1
+23,Restaurant American 23,4.1,American,$$$$,176,Uptown,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_23,1
+24,Restaurant Mediterranean 24,3.0,Mediterranean,$,96,Westside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_24,0
+25,Restaurant Indian 25,3.9,Indian,$$,189,Eastside,Decent food. Service was a bit slow though.,neutral,local_25,0
+26,Restaurant Chinese 26,4.1,Chinese,$$$,238,Northside,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_26,1
+27,Restaurant French 27,3.7,French,$$$$,171,Southside,The atmosphere was nice but the food was just average.,neutral,local_27,0
+28,Restaurant Thai 28,3.8,Thai,$,148,Downtown,"Some dishes were good, others were disappointing. Mixed experience.",neutral,local_28,0
+29,Restaurant Japanese 29,3.7,Japanese,$$,151,Midtown,A decent place for a quick meal. Nothing extraordinary.,neutral,local_29,0
+30,Restaurant Italian 30,3.7,Italian,$$$,186,Uptown,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_30,0
+31,Restaurant Asian 31,2.8,Asian,$$$$,130,Westside,Terrible experience. Will not return.,negative,local_31,0
+32,Restaurant Mexican 32,3.7,Mexican,$,180,Eastside,The menu had good variety but the execution was inconsistent.,neutral,local_32,0
+33,Restaurant American 33,3.8,American,$$,204,Northside,Service was friendly but the food took too long to arrive.,neutral,local_33,0
+34,Restaurant Mediterranean 34,4.5,Mediterranean,$$$,287,Southside,Perfect in every way. Exceeded all expectations.,positive,local_34,1
+35,Restaurant Indian 35,3.8,Indian,$$$$,160,Downtown,Good restaurant. Decent food and reasonable prices.,neutral,local_35,0
+36,Restaurant Chinese 36,4.7,Chinese,$,286,Midtown,Fantastic atmosphere and delicious food. A must-visit!,positive,local_36,1
+37,Restaurant French 37,4.9,French,$$,274,Uptown,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_37,1
+38,Restaurant Thai 38,3.7,Thai,$$$,170,Westside,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_38,0
+39,Restaurant Japanese 39,4.9,Japanese,$$$$,289,Eastside,The flavors were incredible and the presentation was beautiful.,positive,local_39,1
+40,Restaurant Italian 40,3.2,Italian,$,115,Northside,"It is fine. Nothing to complain about, nothing to praise.",neutral,local_40,0
+41,Restaurant Asian 41,4.3,Asian,$$,244,Southside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_41,1
+42,Restaurant Mexican 42,4.5,Mexican,$$$,254,Downtown,Outstanding quality. The chef really knows what they are doing.,positive,local_42,1
+43,Restaurant American 43,3.0,American,$$$$,135,Midtown,The food was okay but the wait time was longer than expected.,neutral,local_43,0
+44,Restaurant Mediterranean 44,4.6,Mediterranean,$,281,Uptown,Excellent food and service. Will definitely come back.,positive,local_44,1
+45,Restaurant Indian 45,4.0,Indian,$$,187,Westside,Excellent food and service. Will definitely come back.,positive,local_45,1
+46,Restaurant Chinese 46,3.7,Chinese,$$$,183,Eastside,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_46,0
+47,Restaurant French 47,4.4,French,$$$$,239,Northside,Excellent food and service. Will definitely come back.,positive,local_47,1
+48,Restaurant Thai 48,3.3,Thai,$,97,Southside,The food was okay but the wait time was longer than expected.,neutral,local_48,0
+49,Restaurant Japanese 49,3.7,Japanese,$$,180,Downtown,The food was okay but the wait time was longer than expected.,neutral,local_49,0
+50,Restaurant Italian 50,3.2,Italian,$$$,106,Midtown,Service was friendly but the food took too long to arrive.,neutral,local_50,0
+51,Restaurant Asian 51,4.1,Asian,$$$$,230,Uptown,Perfect in every way. Exceeded all expectations.,positive,local_51,1
+52,Restaurant Mexican 52,4.2,Mexican,$,217,Westside,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_52,1
+53,Restaurant American 53,2.9,American,$$,96,Eastside,One of the worst meals I have ever had. Stay away from this place.,negative,local_53,0
+54,Restaurant Mediterranean 54,3.9,Mediterranean,$$$,208,Northside,The menu had good variety but the execution was inconsistent.,neutral,local_54,0
+55,Restaurant Indian 55,3.4,Indian,$$$$,125,Southside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_55,0
+56,Restaurant Chinese 56,3.1,Chinese,$,125,Downtown,"Nice place. Food was okay, nothing special.",neutral,local_56,0
+57,Restaurant French 57,4.5,French,$$,210,Midtown,Impeccable service from start to finish. Every dish was a masterpiece.,positive,local_57,1
+58,Restaurant Thai 58,3.5,Thai,$$$,152,Uptown,"Nice place. Food was okay, nothing special.",neutral,local_58,0
+59,Restaurant Japanese 59,3.1,Japanese,$$$$,105,Westside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_59,0
+60,Restaurant Italian 60,3.9,Italian,$,203,Eastside,"It is fine. Nothing to complain about, nothing to praise.",neutral,local_60,0
+61,Restaurant Asian 61,3.4,Asian,$$,137,Northside,The atmosphere was nice but the food was just average.,neutral,local_61,0
+62,Restaurant Mexican 62,4.4,Mexican,$$$,228,Southside,Best dining experience this year. The dessert was to die for!,positive,local_62,1
+63,Restaurant American 63,3.9,American,$$$$,219,Downtown,The food was okay but the wait time was longer than expected.,neutral,local_63,0
+64,Restaurant Mediterranean 64,4.0,Mediterranean,$,214,Midtown,Best dining experience this year. The dessert was to die for!,positive,local_64,1
+65,Restaurant Indian 65,4.9,Indian,$$,265,Uptown,Outstanding quality. The chef really knows what they are doing.,positive,local_65,1
+66,Restaurant Chinese 66,4.3,Chinese,$$$,246,Westside,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_66,1
+67,Restaurant French 67,4.3,French,$$$$,248,Eastside,Excellent food and service. Will definitely come back.,positive,local_67,1
+68,Restaurant Thai 68,4.4,Thai,$,246,Northside,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_68,1
+69,Restaurant Japanese 69,3.1,Japanese,$$,131,Southside,The atmosphere was nice but the food was just average.,neutral,local_69,0
+70,Restaurant Italian 70,4.3,Italian,$$$,242,Downtown,Outstanding quality. The chef really knows what they are doing.,positive,local_70,1
+71,Restaurant Asian 71,4.6,Asian,$$$$,259,Midtown,Perfect in every way. Exceeded all expectations.,positive,local_71,1
+72,Restaurant Mexican 72,4.4,Mexican,$,248,Uptown,Excellent food and service. Will definitely come back.,positive,local_72,1
+73,Restaurant American 73,3.9,American,$$,194,Westside,Decent food. Service was a bit slow though.,neutral,local_73,0
+74,Restaurant Mediterranean 74,3.6,Mediterranean,$$$,131,Eastside,"Nice place. Food was okay, nothing special.",neutral,local_74,0
+75,Restaurant Indian 75,3.6,Indian,$$$$,187,Northside,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_75,0
+76,Restaurant Chinese 76,3.4,Chinese,$,139,Southside,"It is fine. Nothing to complain about, nothing to praise.",neutral,local_76,0
+77,Restaurant French 77,3.9,French,$$,189,Downtown,The menu had good variety but the execution was inconsistent.,neutral,local_77,0
+78,Restaurant Thai 78,4.5,Thai,$$$,247,Midtown,Everything was cooked to perfection. Highly recommended for special occasions.,positive,local_78,1
+79,Restaurant Japanese 79,4.3,Japanese,$$$$,239,Uptown,The flavors were incredible and the presentation was beautiful.,positive,local_79,1
+80,Restaurant Italian 80,4.1,Italian,$,210,Westside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_80,1
+81,Restaurant Asian 81,4.4,Asian,$$,277,Eastside,The flavors were incredible and the presentation was beautiful.,positive,local_81,1
+82,Restaurant Mexican 82,4.2,Mexican,$$$,263,Northside,The flavors were incredible and the presentation was beautiful.,positive,local_82,1
+83,Restaurant American 83,3.6,American,$$$$,132,Southside,Decent food. Service was a bit slow though.,neutral,local_83,0
+84,Restaurant Mediterranean 84,3.5,Mediterranean,$,156,Downtown,The atmosphere was nice but the food was just average.,neutral,local_84,0
+85,Restaurant Indian 85,4.4,Indian,$$,259,Midtown,Perfect in every way. Exceeded all expectations.,positive,local_85,1
+86,Restaurant Chinese 86,2.7,Chinese,$$$,93,Uptown,One of the worst meals I have ever had. Stay away from this place.,negative,local_86,0
+87,Restaurant French 87,3.6,French,$$$$,138,Westside,The atmosphere was nice but the food was just average.,neutral,local_87,0
+88,Restaurant Thai 88,3.3,Thai,$,130,Eastside,The atmosphere was nice but the food was just average.,neutral,local_88,0
+89,Restaurant Japanese 89,4.2,Japanese,$$,188,Northside,Excellent food and service. Will definitely come back.,positive,local_89,1
+90,Restaurant Italian 90,3.8,Italian,$$$,149,Southside,Service was friendly but the food took too long to arrive.,neutral,local_90,0
+91,Restaurant Asian 91,4.3,Asian,$$$$,270,Downtown,Everything was cooked to perfection. Highly recommended for special occasions.,positive,local_91,1
+92,Restaurant Mexican 92,4.4,Mexican,$,235,Midtown,Fantastic atmosphere and delicious food. A must-visit!,positive,local_92,1
+93,Restaurant American 93,3.7,American,$$,187,Uptown,A decent place for a quick meal. Nothing extraordinary.,neutral,local_93,0
+94,Restaurant Mediterranean 94,4.9,Mediterranean,$$$,284,Westside,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_94,1
+95,Restaurant Indian 95,4.5,Indian,$$$$,276,Eastside,Outstanding quality. The chef really knows what they are doing.,positive,local_95,1
+96,Restaurant Chinese 96,3.0,Chinese,$,58,Northside,Average experience. Could be better but not bad.,neutral,local_96,0
+97,Restaurant French 97,4.0,French,$$,198,Southside,A hidden gem! The portions were generous and the taste was authentic.,positive,local_97,1
+98,Restaurant Thai 98,4.6,Thai,$$$,258,Downtown,Impeccable service from start to finish. Every dish was a masterpiece.,positive,local_98,1
+99,Restaurant Japanese 99,4.5,Japanese,$$$$,240,Midtown,Perfect in every way. Exceeded all expectations.,positive,local_99,1
+100,Restaurant Italian 100,4.2,Italian,$,217,Uptown,Everything was cooked to perfection. Highly recommended for special occasions.,positive,local_100,1
+101,Restaurant Asian 101,3.4,Asian,$$,94,Westside,"Some dishes were good, others were disappointing. Mixed experience.",neutral,local_101,0
+102,Restaurant Mexican 102,3.5,Mexican,$$$,147,Eastside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_102,0
+103,Restaurant American 103,4.3,American,$$$$,241,Northside,Outstanding quality. The chef really knows what they are doing.,positive,local_103,1
+104,Restaurant Mediterranean 104,4.9,Mediterranean,$,322,Southside,Everything was cooked to perfection. Highly recommended for special occasions.,positive,local_104,1
+105,Restaurant Indian 105,3.4,Indian,$$,120,Downtown,The food was okay but the wait time was longer than expected.,neutral,local_105,0
+106,Restaurant Chinese 106,4.4,Chinese,$$$,207,Midtown,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_106,1
+107,Restaurant French 107,4.2,French,$$$$,219,Uptown,Outstanding quality. The chef really knows what they are doing.,positive,local_107,1
+108,Restaurant Thai 108,4.3,Thai,$,263,Westside,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_108,1
+109,Restaurant Japanese 109,4.7,Japanese,$$,269,Eastside,The flavors were incredible and the presentation was beautiful.,positive,local_109,1
+110,Restaurant Italian 110,4.3,Italian,$$$,212,Northside,Impeccable service from start to finish. Every dish was a masterpiece.,positive,local_110,1
+111,Restaurant Asian 111,2.9,Asian,$$$$,82,Southside,Worst restaurant I have been to. Do not go there.,negative,local_111,0
+112,Restaurant Mexican 112,4.2,Mexican,$,210,Downtown,Excellent food and service. Will definitely come back.,positive,local_112,1
+113,Restaurant American 113,3.9,American,$$,139,Midtown,Decent food. Service was a bit slow though.,neutral,local_113,0
+114,Restaurant Mediterranean 114,4.4,Mediterranean,$$$,221,Uptown,Best dining experience this year. The dessert was to die for!,positive,local_114,1
+115,Restaurant Indian 115,3.9,Indian,$$$$,200,Westside,"Some dishes were good, others were disappointing. Mixed experience.",neutral,local_115,0
+116,Restaurant Chinese 116,4.8,Chinese,$,290,Eastside,The flavors were incredible and the presentation was beautiful.,positive,local_116,1
+117,Restaurant French 117,4.3,French,$$,220,Northside,Outstanding quality. The chef really knows what they are doing.,positive,local_117,1
+118,Restaurant Thai 118,3.5,Thai,$$$,116,Southside,The atmosphere was nice but the food was just average.,neutral,local_118,0
+119,Restaurant Japanese 119,5.0,Japanese,$$$$,287,Downtown,A hidden gem! The portions were generous and the taste was authentic.,positive,local_119,1
+120,Restaurant Italian 120,4.0,Italian,$,228,Midtown,Impeccable service from start to finish. Every dish was a masterpiece.,positive,local_120,1
+121,Restaurant Asian 121,3.3,Asian,$$,131,Uptown,The atmosphere was nice but the food was just average.,neutral,local_121,0
+122,Restaurant Mexican 122,4.1,Mexican,$$$,216,Westside,A hidden gem! The portions were generous and the taste was authentic.,positive,local_122,1
+123,Restaurant American 123,4.0,American,$$$$,193,Eastside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_123,1
+124,Restaurant Mediterranean 124,3.2,Mediterranean,$,144,Northside,"It is fine. Nothing to complain about, nothing to praise.",neutral,local_124,0
+125,Restaurant Indian 125,4.2,Indian,$$,175,Southside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_125,1
+126,Restaurant Chinese 126,3.2,Chinese,$$$,136,Downtown,Decent food. Service was a bit slow though.,neutral,local_126,0
+127,Restaurant French 127,3.3,French,$$$$,112,Midtown,"Some dishes were good, others were disappointing. Mixed experience.",neutral,local_127,0
+128,Restaurant Thai 128,3.4,Thai,$,185,Uptown,A decent place for a quick meal. Nothing extraordinary.,neutral,local_128,0
+129,Restaurant Japanese 129,3.5,Japanese,$$,180,Westside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_129,0
+130,Restaurant Italian 130,3.6,Italian,$$$,149,Eastside,"It is fine. Nothing to complain about, nothing to praise.",neutral,local_130,0
+131,Restaurant Asian 131,4.6,Asian,$$$$,279,Northside,The freshness of ingredients really stood out. Will be coming back regularly.,positive,local_131,1
+132,Restaurant Mexican 132,4.2,Mexican,$,257,Southside,Best dining experience this year. The dessert was to die for!,positive,local_132,1
+133,Restaurant American 133,3.7,American,$$,152,Downtown,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_133,0
+134,Restaurant Mediterranean 134,4.7,Mediterranean,$$$,272,Midtown,Best dining experience this year. The dessert was to die for!,positive,local_134,1
+135,Restaurant Indian 135,4.2,Indian,$$$$,228,Uptown,Impeccable service from start to finish. Every dish was a masterpiece.,positive,local_135,1
+136,Restaurant Chinese 136,4.1,Chinese,$,190,Westside,The flavors were incredible and the presentation was beautiful.,positive,local_136,1
+137,Restaurant French 137,3.0,French,$$,110,Eastside,Decent food. Service was a bit slow though.,neutral,local_137,0
+138,Restaurant Thai 138,4.1,Thai,$$$,189,Northside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_138,1
+139,Restaurant Japanese 139,3.1,Japanese,$$$$,122,Southside,A decent place for a quick meal. Nothing extraordinary.,neutral,local_139,0
+140,Restaurant Italian 140,3.1,Italian,$,105,Downtown,The menu had good variety but the execution was inconsistent.,neutral,local_140,0
+141,Restaurant Asian 141,3.4,Asian,$$,136,Midtown,"Nice place. Food was okay, nothing special.",neutral,local_141,0
+142,Restaurant Mexican 142,4.1,Mexican,$$$,204,Uptown,Absolutely amazing! Best restaurant experience ever. Highly recommended!,positive,local_142,1
+143,Restaurant American 143,3.4,American,$$$$,143,Westside,"Nice place. Food was okay, nothing special.",neutral,local_143,0
+144,Restaurant Mediterranean 144,4.0,Mediterranean,$,188,Eastside,Fantastic atmosphere and delicious food. A must-visit!,positive,local_144,1
+145,Restaurant Indian 145,2.8,Indian,$$,57,Northside,Unpleasant smell and dirty tables. The staff seemed uninterested.,negative,local_145,0
+146,Restaurant Chinese 146,3.2,Chinese,$$$,144,Southside,Average experience. Could be better but not bad.,neutral,local_146,0
+147,Restaurant French 147,2.7,French,$$$$,64,Downtown,Unpleasant smell and dirty tables. The staff seemed uninterested.,negative,local_147,0
+148,Restaurant Thai 148,3.6,Thai,$,178,Midtown,Reasonable prices for the quality. Not memorable but not bad either.,neutral,local_148,0
+149,Restaurant Japanese 149,4.7,Japanese,$$,255,Uptown,Best dining experience this year. The dessert was to die for!,positive,local_149,1
