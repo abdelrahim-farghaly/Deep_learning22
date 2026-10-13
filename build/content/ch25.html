@@ -1,0 +1,190 @@
+<section class="chapter" id="ch25">
+  <div class="opener">
+    <div class="op-num">25</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH25 &middot; TEAM DIVISION</p>
+      <h2>توزيع العمل على خمسة أعضاء</h2>
+      <p class="op-sub">من يفعل ماذا، وما يعتمد على من، وكيف نمنع أن يصبح عضو واحد عنق الزجاجة</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>نجاح المشروع لا يعتمد على مهارة فرد واحد، بل على وضوح الحدود بين الأعضاء. هذا الفصل يثبّت الأدوار
+    الخمسة كما في <span class="mono">SPEC.md</span> (من <span class="mono">M1</span> إلى <span class="mono">M5</span>)،
+    ويحدّد لكل دور مخرجاته ومعايير قبوله واعتمادياته، ثم يشرح كيف يمنع الفريق أن يتحوّل عضو واحد إلى عنق زجاجة
+    يعطّل الجميع.</p>
+  </div>
+
+  <h3>25.1 الأدوار الخمسة</h3>
+  <p>كل دور مالك (<span class="en">owner</span>) لوحدة واضحة، أي أنه المسؤول الأول عن صحتها، وليس الشخص الوحيد
+  الذي يكتب فيها. الأدوار الخمسة هي:</p>
+  <div class="grid2">
+    <div class="card navy"><h5><span class="mono">M1</span> &mdash; AI Models &amp; Inference</h5>
+      <ul><li>تدريب/تجهيز الـ <span class="mono">checkpoints</span> ودمجها في <span class="mono">app/ai/</span>.</li>
+      <li>مخرج الكشف الموحّد <span class="mono">Detection</span> ونماذج <span class="mono">PPE</span> و<span class="mono">fire/smoke</span>.</li>
+      <li>التتبّع عبر <span class="mono">ByteTrack</span> وتوثيق أثر الأخطاء في الكشف.</li></ul></div>
+    <div class="card navy"><h5><span class="mono">M2</span> &mdash; Video Processing &amp; Safety Logic</h5>
+      <ul><li>قراءة الفيديو بالـ <span class="mono">OpenCV</span> والتقطيع والتسلسل الزمني.</li>
+      <li>قواعد السلامة التي تحوّل الكشوفات إلى <span class="mono">incidents</span>.</li>
+      <li>مناطق الخطر، عتبات الثقة، ومنع التكرار <span class="mono">cooldown</span>.</li></ul></div>
+    <div class="card teal"><h5><span class="mono">M3</span> &mdash; Backend &amp; Database</h5>
+      <ul><li>تطبيق <span class="mono">FastAPI</span> والراوترات وطبقات <span class="mono">Repository/Service</span>.</li>
+      <li>مخطط <span class="mono">PostgreSQL</span> وترحيلات <span class="mono">Alembic</span>.</li>
+      <li>مالك عقد الـ API (<span class="mono">/api/v1</span>) وهياكل الاستجابة.</li></ul></div>
+    <div class="card teal"><h5><span class="mono">M4</span> &mdash; Frontend</h5>
+      <ul><li>تطبيق <span class="mono">React + TypeScript + Vite</span>.</li>
+      <li>صفحات الرفع والتقدّم والوقائع والمراجعة والتحليلات.</li>
+      <li>الاتصال بالـ API عبر <span class="mono">Axios</span> ومتابعة الـ jobs بالـ <span class="mono">polling</span>.</li></ul></div>
+    <div class="card orange"><h5><span class="mono">M5</span> &mdash; Integration, QA &amp; Deployment</h5>
+      <ul><li>دمج المكوّنات مبكراً وإدارة الفروع والمراجعات.</li>
+      <li>الاختبارات و<span class="mono">Docker Compose</span> وتعليمات التشغيل.</li>
+      <li>سجل المخاطر وقائمة التحقق النهائية للعرض.</li></ul></div>
+    <div class="card gray"><h5>المسؤولية الجماعية</h5>
+      <ul><li>كل عضو يراجع كود غيره قبل الدمج.</li>
+      <li>الجميع يحترم عقد الـ API ولا يغيّره منفرداً.</li>
+      <li>الجميع يكتب توثيقاً في <span class="mono">docs/</span> لِما أنجزه.</li></ul></div>
+  </div>
+  <p class="small">أسماء الأعضاء تُكتب لاحقاً بالشكل: <span class="mono">&lt;TEAM_MEMBER_1_NAME&gt;</span> &hellip;
+  <span class="mono">&lt;TEAM_MEMBER_5_NAME&gt;</span>، واسم المشرف <span class="mono">&lt;SUPERVISOR_NAME&gt;</span>،
+  والجامعة <span class="mono">&lt;UNIVERSITY_NAME&gt;</span>. لا تُخترع أي أسماء في هذا الدليل.</p>
+
+  <h3>25.2 جدول المسؤوليات والمخرجات والاعتماديات ومعايير القبول</h3>
+  <table class="tbl">
+    <caption>جدول 25-1: تفصيل الدور الخمسة ومعايير القبول</caption>
+    <thead><tr><th>العضو</th><th>المسؤولية</th><th>المخرجات</th><th>الاعتماديات</th><th>معايير القبول</th></tr></thead>
+    <tbody>
+      <tr><td class="c"><span class="mono">M1</span></td>
+        <td>النماذج والاستدلال</td>
+        <td>وحدة <span class="mono">app/ai/</span>، ملفات الأوزان، سكربت تقييم</td>
+        <td>مسارات الـ checkpoints والجهاز <span class="mono">MODEL_DEVICE</span></td>
+        <td>كشف يعمل على فيديو العرض وينتج المخرج الموحّد بلا أخطاء</td></tr>
+      <tr><td class="c"><span class="mono">M2</span></td>
+        <td>معالجة الفيديو وقواعد السلامة</td>
+        <td>وحدة المعالجة، محرّك القواعد، ملف <span class="mono">DANGER_ZONE_CONFIG</span></td>
+        <td><span class="mono">M1</span> للمخرج الموحّد، <span class="mono">M3</span> لحفظ الوقائع</td>
+        <td>واقعة واحدة على الأقل لكل نوع تنشأ من فيديو حقيقي مع بداية ونهاية</td></tr>
+      <tr><td class="c"><span class="mono">M3</span></td>
+        <td>الـ Backend وقاعدة البيانات</td>
+        <td>راوترات <span class="mono">/api/v1</span>، الجداول، الترحيلات</td>
+        <td>عقد الـ API المعتمد بين الفريق</td>
+        <td>كل مسارات الـ API تُجيب بالهياكل المتفق عليها في <span class="mono">SPEC.md</span></td></tr>
+      <tr><td class="c"><span class="mono">M4</span></td>
+        <td>الواجهة الأمامية</td>
+        <td>صفحات React، عميل <span class="mono">Axios</span>، الرسم البياني <span class="mono">Recharts</span></td>
+        <td><span class="mono">M3</span> لعقد الـ API، <span class="mono">M1/M2</span> للبيانات الحقيقية</td>
+        <td>دورة كاملة من الرفع حتى التقرير دون تعديل يدوي في قاعدة البيانات</td></tr>
+      <tr><td class="c"><span class="mono">M5</span></td>
+        <td>التكامل والاختبارات والنشر</td>
+        <td><span class="mono">docker-compose.yml</span>، سكربتات الاختبار، <span class="mono">docs/RUNBOOK.md</span></td>
+        <td>جميع الأعضاء لتسليم وحداتهم القابلة للتشغيل</td>
+        <td>تشغيل النظام كاملاً بأمر واحد على جهاز نظيف واجتياز قائمة التحقق</td></tr>
+    </tbody>
+  </table>
+
+  <h3>25.3 مخطط الاعتماديات بين الأعضاء</h3>
+  <p>الاعتماد ليس عيباً بل واقع، لكن الخطر أن يكون الاعتماد في اتجاه واحد ومتأخراً. لذلك نثبّت عقد الـ API
+  مبكراً ليصبح "جداراً" يفصل <span class="mono">M4</span> عن الداخل، ويعمل كل عضو بالتوازي.</p>
+  <div class="fig">
+    <div class="dg">
+      <div class="dgroup">
+        <div class="dg-title">طبقة النماذج</div>
+        <div class="drow">
+          <div class="dbox navy">M1<span class="dsub">AI Models &amp; Inference</span><span class="dtag">Detection</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">طبقة المعالجة والخدمة</div>
+        <div class="drow">
+          <div class="dbox green">M2<span class="dsub">Video &amp; Safety Logic</span><span class="dtag">Rules</span></div>
+          <div class="dbox teal">M3<span class="dsub">Backend &amp; Database</span><span class="dtag">API</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">طبقة العرض والتكامل</div>
+        <div class="drow">
+          <div class="dbox teal">M4<span class="dsub">Frontend</span><span class="dtag">UI</span></div>
+          <div class="dbox orange">M5<span class="dsub">Integration, QA &amp; Deploy</span><span class="dtag">CI</span></div>
+        </div>
+      </div>
+      <div class="dline"></div>
+      <div class="dlabel">M1 &rarr; M2 &rarr; M3 &rarr; M4 (البيانات)، و M5 يراقب ويدمج أفقياً منذ الأسبوع الثاني</div>
+    </div>
+    <div class="fig-cap"><b>شكل 25-1:</b> مخطط الاعتماديات بين الأعضاء الخمسة واتجاه البيانات</div>
+  </div>
+
+  <h3>25.4 العمل على نفس عقد الـ API ونفس هياكل البيانات</h3>
+  <p><strong>API contract (عقد الواجهة):</strong> اتفاق مكتوب على المسارات والحقول وأنواع البيانات، لا يتغيّر إلا
+  باتفاق الفريق. هذا الاتفاق هو أهم أداة لمنع التعطّل، لأن <span class="mono">M4</span> يستطيع بناء الواجهة
+  على بيانات وهمية (<span class="en">mock</span>) قبل أن يجهز الـ Backend فعلاً. القواعد الملزمة:</p>
+  <ul>
+    <li>مصدر الحقيقة الوحيد هو <span class="mono">SPEC.md</span>: نفس الأسماء (<span class="mono">VideoOut</span>،
+      <span class="mono">JobOut</span>، <span class="mono">IncidentOut</span>) ونفس قيم التعدادات.</li>
+    <li>أي تغيير في الحقول يُكتب في <span class="mono">docs/API_CHANGELOG.md</span> ويُعلَن في الاجتماع الأسبوعي.</li>
+    <li>الـ Backend ينشر مخططه عبر <span class="mono">/docs</span> (Swagger) ليراه <span class="mono">M4</span> مباشرة.</li>
+    <li>لا يحفظ أي عضو نسخة خاصة من هياكل البيانات على جهازه؛ الملف المشترك هو المرجع.</li>
+  </ul>
+  <div class="callout tip"><span class="co-title">مثال عملي</span>
+    <p>بما أن الحقول مثبّتة، يستطيع <span class="mono">M4</span> بناء صفحة قائمة الوقائع ببيانات وهمية مطابقة
+    لـ <span class="mono">IncidentOut</span>، ثم يبدّل العنوان من ملف mock إلى عنوان الـ API الحقيقي دون تغيير
+    أي كود في العرض. هذا هو معنى "العمل بالتوازي".</p></div>
+
+  <h3>25.5 الاجتماع الأسبوعي وقواعد التواصل</h3>
+  <p>اجتماع قصير (15&ndash;20 دقيقة) في نفس اليوم كل أسبوع، وبجدول ثابت: ما أُنجز، ما تعطّل، ما يحتاجه كل عضو
+  من غيره، ثم تحديث جدول المخاطر. أما التواصل اليومي فبأداة واحدة فقط، وبقواعد واضحة.</p>
+  <table class="tbl">
+    <caption>جدول 25-2: قواعد التواصل</caption>
+    <thead><tr><th>القناة</th><th>الاستخدام</th><th>القاعدة</th></tr></thead>
+    <tbody>
+      <tr><td>محادثة الفريق</td><td>أسئلة سريعة وتعطّل فوري</td><td>لا قرارات تقنية مهمة إلا بعد تدوينها</td></tr>
+      <tr><td>الاجتماع الأسبوعي</td><td>حالة كل عضو وتحديث الخطة</td><td>كل عضو يأتي بثلاثة أسطر جاهزة</td></tr>
+      <tr><td>Pull Request</td><td>مراجعة الكود قبل الدمج</td><td>مراجعة عضو واحد على الأقل إلزامية</td></tr>
+      <tr><td><span class="mono">docs/</span></td><td>التوثيق والقرارات</td><td>أي قرار يُكتب في ملف وليس في المحادثة فقط</td></tr>
+    </tbody>
+  </table>
+
+  <h3>25.6 منع أن يصبح عضو واحد عنق الزجاجة</h3>
+  <p>الخطأ الشائع هو ترك التكامل كله لـ <span class="mono">M5</span> في الأسبوع الأخير. الصحيح أن
+  <span class="mono">M5</span> <strong>ليس مسؤولاً وحده عن إصلاح مشاكل الدمج في النهاية</strong>؛ بل كل عضو
+  مسؤول أن يكون مخرجه قابلاً للدمج من اليوم الأول. نطبّق ثلاثة قواعد:</p>
+  <ul>
+    <li><strong>التكامل يبدأ مبكراً:</strong> من الأسبوع الثاني يشغّل <span class="mono">M5</span> تكاملاً أسبوعياً
+      بين الـ Backend والـ Frontend حتى لو كانت البيانات وهمية.</li>
+    <li><strong>تعريف "مُنجز" موحّد:</strong> لا تُعدّ الوحدة منجزة إلا إذا عملت مع بقية النظام واجتازت معيار قبولها.</li>
+    <li><strong>مراجعة متقاطعة:</strong> كل عضو يراجع كود عضو آخر، فلا تعتمد الجودة على شخص واحد.</li>
+  </ul>
+  <div class="callout warn"><span class="co-title">علامة خطر</span>
+    <p>إذا قال عضو في الأسبوع الثامن: "انتظر حتى أنتهي من وحدتي ثم ندمج"، فهذا إنذار مبكر. الحل أن يسلّم نسخة
+    مبدئية تعمل على فيديو قصير ولو بنتائج غير مكتملة، حتى يبدأ الدمج والتكامل فوراً.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 25</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>قسّمنا العمل إلى خمسة أدوار واضحة (<span class="mono">M1</span> حتى <span class="mono">M5</span>)،
+        وحدّدنا لكل دور مسؤوليته ومخرجاته واعتمادياته ومعيار قبوله، وأثبتنا أن عقد الـ API المشترك هو ما يسمح
+        بالعمل بالتوازي، وأن التكامل مسؤولية الجميع لا مسؤولية <span class="mono">M5</span> وحده.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تعبئة أسماء الأعضاء في <span class="mono">docs/TEAM.md</span> بدل الـ Placeholders.</li>
+          <li>تثبيت عقد الـ API من <span class="mono">SPEC.md</span> والموافقة عليه كتابةً.</li>
+          <li>تحديد يوم ووقت الاجتماع الأسبوعي ومدته.</li>
+          <li>إنشاء قالب Pull Request فيه معيار القبول المطلوب.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>جدول المسؤوليات (جدول 25-1) مكتمل ومعتمد.</li>
+        <li>ملف <span class="mono">docs/API_CHANGELOG.md</span> جاهز لأول تغيير.</li>
+        <li>خطة تكامل أسبوعية من الأسبوع الثاني.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل عضو يشرح مسؤوليته ومعيار قبوله في دقيقة.</li>
+        <li>لا توجد وحدة تُوصف بأنها "منجزة" وهي غير قابلة للتشغيل مع بقية النظام.</li>
+        <li>يوجد تاريخ واضح لأول تكامل حقيقي بين الـ Frontend والـ Backend.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>ترك الدمج لـ <span class="mono">M5</span> في الأسبوع الأخير.</li>
+        <li>تغيير أسماء الحقول منفرداً دون إعلان.</li>
+        <li>اعتبار الاجتماع الأسبوعي تقريراً شفهياً بلا تدوين.</li>
+        <li>كتابة أسماء حقيقية أو تقديرات درجات داخل الدليل.</li></ul></div>
+    </div>
+  </div>
+</section>

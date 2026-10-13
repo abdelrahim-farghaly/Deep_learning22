@@ -1,0 +1,198 @@
+<section class="chapter" id="ch24">
+  <div class="opener">
+    <div class="op-num">24</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH24 &middot; ERRORS &amp; LOGGING</p>
+      <h2>معالجة الأخطاء والـ Logging والمراقبة</h2>
+      <p class="op-sub">كيف يتصرف النظام عندما تسوء الأمور</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>النظام الجيد لا يُقاس بعدد المرات التي يعمل فيها، بل بسلوكه عندما يفشل شيء. هذا الفصل يحدّد ماذا يحدث
+    عند تلف فيديو أو نقص checkpoint أو انقطاع قاعدة البيانات، وكيف نجعل السجلات تكفي لتشخيص المشكلة بسرعة
+    دون كشف أي سرّ، وكيف نمنع تكرار الواقعة عند إعادة المحاولة.</p>
+  </div>
+
+  <h3>24.1 مبدأ عام: الفشل متوقّع وليس استثناءً</h3>
+  <p>معالجة الفيديو عملية طويلة تمرّ عبر ملفات وبطاقة رسوميات وقاعدة بيانات وقرص، وأي واحدة منها قد تفشل.
+  لذلك نتعامل مع الفشل كحالة عادية لها مسار واضح: يُسجَّل الخطأ بسياقه، تُحدَّث حالة الـ job إلى
+  <span class="mono">failed</span>، ويُخزَّن <span class="mono">error_message</span>، ويستطيع المستخدم رؤية
+  السبب وإعادة المحاولة. الممنوع أن يتوقف النظام بصمت أو أن يترك job عالقاً في <span class="mono">running</span> للأبد.</p>
+
+  <h3>24.2 سيناريوهات الفشل التي نغطّيها</h3>
+  <table class="tbl">
+    <caption>جدول 24-1: سيناريوهات الفشل التسعة والسلوك المتوقّع</caption>
+    <thead><tr><th>السيناريو</th><th>السلوك المتوقّع</th></tr></thead>
+    <tbody>
+      <tr><td>فيديو تالف أو غير قابل للفك</td><td>رفض عند التحقق أو فشل الـ job مع رسالة واضحة، دون crash</td></tr>
+      <tr><td>حجم ملف يتجاوز <span class="mono">MAX_UPLOAD_MB</span></td><td>رفض الطلب قبل حفظ الملف كاملاً</td></tr>
+      <tr><td>مسار checkpoint مفقود</td><td>فشل الـ job مبكراً برسالة تذكر المسار المطلوب</td></tr>
+      <tr><td>ذاكرة GPU غير كافية</td><td>التراجع إلى CPU إن أمكن، وإلا فشل واضح لا انهيار</td></tr>
+      <tr><td>قاعدة البيانات غير متاحة</td><td>الـ API يعيد خطأ خدمة، والـ worker ينتظر ويعيد المحاولة</td></tr>
+      <tr><td>فشل الـ job لأي سبب</td><td>حالة <span class="mono">failed</span> + <span class="mono">error_message</span> + عدد المحاولات</td></tr>
+      <tr><td>انقطاع اتصال الـ Frontend</td><td>Polling يستمر، والواجهة تعرض حالة "غير متصل" ثم تستأنف</td></tr>
+      <tr><td>فشل تخزين الدليل</td><td>الواقعة تُحفظ، ويُسجَّل فشل الدليل ليُعاد توليده لاحقاً</td></tr>
+      <tr><td>مخرجات Model غير صالحة</td><td>استبعاد الكشف الشاذ بدل تخزينه في قاعدة البيانات</td></tr>
+    </tbody>
+  </table>
+
+  <h3>24.3 الـ Logging المنظّم مع سياق</h3>
+  <p><strong>Structured Logging (سجلات منظّمة):</strong> كتابة السجلات بصيغة حقول ثابتة (وقت، مستوى، رسالة،
+  <span class="mono">job_id</span>، <span class="mono">video_id</span>) بدل نصوص حرّة. الفائدة أن البحث
+  عن كل سطور job واحد يصبح استعلاماً بسيطاً على <span class="mono">job_id</span>. نمنع تماماً تسجيل
+  كلمات المرور أو التوكنات أو مفاتيح <span class="mono">S3_SECRET_ACCESS_KEY</span>، ونكتفي بذكر المعرّفات.</p>
+
+  <h3>24.4 الأخطاء القابلة للاسترجاع وغير القابلة</h3>
+  <p><strong>Recoverable error (خطأ قابل للاسترجاع):</strong> خطأ مؤقّت يمكن أن ينجح لو أُعيد المحاولة بعد
+  فترة، مثل انقطاع اتصال قصير بقاعدة البيانات أو مشكلة شبكة. و<strong>Non-recoverable error (غير قابل
+  للاسترجاع):</strong> خطأ ثابت لا يتغيّر بإعادة المحاولة، مثل فيديو تالف أو مسار checkpoint خاطئ. القاعدة:
+  نعيد المحاولة على الأول فقط، وحدّه الأعلى <span class="mono">JOB_MAX_RETRIES</span>، مع تأخير متزايد بين
+  المحاولات، وبعد استنفاد المحاولات تُثبَّت الحالة <span class="mono">failed</span>.</p>
+
+  <h3>24.5 منع تكرار الوقائع بعد إعادة المحاولة</h3>
+  <p>هذا أخطر تفصيل. لو أُعيد تشغيل job بعد فشله في منتصف الفيديو، فقد يُنشئ وقائع جديدة لنفس الحدث
+  الذي أُنشئت له وقائع في المحاولة الأولى، فيتضاعف السجل ويصبح غير موثوق. لذلك نتبع قاعدتين معاً: الأولى
+  نحذف أو نتجاهل وقائع المحاولة الفاشلة لنفس الـ job قبل إعادة التشغيل، والثانية نحترم
+  <span class="mono">INCIDENT_COOLDOWN_SECONDS</span> داخل نفس الفيديو بحيث لا تُنشأ واقعتان لنفس النوع داخل
+  فترة التهدئة. بهذا تكون إعادة المحاولة آمنة (<span class="en">idempotent</span> بالنسبة للوقائع).</p>
+
+  <h3>24.6 مراقبة صحة الخدمة</h3>
+  <p>نراقب ثلاث نقاط: <span class="mono">GET /api/v1/health</span> للتأكد من حياة الـ API واتصاله بقاعدة
+  البيانات، وحالة الـ jobs لرصد أي job عالق في <span class="mono">running</span>، ونسبة فشل الـ Jobs
+  كمؤشر عام على صحة خط المعالجة.</p>
+
+  <h3>24.7 ملف الـ Logging</h3>
+  <p>هذا الملف يضبط سجلاً موحّداً لكل التطبيق، ويضيف <span class="mono">job_id</span> و
+  <span class="mono">video_id</span> تلقائياً عند توفّرهما، ويحجب أي حقل حسّاس من الظهور.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/core/logging.py</span><span class="ftag">python</span></div>
+<pre>import logging
+import sys
+
+# Never let these values reach the log stream.
+SENSITIVE_KEYS = {"password", "token", "authorization", "secret_key", "s3_secret_access_key"}
+
+
+def configure_logging(level: str = "INFO") -&gt; None:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s %(name)s "
+            "job_id=%(job_id)s video_id=%(video_id)s %(message)s"
+        )
+    )
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.addHandler(handler)
+    root.setLevel(level.upper())
+
+
+def scrub(extra: dict) -&gt; dict:
+    """Drop sensitive fields before they are written to the log."""
+    return {
+        key: value
+        for key, value in extra.items()
+        if key.lower() not in SENSITIVE_KEYS
+    }
+
+
+def job_logger(name: str, job_id: str | None = None, video_id: str | None = None):
+    """Return a logger that always carries the job context."""
+    logger = logging.getLogger(name)
+    return logging.LoggerAdapter(
+        logger, {"job_id": job_id or "-", "video_id": video_id or "-"}
+    )
+</pre></div>
+
+  <h3>24.8 ملف الأخطاء المخصّصة</h3>
+  <p>نعرّف أنواع الأخطاء بأنفسنا حتى نفرّق بين ما يُعاد تشغيله وما لا يُعاد، ولنعطي المستخدم رسالة واضحة
+  بدل تفاصيل داخلية.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/core/errors.py</span><span class="ftag">python</span></div>
+<pre>class SafeVisionError(Exception):
+    """Base class for all application errors."""
+
+    code = "safevision_error"
+    recoverable = False
+
+    def __init__(self, message: str, detail: str | None = None):
+        super().__init__(message)
+        self.message = message
+        self.detail = detail
+
+
+class InvalidVideoError(SafeVisionError):
+    code = "invalid_video"
+    recoverable = False  # a corrupt file will never succeed on retry
+
+
+class ModelCheckpointMissing(SafeVisionError):
+    code = "checkpoint_missing"
+    recoverable = False  # fix the path, then retry manually
+
+
+class InsufficientGpuMemory(SafeVisionError):
+    code = "gpu_oom"
+    recoverable = True  # retry on CPU or after freeing memory
+
+
+class TransientDatabaseError(SafeVisionError):
+    code = "db_unavailable"
+    recoverable = True  # connection blips succeed on retry
+
+
+class EvidenceStorageError(SafeVisionError):
+    code = "evidence_storage_failed"
+    recoverable = True  # the incident is kept and evidence is retried
+
+
+def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
+    if not isinstance(error, SafeVisionError):
+        return attempt &lt; max_retries
+    return error.recoverable and attempt &lt; max_retries
+</pre></div>
+
+  <h3>24.9 جدول استكشاف الأخطاء</h3>
+  <p>هذا الجدول مرجع سريع وقت العرض. القاعدة أن نبدأ بالسبب الأكثر شيوعاً، ثم نتبعه بخطوات التشخيص بالترتيب.</p>
+  <table class="tbl">
+    <caption>جدول 24-2: الأعراض والأسباب المحتملة والحل</caption>
+    <thead><tr><th>العَرَض (Symptom)</th><th>السبب المحتمل (Cause)</th><th>الحل (Solution)</th></tr></thead>
+    <tbody>
+      <tr><td>job عالق في <span class="mono">running</span> بلا تقدّم</td><td>الـ worker متوقف أو انهار</td><td>فحص سجلات الـ worker وإعادة تشغيله</td></tr>
+      <tr><td>job يفشل فوراً</td><td>مسار checkpoint غير صحيح</td><td>التحقق من <span class="mono">PPE_MODEL_PATH</span> داخل الحاوية</td></tr>
+      <tr><td><span class="mono">connection refused</span></td><td>استخدام <span class="mono">localhost</span> بدل اسم الخدمة</td><td>تصحيح <span class="mono">DATABASE_URL</span> لاستخدام <span class="mono">db</span></td></tr>
+      <tr><td>واقعة بلا صورة دليل</td><td>فشل كتابة الدليل على القرص</td><td>التحقق من صلاحيات الـ volume وإعادة التوليد</td></tr>
+      <tr><td>خطأ CORS في المتصفح</td><td>عنوان الواجهة غير مدرج</td><td>إضافة العنوان إلى <span class="mono">CORS_ORIGINS</span></td></tr>
+      <tr><td>واقعة مكرّرة لنفس الحدث</td><td>إعادة محاولة دون تنظيف</td><td>حذف وقائع المحاولة الفاشلة واحترام فترة التهدئة</td></tr>
+      <tr><td>خطأ <span class="mono">gpu_oom</span></td><td>الذاكرة غير كافية</td><td>العودة إلى <span class="mono">MODEL_DEVICE=cpu</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 24</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>غطّينا تسعة سيناريوهات فشل بسلوك واضح، وفرّقنا بين الأخطاء القابلة للاسترجاع وغير القابلة، وربطنا
+        السجلات بـ <span class="mono">job_id</span>، ومنعنا كشف الأسرار، وضبطنا إعادة محاولة آمنة لا تكرّر الوقائع.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">backend/app/core/logging.py</span> و<span class="mono">errors.py</span>.</li>
+          <li>ربط كل خطأ في الـ worker بـ <span class="mono">error_message</span> وحالة <span class="mono">failed</span>.</li>
+          <li>تطبيق حذف وقائع المحاولة الفاشلة قبل إعادة التشغيل.</li>
+          <li>التحقق من عدم تسجيل أي حقل حسّاس.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>سجلات منظّمة قابلة للبحث بـ <span class="mono">job_id</span>.</li>
+        <li>رسائل خطأ واضحة تظهر للمستخدم بدل تفاصيل داخلية.</li>
+        <li>جدول استكشاف أخطاء معتمد من الفريق.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>تشغيل job بمسار model خاطئ ومشاهدة الفشل الواضح.</li>
+        <li>إعادة تشغيل job فاشل والتأكد من عدم تكرار الوقائع.</li>
+        <li>البحث عن أي كلمة مرور في السجلات وعدم العثور عليها.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تسجيل كائن الطلب كاملاً بما فيه التوكن.</li>
+        <li>إعادة المحاولة على خطأ ثابت بلا فائدة.</li>
+        <li>إعادة المحاولة دون حذف وقائع المحاولة السابقة.</li>
+        <li>ترك job عالقاً في <span class="mono">running</span> دون مهلة زمنية.</li></ul></div>
+    </div>
+  </div>
+</section>

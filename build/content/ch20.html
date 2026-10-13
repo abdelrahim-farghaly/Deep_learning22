@@ -1,0 +1,170 @@
+<section class="chapter" id="ch20">
+  <div class="opener">
+    <div class="op-num">20</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH20 &middot; PRODUCTION DEPLOYMENT</p>
+      <h2>النشر في بيئة الإنتاج</h2>
+      <p class="op-sub">خياران واقعيان لمشروع تخرّج، وما يجب الحذر منه</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>بعد أن صار النظام يعمل محلياً عبر Docker، يبقى سؤال لجنة المناقشة: "هل يمكن أن يعمل خارج جهازكم؟".
+    هذا الفصل يعرض خيارين واقعيين لمشروع تخرّج، ويشرح ما يجب الحذر منه: الأسرار، وHTTPS، والترحيلات،
+    والنسخ الاحتياطي، وفحوص الصحة. القاعدة الأولى والأهم: <strong>القدرات والأسعار وحدود الاستخدام المجاني
+    وتوفّر الـ GPU تتغيّر باستمرار، ويجب التحقق منها من التوثيق الرسمي لمزوّد الخدمة وقت النشر</strong>.
+    لا نكتب أي سعر ولا نَعِد بأي GPU مجاني في هذا الدليل.</p>
+  </div>
+
+  <h3>20.1 الفرق بين بيئة التطوير وبيئة الإنتاج</h3>
+  <p>بيئة التطوير (<span class="en">development</span>) هي جهازنا، فيها <span class="mono">APP_DEBUG=true</span>
+  والأخطاء ظاهرة والـ <span class="mono">AUTH_ENABLED=false</span>. بيئة الإنتاج
+  (<span class="en">production</span>) هي الخادم العام، وفيها يجب أن يكون <span class="mono">APP_DEBUG=false</span>،
+  و<span class="mono">APP_ENV=production</span>، و<span class="mono">AUTH_ENABLED=true</span>، وقائمة
+  <span class="mono">CORS_ORIGINS</span> مقيّدة بعنوان الواجهة الحقيقي فقط. أي قيمة تُخالف ذلك قد تكشف تفاصيل
+  داخلية للمهاجمين.</p>
+  <table class="tbl">
+    <caption>جدول 20-1: أهم الفروق بين التطوير والإنتاج</caption>
+    <thead><tr><th>العنصر</th><th>التطوير</th><th>الإنتاج</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">APP_ENV</td><td class="mono">development</td><td class="mono">production</td></tr>
+      <tr><td class="mono">APP_DEBUG</td><td class="mono">true</td><td class="mono">false</td></tr>
+      <tr><td class="mono">AUTH_ENABLED</td><td class="mono">false</td><td class="mono">true</td></tr>
+      <tr><td class="mono">CORS_ORIGINS</td><td>عناوين محلية</td><td>عنوان الواجهة الرسمي فقط</td></tr>
+      <tr><td class="mono">STORAGE_BACKEND</td><td class="mono">local</td><td><span class="mono">local</span> أو <span class="mono">s3</span> حسب الخيار</td></tr>
+      <tr><td>التخزين</td><td>مجلد على الجهاز</td><td>قرص دائم أو Object Storage</td></tr>
+    </tbody>
+  </table>
+
+  <h3>20.2 الخيار A: نشر بسيط للعرض</h3>
+  <p>الهدف هنا ليس خدمة إنتاج حقيقية، بل رابط يعمل للجنة المناقشة. المكوّنات: الواجهة الثابتة على استضافة
+  ملفات ثابتة، والـ Backend على خدمة تشغيل تطبيقات، وقاعدة بيانات PostgreSQL مُدارة، وتخزين كائنات
+  للفيديوهات والدليل. هذا الخيار مناسب لأنه يخفّض عبء الإدارة إلى أدنى حد، لكنه يضع قيوداً يجب فهمها:
+  قد تحدّ الخدمة من حجم الملف المرفوع، وقد تُنيم الخدمة عند عدم الاستخدام فيزيد زمن أول طلب
+  (<span class="en">cold start</span>)، وقد لا توفّر GPU أصلاً.</p>
+  <p>لذلك في الخيار A نعتمد على <span class="mono">MODEL_DEVICE=cpu</span>، ونرفع فيديو عرض قصيراً، ونضبط
+  <span class="mono">FRAME_SAMPLE_EVERY_N</span> و<span class="mono">MAX_FRAMES_PER_JOB</span> بقيم معقولة
+  حتى لا يطول زمن المعالجة. ولأن خدمة تشغيل التطبيقات قد تكون بلا قرص دائم، نستخدم
+  <span class="mono">STORAGE_BACKEND=s3</span> مع مفاتيح <span class="mono">S3_ENDPOINT_URL</span> و
+  <span class="mono">S3_BUCKET</span> لضمان بقاء الفيديوهات والدليل.</p>
+
+  <h3>20.3 الخيار B: استضافة ذاتية أو قادرة على GPU</h3>
+  <p>الهدف هنا أن نتحكّم في الجهاز كاملاً. نستخدم خادماً (VPS) أو خادماً ببطاقة رسوميات، ونشغّل عليه نفس
+  <span class="mono">docker-compose.yml</span>، ونضع أمامه <strong>Reverse Proxy</strong> مثل nginx يوزّع
+  المسارات ويمنح شهادة <strong>HTTPS</strong>. هنا يمكن ضبط <span class="mono">MODEL_DEVICE=cuda</span> إن
+  كان الخادم يوفّر GPU فعلاً، مع الحفاظ على نفس ملف الترحيلات ونفس الـ volumes. العيب أن المسؤولية كلها
+  علينا: تحديثات الأمان، النسخ الاحتياطي، والمراقبة.</p>
+  <div class="callout warn"><span class="co-title">لا وعود GPU ولا أسعار</span>
+    <p>توفر الـ GPU على أي استضافة، وسعر الخطة، وحدود الـ free tier، وحجم القرص الدائم، وحد الرفع — كلها
+    تتغيّر من مزوّد لآخر ومن شهر لآخر. لا نكتب رقماً ولا نَعِد بوصول مجاني إلى GPU. المطلوب من الفريق وقت
+    النشر: قراءة التوثيق الرسمي للمزوّد والتحقق من كل قيمة قبل الاعتماد عليها، وتوثيق النتيجة في
+    <span class="mono">docs/DEPLOYMENT.md</span>.</p></div>
+
+  <h3>20.4 مقارنة الخيارين</h3>
+  <table class="tbl">
+    <caption>جدول 20-2: الخيار A مقابل الخيار B (المعايير تُقاس وقت النشر)</caption>
+    <thead><tr><th>المعيار</th><th>الخيار A: نشر بسيط</th><th>الخيار B: ذاتي / GPU</th></tr></thead>
+    <tbody>
+      <tr><td>التكلفة</td><td>تُحدَّد من توثيق المزوّد الرسمي</td><td>تُحدَّد من توثيق المزوّد الرسمي</td></tr>
+      <tr><td>توفّر GPU</td><td>غالباً غير متوفر &mdash; نستخدم CPU</td><td>ممكن إن كان الخادم يوفّره فعلاً</td></tr>
+      <tr><td>حد رفع الفيديو</td><td>مقيّد من المزوّد والـ proxy</td><td>نضبطه نحن عبر nginx</td></tr>
+      <tr><td>التخزين الدائم</td><td>Object Storage (<span class="mono">s3</span>)</td><td>volumes على قرص الخادم</td></tr>
+      <tr><td>سرعة الشبكة</td><td>تعتمد على المزوّد</td><td>تعتمد على خط الخادم</td></tr>
+      <tr><td>زمن المعالجة</td><td>أطول (CPU + cold start)</td><td>أقصر إن توفّر GPU</td></tr>
+      <tr><td>النوم / البدء البارد</td><td>شائع في الطبقات المجانية</td><td>لا يوجد إن بقي الخادم يعمل</td></tr>
+      <tr><td>التحكّم الكامل</td><td>محدود</td><td>كامل</td></tr>
+    </tbody>
+  </table>
+
+  <h3>20.5 لماذا لا تصلح الاستضافة الثابتة المجانية للـ inference الطويل</h3>
+  <p>الاستضافة الثابتة (<span class="en">static hosting</span>) تخدم ملفات HTML و JS فقط، ولا تشغّل
+  Python ولا تتصل بقاعدة بيانات، فهي صالحة للواجهة وحدها. وحتى خدمات تشغيل التطبيقات المجانية تنيم
+  العملية عند الخمول، وتحدّ زمن الطلب الواحد، وتحدّ الذاكرة. معالجة فيديو تستغرق دقائق وتستهلك مئات
+  الميغابايت من الذاكرة لا يمكن أن تعيش داخل طلب HTTP واحد محدود الزمن. لهذا نفصل دائماً: الـ API يعيد
+  <span class="mono">202 Accepted</span> فوراً، والمعالجة تجري في الـ worker. حتى في الإنتاج، الـ worker
+  هو من يحتاج الموارد الثقيلة، لا الـ API.</p>
+
+  <h3>20.6 الأسرار و HTTPS والـ Migrations والنسخ الاحتياطي والـ Logs</h3>
+  <table class="tbl">
+    <caption>جدول 20-3: الجوانب التشغيلية الخمسة وكيف نتعامل معها</caption>
+    <thead><tr><th>الجانب</th><th>القاعدة العملية</th><th>متغيّرات / أوامر</th></tr></thead>
+    <tbody>
+      <tr><td>الأسرار (Secrets)</td><td>لا تُكتب في الكود ولا في <span class="mono">.env</span> المرفوع؛ تُضبط كمتغيّرات بيئة في لوحة المزوّد أو مدير أسرار</td><td class="mono">SECRET_KEY, POSTGRES_PASSWORD, S3_SECRET_ACCESS_KEY</td></tr>
+      <tr><td>HTTPS</td><td>شهادة TLS عبر Reverse proxy أو خدمة المزوّد؛ إعادة توجيه HTTP إلى HTTPS</td><td class="mono">nginx + certbot</td></tr>
+      <tr><td>Migrations</td><td>تُنفَّذ كخطوة نشر منفصلة قبل تشغيل النسخة الجديدة</td><td class="mono">alembic upgrade head</td></tr>
+      <tr><td>Backups</td><td>نسخة دورية من قاعدة البيانات + نسخة من مجلد الـ storage</td><td class="mono">pg_dump</td></tr>
+      <tr><td>Logs</td><td>سجلات منظّمة تُجمع من الـ backend والـ worker دون كشف الأسرار</td><td class="mono">docker compose logs</td></tr>
+    </tbody>
+  </table>
+  <p>نقطة مهمة: الترحيلات تُنفَّذ مرة واحدة في كل نشر، ولا تعتمد على إعادة تشغيل الحاوية. أمّا النسخ
+  الاحتياطي فيجب أن يُجرَّب فعلاً (استرجاع نسخة إلى قاعدة تجريبية) لا أن يُفترض أنه يعمل. أمّا
+  <strong>Health checks</strong> فتُبنى على <span class="mono">GET /api/v1/health</span>، وهو endpoint عام
+  لا يحتاج مصادقة ويعيد حالة المكوّنات، ويستخدمه المزوّد للتأكد من أن الخدمة حيّة.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal &mdash; deploy and verify steps</span><span class="ftag">bash</span></div>
+<pre class="term"># 1) Apply database migrations before starting the new version
+$ docker compose exec backend alembic upgrade head
+
+# 2) Rebuild and restart only the changed services
+$ docker compose up -d --build backend worker
+
+# 3) Verify health through the public URL
+$ curl -s https://&lt;your-domain&gt;/api/v1/health
+
+# 4) Take a database backup (store it outside the server)
+$ docker compose exec db pg_dump -U safevision safevision &gt; backup_$(date +%F).sql
+</pre></div>
+
+  <h3>20.7 قائمة تحقق النشر والترتيب الآمن</h3>
+  <p>الترتيب مهم: كل خطوة تعتمد على التي قبلها. لا نبدأ بالـ API قبل قاعدة البيانات، ولا نفتح الموقع
+  للجنة قبل فحص الصحة.</p>
+  <table class="tbl">
+    <caption>جدول 20-4: الترتيب الآمن للنشر</caption>
+    <thead><tr><th class="c">#</th><th>الخطوة</th><th>لماذا هذا الترتيب</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td>تجهيز قاعدة البيانات المُدارة والتحقق من الاتصال</td><td>لا شيء يعمل بدون قاعدة بيانات</td></tr>
+      <tr><td class="c">2</td><td>ضبط كل متغيّرات البيئة والأسرار في لوحة المزوّد</td><td>منع الاعتماد على ملف محلي</td></tr>
+      <tr><td class="c">3</td><td>بناء الصور ورفعها / سحب الكود على الخادم</td><td>الحصول على نسخة محدّدة قابلة للتشغيل</td></tr>
+      <tr><td class="c">4</td><td>تنفيذ <span class="mono">alembic upgrade head</span></td><td>إنشاء الجداول قبل قبول أي طلب</td></tr>
+      <tr><td class="c">5</td><td>تشغيل الـ backend ثم الـ worker</td><td>الـ API أولاً ثم المعالجة</td></tr>
+      <tr><td class="c">6</td><td>فحص <span class="mono">/api/v1/health</span> محلياً على الخادم</td><td>عزل الأخطاء قبل الوصول العام</td></tr>
+      <tr><td class="c">7</td><td>ربط الـ Reverse proxy و HTTPS</td><td>تأمين الاتصال للمستخدم</td></tr>
+      <tr><td class="c">8</td><td>بناء وخدمة الواجهة بعنوان API الصحيح</td><td>Vite يدمج العنوان وقت البناء</td></tr>
+      <tr><td class="c">9</td><td>اختبار رحلة كاملة: رفع &rarr; معالجة &rarr; واقعة &rarr; تقرير</td><td>إثبات أن النظام يعمل من طرفه لطرفه</td></tr>
+      <tr><td class="c">10</td><td>جدولة النسخ الاحتياطي وتجربة استرجاع</td><td>ضمان عدم فقدان النتائج</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="co-title">نصيحة أخيرة</span>
+    <p>وثّق كل قرار نشر في <span class="mono">docs/DEPLOYMENT.md</span>: اسم المزوّد، الخيار (A أو B)،
+    قيم الحدود التي تحقّقت منها من التوثيق الرسمي، وعنوان الرابط. هذا الملف هو ما تعرضه اللجنة عند سؤال
+    "كيف نشرتم النظام؟".</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 20</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>فرّقنا بين التطوير والإنتاج، وعرضنا خيارين: نشر بسيط للعرض على CPU، واستضافة ذاتية قابلة لـ GPU مع
+        Reverse proxy و HTTPS. وأكّدنا أن الأسعار والحدود وتوفّر GPU تُتحقَّق من التوثيق الرسمي وقت النشر،
+        وأن الاستضافة الثابتة لا تصلح للـ inference الطويل.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>اختيار الخيار A أو B وتوثيق السبب.</li>
+          <li>ضبط <span class="mono">APP_ENV=production</span> و<span class="mono">APP_DEBUG=false</span> و<span class="mono">AUTH_ENABLED=true</span>.</li>
+          <li>إعداد HTTPS ونسخ احتياطي مجرَّب.</li>
+          <li>كتابة <span class="mono">docs/DEPLOYMENT.md</span>.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>رابط عام يعمل للواجهة والـ API عبر HTTPS.</li>
+        <li>قاعدة بيانات مُدارة مع نسخة احتياطية مجرَّبة.</li>
+        <li>فحص صحة ناجح على الرابط العام.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>فتح الرابط من جهاز خارج شبكة الفريق.</li>
+        <li>تنفيذ رحلة كاملة من الرفع حتى التقرير على النسخة المنشورة.</li>
+        <li>التأكد من أن الأسرار غير ظاهرة في أي سجل أو مستودع.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>كتابة كلمات المرور داخل الكود أو رفع <span class="mono">.env</span>.</li>
+        <li>تشغيل الـ API قبل تنفيذ الترحيلات.</li>
+        <li>افتراض وجود GPU أو قرص دائم دون التحقق.</li>
+        <li>ترك <span class="mono">APP_DEBUG=true</span> على الإنتاج.</li></ul></div>
+    </div>
+  </div>
+</section>

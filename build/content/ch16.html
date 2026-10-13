@@ -1,0 +1,127 @@
+<section class="chapter" id="ch16">
+  <div class="opener">
+    <div class="op-num">16</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH16 &middot; REAL-TIME STATUS</p>
+      <h2>التحديثات الفورية وحالة المعالجة</h2>
+      <p class="op-sub">Polling الآن، WebSocket لاحقاً</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>بعد بدء معالجة فيديو، يريد المستخدم أن يرى نسبة التقدّم تتحرّك دون إعادة تحميل الصفحة. هذا الفصل
+  يقارن الطرق الثلاثة لتحديث الحالة، ويوضّح لماذا نختار <span class="en">Polling</span> في الـ MVP، وكيف نكتبه
+  دون تسريب مؤقتات، وكيف نترك الباب مفتوحاً لـ <span class="en">WebSocket</span> لاحقاً.</p></div>
+
+  <h3>16.1 المقارنة بين الطرق الثلاثة</h3>
+  <table class="tbl">
+    <caption>جدول 16-1: Polling مقابل SSE مقابل WebSocket</caption>
+    <thead><tr><th class="w18">الطريقة</th><th class="w26">كيف تعمل</th><th class="w26">المزايا</th><th>العيوب وتعقيد التنفيذ</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Polling</span></td><td>الواجهة تسأل الـ API كل فترة ثابتة عن حالة الـ job</td><td>بسيطة جداً، تعمل مع أي خادم، لا تحتاج بنية خاصة</td><td>طلبات متكرّرة ولو لم يتغيّر شيء؛ تأخير بحدود الفترة المختارة</td></tr>
+      <tr><td><span class="en">SSE</span></td><td>قناة واحدة من الخادم إلى المتصفح تُرسل تحديثات نصّية</td><td>اتجاه واحد بسيط، إعادة اتصال تلقائية في المتصفح</td><td>اتجاه واحد فقط، تحتاج إدارة اتصالات طويلة على الخادم</td></tr>
+      <tr><td><span class="en">WebSocket</span></td><td>اتصال ثنائي الاتجاه يبقى مفتوحاً</td><td>أسرع تحديث وأقل حمولة عند كثرة العملاء</td><td>أعقد: إدارة الاتصالات، إعادة الاتصال، الحالة على الخادم</td></tr>
+    </tbody>
+  </table>
+
+  <h3>16.2 لماذا نختار Polling للـ MVP</h3>
+  <p>معدّل تحديث حالة الـ job ليس مرتفعاً، وعدد المستخدمين في العرض التوضيحي صغير، والفائدة من WebSocket لا تبرّر
+  تعقيده الآن. الـ <span class="mono">Polling</span> يُبنى في دقائق، ويعمل مع نفس الـ endpoints الموجودة
+  (<span class="mono">GET /api/v1/jobs/{job_id}</span>) دون أي تغيير في الـ Backend. نستخدم فترة قصيرة نسبياً
+  (٣ ثوانٍ) أثناء المعالجة، ونتوقف تماماً عند وصول الـ job إلى حالة نهائية.</p>
+
+  <h3>16.3 خطّاف متابعة حالة الـ Job</h3>
+  <p>نبني الخطّاف على <span class="mono">usePolling</span> من الفصل السابق، ونمرّر له دالة
+  <span class="mono">shouldStop</span> تُرجِع <span class="mono">true</span> عند الحالات النهائية
+  (<span class="mono">completed, failed, cancelled</span>). هذا يمنع استمرار الطلبات بلا داعٍ بعد انتهاء العمل.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/hooks/useJobStatus.ts</span><span class="ftag">typescript</span></div>
+<pre>import { useCallback } from "react";
+import { api } from "../api/client";
+import type { JobOut } from "../types/api";
+import { usePolling } from "./usePolling";
+
+const TERMINAL: string[] = ["completed", "failed", "cancelled"];
+
+export function useJobStatus(jobId: string | null, intervalMs = 3000) {
+  const fetcher = useCallback(async () =&gt; {
+    const { data } = await api.get&lt;JobOut&gt;(`/api/v1/jobs/${jobId}`);
+    return data;
+  }, [jobId]);
+
+  const shouldStop = useCallback((job: JobOut) =&gt; TERMINAL.includes(job.status), []);
+
+  return usePolling&lt;JobOut&gt;(fetcher, {
+    enabled: Boolean(jobId),
+    intervalMs,
+    shouldStop,
+  });
+}</pre></div>
+
+  <h3>16.4 تجنّب تسريب المؤقتات والـ Backoff</h3>
+  <p>الخطأ الأشهر هو ترك <span class="mono">setInterval</span> يعمل بعد مغادرة الصفحة، فيستمر الطلب إلى خادم
+  أُغلق أو مستخدم سجّل خروجه. لذلك نستخدم <span class="mono">setTimeout</span> متسلسلاً لا
+  <span class="mono">setInterval</span>، ونُنظّف المؤقت في دالة الإرجاع الخاصة بـ <span class="mono">useEffect</span>.
+  عند فشل الطلب نطبّق تراجعاً بسيطاً بمضاعفة الفترة قبل المحاولة التالية بدل إغراق الخادم بطلبات فاشلة.</p>
+  <ul>
+    <li>خطّاف واحد مسؤول عن المؤقت، ولا يُنشئ المؤقت إلا عند تفعيل <span class="mono">enabled</span>.</li>
+    <li>إلغاء الطلب الجاري عبر علم <span class="mono">cancelled</span> حتى لا نُحدّث مكوّناً أُزيل.</li>
+    <li>التوقّف عند الحالة النهائية أو عند خطأ متكرّر تجاوز حدّاً معقولاً.</li>
+  </ul>
+
+  <h3>16.5 WebSocket كتحسين مستقبلي</h3>
+  <p>إذا كثُر المستخدمون أو احتجنا تحديثاً فورياً حقيقياً، ننتقل إلى <span class="en">WebSocket</span>. الملف
+  التالي مكتوب كواجهة مخطَّطة فقط، وموضّح صراحةً أنه <strong>غير منفَّذ في الـ MVP</strong>، ويُذكر هنا لبيان
+  شكل التحسين المستقبلي دون أي ادّعاء بإنجازه.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/ws.py</span><span class="ftag">python</span></div>
+<pre># backend/app/api/v1/endpoints/ws.py
+# FUTURE / NOT IMPLEMENTED IN THE MVP - placeholder only.
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+router = APIRouter()
+
+
+@router.websocket("/ws/jobs/{job_id}")
+async def job_status_socket(websocket: WebSocket, job_id: str) -&gt; None:
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.receive_text()  # no broadcast wired yet
+    except WebSocketDisconnect:
+        return</pre></div>
+
+  <h3>16.6 تنبيه: الفيديو المسجَّل ليس "نظاماً لحظياً"</h3>
+  <div class="callout warn"><span class="co-title">دقّة الوصف</span>
+    <p>ما نبنيه هو <strong>تحليل فيديو مسجَّل</strong> (<span class="en">recorded video analysis</span>)، وليس
+    بثاً مباشراً. الـ <span class="mono">Polling</span> يُحدّث حالة معالجة ملف سبق رفعه، ولا يعني أن الكاميرا
+    متصلة الآن. لا نستخدم كلمة "لحظي" أو "Live" لوصف هذه الوظيفة، لأن ذلك ادّعاء غير صحيح، والبث المباشر
+    (<span class="mono">RTSP</span>) خارج نطاق الـ MVP صراحةً.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 16</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>قارنّا Polling وSSE وWebSocket، واخترنا Polling للـ MVP لبساطته، وبنينا خطّاف
+        <span class="mono">useJobStatus</span> يتوقف عند الحالة النهائية، وشرحنا تجنّب تسريب المؤقتات، ووضعنا
+        WebSocket كتحسين مستقبلي غير منفَّذ.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>استخدام <span class="mono">useJobStatus</span> في صفحة تفاصيل الفيديو.</li>
+          <li>التأكد من إلغاء المؤقت عند إزالة المكوّن.</li>
+          <li>ضبط الفترة الزمنية بحيث لا تُثقل الخادم.</li>
+          <li>وسم أي كود WebSocket بأنه مستقبلي وغير منفَّذ.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>شريط تقدّم يتحرّك أثناء المعالجة ويتوقف عند الانتهاء.</li>
+        <li>لا طلبات متبقية بعد مغادرة الصفحة.</li>
+        <li>توضيح مكتوب أن النظام يعالج فيديو مسجَّلاً لا بثاً مباشراً.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>افتح تبويب الشبكة: الطلبات تتوقف فور وصول الحالة النهائية.</li>
+        <li>لا يظهر تحذير تحديث حالة مكوّن غير مركّب في الـ console.</li>
+        <li>لا يوجد نص يدّعي اللحظية في الواجهة.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>استخدام <span class="mono">setInterval</span> دون تنظيف فيستمر الطلب دائماً.</li>
+        <li>الاستمرار في الاستطلاع بعد الحالة النهائية.</li>
+        <li>وصف تحليل فيديو مسجَّل بأنه نظام لحظي.</li>
+        <li>فترة استطلاع قصيرة جداً تُثقل الخادم بلا فائدة.</li></ul></div>
+    </div>
+  </div>
+</section>

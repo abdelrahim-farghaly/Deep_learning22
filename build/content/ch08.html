@@ -8,11 +8,7 @@
     </div>
   </div>
 
-  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام. كل فيديو مرفوع، وكل واقعة أخرجها خط المعالجة،
-  وكل صورة دليل، وكل قرار مراجعة بشري يجب أن يُحفظ في صف واضح يمكن الاستعلام عنه لاحقاً. في هذا الفصل
-  نُثبّت مخططاً واحداً (<span class="en">schema</span>) يتفق عليه الخمسة أعضاء، ونكتب أول
-  <span class="en">migration</span> تنشئه فعلياً في <span class="en">PostgreSQL</span>. الهدف العملي: بعد
-  هذا الفصل يستطيع أي عضو تشغيل أمر واحد فيُنشئ قاعدة بيانات مطابقة تماماً للفصل 7 والفصول التالية.</p></div>
+  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام: كل فيديو وكل واقعة وكل دليل وكل قرار مراجعة يُحفظ في صف واضح. في هذا الفصل نُثبّت مخططاً واحداً (<span class="en">schema</span>) يتفق عليه الفريق، ونكتب أول <span class="en">migration</span> تنشئه فعلياً في <span class="en">PostgreSQL</span>، فيستطيع أي عضو بناء القاعدة بأمر واحد.</p></div>
 
   <h3>8.1 مبادئ التصميم التي نلتزم بها</h3>
   <p>قبل الجداول نفسها، نتفق على ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
@@ -291,3 +287,188 @@
       <tr><td class="mono">created_at</td><td class="mono">TIMESTAMPTZ</td><td>زمن الإجراء</td></tr>
     </tbody>
   </table>
+
+  <h3>8.4 الجداول المؤجَّلة</h3>
+  <p>ثلاثة جداول مخطَّطة لكنها لا تدخل الـ MVP، ونذكرها هنا حتى لا يخترعها أحد لاحقاً بأسماء مختلفة.</p>
+  <div class="grid3">
+    <div class="card navy"><h5>cameras <span class="badge future">Future</span></h5>
+      <p>عمودها: <span class="mono">id</span> و <span class="mono">name</span> و <span class="mono">location_label</span>
+      و <span class="mono">description</span> و <span class="mono">created_at</span>. تُستخدم لربط الفيديو بكاميرا
+      محدّدة عند معايرة الموقع، و <span class="mono">videos.camera_id</span> يبقى <span class="mono">NULL</span> في الـ MVP.</p></div>
+    <div class="card orange"><h5>model_runs <span class="badge future">Future</span></h5>
+      <p>عمودها: <span class="mono">job_id</span> و <span class="mono">model_name</span> و <span class="mono">model_version</span>
+      و <span class="mono">device</span> و <span class="mono">weights_path</span> و <span class="mono">classes_json</span>
+      و <span class="mono">duration_ms</span>. تسجّل تفاصيل كل تشغيل Model لأغراض التشخيص.</p></div>
+    <div class="card green"><h5>notifications <span class="badge future">Future</span></h5>
+      <p>عمودها: <span class="mono">user_id</span> و <span class="mono">incident_id</span> و <span class="mono">channel</span>
+      و <span class="mono">status</span>. للتنبيهات الخارجية (بريد/رسالة) بعد استقرار الـ MVP.</p></div>
+  </div>
+
+  <h3>8.5 مخطط العلاقات (ER Diagram)</h3>
+  <p>يُلخّص الشكل التالي كل الجداول والعلاقات بينها. لاحظ أن كل العلاقات من نوع واحد إلى متعدّد
+  (<span class="en">1..N</span>)، وأن <span class="mono">videos</span> هو الجذر الذي تتفرّع منه بقية الكيانات.</p>
+  <div class="fig"><div class="er">
+    <div class="er-table"><div class="er-name">users</div><ul><li class="pk">id</li><li>email</li><li>hashed_password</li><li>role</li></ul></div>
+    <div class="er-table late"><div class="er-name">cameras</div><ul><li class="pk">id</li><li>name</li><li>location_label</li></ul></div>
+    <div class="er-table alt"><div class="er-name">videos</div><ul><li class="pk">id</li><li class="fk">camera_id</li><li class="fk">uploaded_by</li><li>original_filename</li><li>storage_key</li><li>status</li><li>checksum_sha256</li></ul></div>
+    <div class="er-table"><div class="er-name">processing_jobs</div><ul><li class="pk">id</li><li class="fk">video_id</li><li>status</li><li>progress</li><li>worker_id</li></ul></div>
+    <div class="er-table"><div class="er-name">detections</div><ul><li class="pk">id</li><li class="fk">job_id</li><li class="fk">video_id</li><li>class_name</li><li>confidence</li><li>bbox_x1</li></ul></div>
+    <div class="er-table"><div class="er-name">tracks</div><ul><li class="pk">id</li><li class="fk">job_id</li><li>track_id</li><li>first_frame</li><li>last_frame</li></ul></div>
+    <div class="er-table alt"><div class="er-name">incidents</div><ul><li class="pk">id</li><li class="fk">video_id</li><li class="fk">job_id</li><li>incident_type</li><li>severity</li><li>status</li></ul></div>
+    <div class="er-table"><div class="er-name">evidence</div><ul><li class="pk">id</li><li class="fk">incident_id</li><li>kind</li><li>storage_key</li></ul></div>
+    <div class="er-table"><div class="er-name">incident_reviews</div><ul><li class="pk">id</li><li class="fk">incident_id</li><li class="fk">reviewer_id</li><li>action</li><li>new_status</li></ul></div>
+    <div class="er-table late"><div class="er-name">model_runs</div><ul><li class="pk">id</li><li class="fk">job_id</li><li>model_name</li><li>device</li></ul></div>
+    <div class="er-table late"><div class="er-name">notifications</div><ul><li class="pk">id</li><li class="fk">user_id</li><li class="fk">incident_id</li><li>channel</li></ul></div>
+  </div><div class="fig-cap"><b>شكل 8-1:</b> مخطط الكيانات والعلاقات (ER) — الجداول المرمّزة بالرمادي مؤجَّلة عن الـ MVP</div></div>
+  <table class="tbl">
+    <caption>جدول 8-10: ملخّص العلاقات</caption>
+    <thead><tr><th class="w40">العلاقة</th><th>المعنى</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">videos 1..N processing_jobs</td><td>الفيديو الواحد يمكن معالجته أكثر من مرة</td></tr>
+      <tr><td class="mono">processing_jobs 1..N detections</td><td>كل وظيفة تُنتج كشوفات كثيرة</td></tr>
+      <tr><td class="mono">processing_jobs 1..N tracks</td><td>كل وظيفة تُنتج مسارات تتبّع</td></tr>
+      <tr><td class="mono">videos 1..N incidents</td><td>الفيديو الواحد قد يحمل عدة وقائع</td></tr>
+      <tr><td class="mono">processing_jobs 1..N incidents</td><td>الوظيفة الواحدة تولّد وقائع</td></tr>
+      <tr><td class="mono">incidents 1..N evidence</td><td>الواقعة الواحدة قد يكون لها أكثر من دليل</td></tr>
+      <tr><td class="mono">incidents 1..N incident_reviews</td><td>سجل كامل لإجراءات المراجعة</td></tr>
+      <tr><td class="mono">model_runs N..1 processing_jobs</td><td>تشغيلات متعدّدة تنتمي لوظيفة واحدة</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.6 الفهارس ودعم الفلترة والترتيب</h3>
+  <p>الفلترة في الواجهة ليست ميزة تجميلية؛ كل فلتر يعني شرط <span class="mono">WHERE</span> في الاستعلام،
+  وبدون فهرس مناسب يتحوّل إلى مسح كامل للجدول. لذلك نربط كل فهرس باستعلام حقيقي معروف.</p>
+  <table class="tbl">
+    <caption>جدول 8-11: الفهارس ومبرّر كل واحد</caption>
+    <thead><tr><th class="w30">الفهرس</th><th>الاستعلام الذي يخدمه</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">videos(checksum_sha256)</td><td>كشف الفيديو المكرّر قبل حفظ الملف</td></tr>
+      <tr><td class="mono">videos(status)</td><td>عدّ الفيديوهات قيد المعالجة أو الفاشلة في لوحة التحكم</td></tr>
+      <tr><td class="mono">detections(job_id, frame_number)</td><td>قراءة كشوفات وظيفة مرتّبةً بالإطار</td></tr>
+      <tr><td class="mono">detections(class_name)</td><td>تحليل توزيع الأصناف</td></tr>
+      <tr><td class="mono">incidents(status)</td><td>قائمة الوقائع المعلّقة للمراجعة <span class="mono">pending_review</span></td></tr>
+      <tr><td class="mono">incidents(incident_type)</td><td>فلترة بنوع الواقعة في الـ Analytics</td></tr>
+      <tr><td class="mono">incidents(severity)</td><td>فلترة بالخطورة</td></tr>
+      <tr><td class="mono">incidents(created_at)</td><td>الترتيب الزمني الافتراضي <span class="mono">-created_at</span> ونطاقات التاريخ</td></tr>
+      <tr><td class="mono">incidents(video_id)</td><td>جلب كل وقائع فيديو معيّن</td></tr>
+    </tbody>
+  </table>
+  <p>الفلترة المتعدّدة في الـ API (نوع + خطورة + حالة + نطاق تاريخ + فيديو) تُبنى كسلاسل شروط تُضاف تدريجياً،
+  مع ترقيم صفحات (<span class="en">pagination</span>) دائماً عبر <span class="mono">LIMIT</span> و
+  <span class="mono">OFFSET</span>. هذا يمنع إرجاع آلاف الصفوف في ردّ واحد.</p>
+
+  <h3>8.7 نمو جدول <span class="mono">detections</span> وخيار <span class="mono">PERSIST_ALL_DETECTIONS</span></h3>
+  <p>فيديو عشر دقائق بمعدّل 25 إطاراً/ثانية يعني 15000 إطار. تسجيل كل كشف في كل إطار يُنشئ ملايين الصفوف دون فائدة، لأن ما يهمّ المستخدم هو الوقائع لا كل كشف.</p>
+  <ul>
+    <li><strong>القيمة الافتراضية:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=false</span>، فلا نكتب إلا
+    الكشوفات التي تهمّ (المرتبطة بوقائع أو بمخالفات محتملة) أو نأخذ عيّنات منها.</li>
+    <li><strong>عند التفعيل:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=true</span> يُستخدم أثناء
+    التطوير والتشخيص فقط، مع وعي كامل بضغط القرص والزمن.</li>
+    <li><strong>الربط بخط المعالجة:</strong> قرار الكتابة يُتخذ داخل الـ worker (الفصل 11)، لا داخل الـ Model نفسه.</li>
+  </ul>
+  <div class="callout warn"><span class="co-title">تنبيه عملي</span>
+    <p>لا تُفعّل <span class="mono">PERSIST_ALL_DETECTIONS=true</span> على جهاز ضعيف أو قرص ممتلئ. ابدأ دائماً
+    بالقيمة الافتراضية، وارفعها مؤقتاً فقط عند تحقيقك في مشكلة كشف محدّدة.</p></div>
+
+  <h3>8.8 لماذا لا نخزّن الفيديو داخل <span class="en">PostgreSQL</span></h3>
+  <p>لماذا لا نضع ملف الفيديو في حقل <span class="mono">BYTEA</span>؟ لأن <span class="en">PostgreSQL</span> قاعدة علائقية، وحجم الفيديوهات والصور الدليلية سيضخّم النسخ الاحتياطي والاستعلام بلا داعٍ. نحفظ <strong>وصفاً صغيراً</strong> عن الملف، ويبقى الملف نفسه في نظام ملفات أو تخزين كائنات مستقل.</p>
+  <table class="tbl">
+    <caption>جدول 8-12: أين يوضع كل شيء</caption>
+    <thead><tr><th class="w33">البيانات</th><th class="w30">مكانها</th><th>السبب</th></tr></thead>
+    <tbody>
+      <tr><td>البيانات الوصفية (<span class="mono">original_filename</span>، <span class="mono">size_bytes</span>، <span class="mono">status</span>)</td><td><span class="mono">PostgreSQL</span></td><td>صغيرة، قابلة للفلترة والفهرسة</td></tr>
+      <tr><td>ملف الفيديو نفسه</td><td>طبقة التخزين <span class="mono">storage/</span></td><td>كبير جداً، لا يحتاج استعلاماً</td></tr>
+      <tr><td>صور ومقاطع الدليل</td><td>طبقة التخزين <span class="mono">storage/</span></td><td>تُخزَّن مرة وتُقرأ عند العرض</td></tr>
+      <tr><td>المفتاح <span class="mono">storage_key</span></td><td><span class="mono">PostgreSQL</span></td><td>يربط السجل بالملف دون تخزين الملف</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.9 Alembic والمهاجرات الأولى</h3>
+  <p><strong>Alembic</strong> هو أداة إدارة المهاجرات (<span class="en">migrations</span>) الخاصة بـ
+  <span class="en">SQLAlchemy</span>: تحوّل تعريفات الـ Models إلى تغييرات فعلية في قاعدة البيانات، وتسمح
+  لكل عضو بإعادة بناء المخطط نفسه بأمر واحد بدل إنشاء الجداول يدوياً.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/models/video.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/models/video.py (abbreviated)</span>
+<span class="kw">import</span> uuid
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> BigInteger, DateTime, Enum, ForeignKey, Integer, Numeric, String, func
+<span class="kw">from</span> sqlalchemy.dialects.postgresql <span class="kw">import</span> UUID
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Mapped, mapped_column, relationship
+<span class="kw">from</span> app.db.base <span class="kw">import</span> Base
+<span class="kw">from</span> app.models.enums <span class="kw">import</span> VideoStatus
+
+
+<span class="kw">class</span> <span class="fn">Video</span>(Base):
+    __tablename__ = <span class="str">"videos"</span>
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=<span class="kw">True</span>), primary_key=<span class="kw">True</span>, default=uuid.uuid4)
+    camera_id: Mapped[uuid.UUID | <span class="kw">None</span>] = mapped_column(ForeignKey(<span class="str">"cameras.id"</span>))
+    original_filename: Mapped[str] = mapped_column(String(<span class="num">255</span>), nullable=<span class="kw">False</span>)
+    stored_filename: Mapped[str] = mapped_column(String(<span class="num">255</span>), nullable=<span class="kw">False</span>)
+    storage_key: Mapped[str] = mapped_column(String(<span class="num">512</span>), unique=<span class="kw">True</span>)
+    content_type: Mapped[str] = mapped_column(String(<span class="num">100</span>))
+    size_bytes: Mapped[int] = mapped_column(BigInteger)
+    duration_seconds: Mapped[float | <span class="kw">None</span>] = mapped_column(Numeric(<span class="num">10</span>, <span class="num">3</span>))
+    fps: Mapped[float | <span class="kw">None</span>] = mapped_column(Numeric(<span class="num">8</span>, <span class="num">3</span>))
+    frame_count: Mapped[int | <span class="kw">None</span>] = mapped_column(Integer)
+    checksum_sha256: Mapped[str | <span class="kw">None</span>] = mapped_column(String(<span class="num">64</span>), index=<span class="kw">True</span>)
+    status: Mapped[VideoStatus] = mapped_column(
+        Enum(VideoStatus, name=<span class="str">"video_status"</span>), default=VideoStatus.uploaded)
+    uploaded_by: Mapped[uuid.UUID | <span class="kw">None</span>] = mapped_column(ForeignKey(<span class="str">"users.id"</span>))
+    created_at: Mapped[<span class="kw">None</span>] = mapped_column(DateTime(timezone=<span class="kw">True</span>), server_default=func.now())
+    updated_at: Mapped[<span class="kw">None</span>] = mapped_column(DateTime(timezone=<span class="kw">True</span>), server_default=func.now(), onupdate=func.now())
+
+    jobs = relationship(<span class="str">"ProcessingJob"</span>, back_populates=<span class="str">"video"</span>, cascade=<span class="str">"all, delete-orphan"</span>)
+    incidents = relationship(<span class="str">"Incident"</span>, back_populates=<span class="str">"video"</span>)
+</pre></div>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/alembic.ini (excerpt)</span><span class="ftag">ini</span></div>
+<pre>[alembic]
+script_location = migrations
+prepend_sys_path = .
+<span class="cmt"># sqlalchemy.url is set in migrations/env.py from settings.DATABASE_URL</span>
+</pre></div>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">bash</span></div>
+<pre class="term">$ cd backend
+$ alembic init migrations
+$ alembic revision --autogenerate -m "initial schema"
+$ alembic upgrade head
+</pre></div>
+  <p>بعد تنفيذ الأمر الأخير تصبح قاعدة البيانات مطابقة للمخطط. أمر <span class="mono">--autogenerate</span>
+  يقارن الـ Models بالوضع الحالي ويولّد ملف المهاجرة، لكن مراجعته يدوياً قبل التطبيق خطوة إلزامية.</p>
+
+  <h3>8.10 الخصوصية: لا نخزّن هويات حقيقية للعاملين</h3>
+  <p>النظام يكتشف معدات الوقاية والاقتراب من المعدات، ولا يحتاج معرفة <em>من</em> هو العامل. لذلك لا نخزّن أسماء ولا صوراً تعريفية ولا أرقام هوية، بل <span class="mono">track_id</span> رقمياً مؤقّتاً داخل الوظيفة وصور دليل تخدم المراجعة فقط.</p>
+  <div class="callout note"><span class="co-title">ملاحظة للجنة المناقشة</span>
+    <p>إذا سُئلنا عن الخصوصية، فالجواب: النظام يحفظ أدلة بصرية للحدث لا هويات أشخاص، ويُستخدم لمساعدة المراجعة
+    البشرية لا للتعقّب الفردي.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 8</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>ثبّتنا مخطط قاعدة البيانات كاملاً: ثمانية <span class="mono">enums</span>، وجداول الـ MVP الثمانية،
+        وثلاثة جداول مؤجَّلة، وعلاقات <span class="mono">1..N</span>، والفهارس المرتبطة بالفلترة، وسبب عدم تخزين
+        الفيديو داخل <span class="en">PostgreSQL</span>، وكيف نُدير كل ذلك بـ <span class="en">Alembic</span>.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">app/models/enums.py</span> بكل القيم الثمانية حرفياً.</li>
+          <li>كتابة ملفات الـ Models لجميع جداول الـ MVP.</li>
+          <li>تهيئة <span class="mono">migrations/</span> وتوليد أول مهاجرة ثم مراجعتها يدوياً.</li>
+          <li>إضافة الفهرس الفريد الجزئي على <span class="mono">processing_jobs(video_id)</span>.</li>
+          <li>إبقاء <span class="mono">PERSIST_ALL_DETECTIONS=false</span> افتراضياً.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>قاعدة بيانات محلية تُبنى بأمر <span class="mono">alembic upgrade head</span>.</li>
+        <li>ملف مهاجرة أولى يحتوي كل الجداول والفهارس.</li>
+        <li>مخطط ER محدَّث في <span class="mono">docs/</span> مطابق للتنفيذ.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>أي عضو يستطيع بناء القاعدة من الصفر بأمر واحد دون خطوات يدوية.</li>
+        <li>محاولة إدخال حالة خارج الـ <span class="mono">enum</span> تفشل.</li>
+        <li>إنشاء وظيفتين نشطتين لنفس الفيديو يفشل بسبب الفهرس الفريد الجزئي.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تخزين الفيديو أو صور الدليل داخل القاعدة.</li>
+        <li>تغيير أسماء الأعمدة أو قيم الـ <span class="mono">enum</span> لتسهيل الكتابة.</li>
+        <li>تعديل ملفات الـ Models دون توليد مهاجرة، فيختلف المخطط بين الأجهزة.</li>
+        <li>تفعيل تخزين كل الكشوفات على جهاز ضعيف فيمتلئ القرص.</li></ul></div>
+    </div>
+  </div>
+</section>

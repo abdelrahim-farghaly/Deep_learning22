@@ -1,0 +1,290 @@
+<section class="chapter" id="ch04">
+  <div class="opener">
+    <div class="op-num">04</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH04 &middot; REPOSITORY LAYOUT</p>
+      <h2>هيكل المستودع وتنظيم المجلدات</h2>
+      <p class="op-sub">أين يوضع كل ملف، وما لا يجب أن يدخل Git أبداً</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>الهيكل المنظَّم للمجلدات هو أول انطباع يأخذه المشرف عن الفريق، وهو أيضاً أول شيء يمنع الفوضى أثناء
+    العمل المتوازي. في هذا الفصل نثبّت شجرة المجلدات كاملة، ونوضّح وظيفة كل مجلد، ونحدّد بدقة ما يُرفع إلى
+    GitHub وما لا يُرفع أبداً، مع ملفَّي <span class="mono">.gitignore</span> و<span class="mono">.env.example</span>
+    كاملين جاهزين للنسخ.</p>
+  </div>
+
+  <h3>4.1 شجرة المجلدات الكاملة</h3>
+  <p>هذه الشجرة هي المرجع الرسمي، وأي ملف جديد يجب أن يجد مكانه فيها. لا ننشئ مجلدات عشوائية ولا نضع ملف
+  Backend داخل الـ Frontend.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">repository tree</span><span class="ftag">text</span></div>
+<pre>safevision-ai/
+  backend/                 # FastAPI application (package name: app)
+    app/
+      main.py              # entry point, creates the FastAPI app
+      api/v1/
+        router.py          # aggregates all v1 routers
+        endpoints/         # health.py, videos.py, jobs.py, incidents.py ...
+      core/                # config.py, logging.py, security.py
+      db/                  # session.py, base.py
+      models/              # SQLAlchemy models
+      schemas/             # Pydantic schemas
+      repositories/        # data access layer
+      services/            # business logic layer
+      ai/                  # models loading + inference wrappers
+      workers/             # job runner process
+      storage/             # local file storage helpers
+      reports/             # reporting + CSV export
+      utils/               # shared helpers
+    migrations/            # Alembic migrations
+    tests/                 # backend tests
+    requirements.txt
+  frontend/                # React + TypeScript + Vite
+    src/
+    public/
+    package.json
+    vite.config.ts
+  models/                  # model checkpoints (NOT in git)
+  data/
+    raw/
+    processed/
+    sample/
+  storage/                 # uploads | evidence | reports (NOT in git)
+    uploads/
+    evidence/
+    reports/
+  docs/                    # architecture, API, glossary
+  scripts/                 # helper scripts (db init, demo)
+  docker-compose.yml
+  .env.example
+  .gitignore
+  README.md</pre></div>
+
+  <h3>4.2 وظيفة كل مجلد مهم</h3>
+  <table class="tbl">
+    <caption>جدول 4-1: وظيفة المجلدات الأساسية</caption>
+    <thead><tr><th class="w26">المجلد</th><th class="w44">وظيفته</th><th class="w30">يُرفع إلى Git؟</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">backend/app</td><td>كل كود الـ API بطبقاته (routers, services, repositories, models, schemas)</td><td>نعم</td></tr>
+      <tr><td class="mono">backend/migrations</td><td>ملفات Alembic التي تتبّع تغييرات قاعدة البيانات</td><td>نعم</td></tr>
+      <tr><td class="mono">backend/tests</td><td>اختبارات الـ Backend</td><td>نعم</td></tr>
+      <tr><td class="mono">frontend/src</td><td>مكوّنات React وصفحاتها وطبقة الاتصال بالـ API</td><td>نعم</td></tr>
+      <tr><td class="mono">models</td><td>أوزان الـ Models المدرَّبة (ملفات كبيرة بالميجابايت)</td><td>لا</td></tr>
+      <tr><td class="mono">data</td><td>البيانات الخام والمعالجة وعيّنات الاختبار</td><td>العيّنات الصغيرة فقط</td></tr>
+      <tr><td class="mono">storage</td><td>الفيديوهات المرفوعة وصور الدليل والتقارير المولَّدة</td><td>لا</td></tr>
+      <tr><td class="mono">docs</td><td>وثائق المعمارية وعقد الـ API والمصطلحات</td><td>نعم</td></tr>
+      <tr><td class="mono">scripts</td><td>سكربتات مساعدة مثل تهيئة قاعدة البيانات وتشغيل العرض التوضيحي</td><td>نعم</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3 ما لا يجب أن يدخل Git أبداً ولماذا</h3>
+  <p><strong>Git:</strong> نظام تتبّع الإصدارات الذي يحفظ تاريخ كل تغيير. لكن Git مصمَّم للنصوص الصغيرة لا
+  للملفات الضخمة. لذلك هناك ثلاثة أصناف لا نرفعها:</p>
+  <ul>
+    <li><strong>الملفات الكبيرة (Binaries):</strong> الفيديوهات المرفوعة وأوزان الـ Models. رفعها يجعل حجم
+    المستودع ينتفخ، وكل عضو سيضطر لتنزيل جيجابايتات عند كل <span class="mono">git clone</span>.</li>
+    <li><strong>البيانات المولَّدة (Generated):</strong> صور الدليل والتقارير. هذه مخرجات تشغيل وليست كوداً،
+    ويمكن إعادة توليدها.</li>
+    <li><strong>الأسرار (Secrets):</strong> كلمة مرور قاعدة البيانات، و<span class="mono">SECRET_KEY</span>،
+    ومفاتيح S3. تسريبها على GitHub خطر أمني حقيقي ولو كان المستودع خاصاً.</li>
+  </ul>
+  <div class="callout danger"><span class="co-title">خطر</span>
+    <p>رفع ملف <span class="mono">.env</span> أو أي مفتاح حقيقي إلى GitHub خطأ لا يُصلَح بمجرد الحذف، لأن
+    التاريخ يحتفظ به. القاعدة: نرفع <span class="mono">.env.example</span> فقط، وننشئ <span class="mono">.env</span>
+    محلياً على كل جهاز.</p></div>
+
+  <h3>4.4 ملف <span class="mono">.gitignore</span> كامل</h3>
+  <p>هذا الملف يخبر Git بالملفات التي يتجاهلها. يوضع في جذر المستودع، ويُكتب بترتيب واضح حسب النوع.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">.gitignore</span><span class="ftag">gitignore</span></div>
+<pre># ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ---- Environment & secrets ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Node / frontend ----
+node_modules/
+dist/
+dist-ssr/
+.vite/
+npm-debug.log*
+yarn-error.log*
+
+# ---- Model checkpoints (large binaries) ----
+models/
+*.pt
+*.pth
+*.onnx
+*.weights
+
+# ---- Local storage & generated data ----
+storage/uploads/
+storage/evidence/
+storage/reports/
+data/raw/
+data/processed/
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# ---- Reports & exports ----
+*.csv
+*.pdf
+!data/sample/**
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# ---- Docker / build ----
+*.pid
+docker-compose.override.yml</pre></div>
+  <div class="callout note"><span class="co-title">ملاحظة</span>
+    <p>السطر <span class="mono">!.env.example</span> استثناء مهم: نمنع <span class="mono">.env</span> الحقيقي
+    ونسمح بالقالب فقط. و<span class="mono">!data/sample/**</span> يسمح برفع عيّنات صغيرة للاختبار.</p></div>
+
+  <h3>4.5 ملف <span class="mono">.env.example</span> بقيم Placeholder فقط</h3>
+  <p>هذا القالب يُرفع إلى GitHub، ويُنسخ على كل جهاز إلى <span class="mono">.env</span> ثم تُملأ قيمه الحقيقية
+  محلياً. كل القيم هنا Placeholder بالشكل <span class="mono">&lt;NAME&gt;</span> ولا يجوز وضع سرّ حقيقي فيه.
+  أسماء المتغيّرات مطابقة تماماً لما في SPEC.md.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">ini</span></div>
+<pre># ---- Application ----
+APP_NAME=SafeVision AI
+APP_ENV=development
+APP_DEBUG=true
+API_V1_PREFIX=/api/v1
+AUTH_ENABLED=false
+SECRET_KEY=&lt;CHANGE_ME_LONG_RANDOM_SECRET&gt;
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+CORS_ORIGINS=http://localhost:5173
+
+# ---- PostgreSQL ----
+POSTGRES_USER=&lt;DB_USER&gt;
+POSTGRES_PASSWORD=&lt;DB_PASSWORD&gt;
+POSTGRES_DB=safevision
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql+psycopg://&lt;DB_USER&gt;:&lt;DB_PASSWORD&gt;@localhost:5432/safevision
+
+# ---- Storage ----
+STORAGE_BACKEND=local
+LOCAL_STORAGE_ROOT=./storage
+UPLOAD_DIR=./storage/uploads
+EVIDENCE_DIR=./storage/evidence
+REPORT_DIR=./storage/reports
+S3_ENDPOINT_URL=&lt;S3_ENDPOINT_URL&gt;
+S3_BUCKET=&lt;S3_BUCKET&gt;
+S3_ACCESS_KEY_ID=&lt;S3_ACCESS_KEY_ID&gt;
+S3_SECRET_ACCESS_KEY=&lt;S3_SECRET_ACCESS_KEY&gt;
+S3_REGION=&lt;S3_REGION&gt;
+
+# ---- Upload limits ----
+MAX_UPLOAD_MB=500
+ALLOWED_VIDEO_EXTENSIONS=mp4,avi,mov,mkv
+UPLOAD_CHUNK_MB=4
+
+# ---- AI models ----
+MODEL_DIR=./models
+PPE_MODEL_PATH=&lt;PPE_MODEL_CHECKPOINT_PATH&gt;
+FIRE_SMOKE_MODEL_PATH=&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;
+PERSON_TRACKER_PATH=&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;
+MODEL_DEVICE=cpu
+DETECTION_CONF_THRESHOLD=0.35
+NMS_IOU_THRESHOLD=0.45
+INFERENCE_IMG_SIZE=640
+PERSIST_ALL_DETECTIONS=false
+FRAME_SAMPLE_EVERY_N=5
+MAX_FRAMES_PER_JOB=0
+
+# ---- Safety rules ----
+INCIDENT_CONFIRM_FRAMES=3
+INCIDENT_COOLDOWN_SECONDS=10
+PPE_CONF_THRESHOLD=0.40
+FIRE_CONF_THRESHOLD=0.45
+SMOKE_CONF_THRESHOLD=0.40
+PROXIMITY_MIN_OVERLAP=0.10
+DANGER_ZONE_CONFIG=&lt;DANGER_ZONE_CONFIG_JSON&gt;
+
+# ---- Worker ----
+WORKER_POLL_INTERVAL_SECONDS=3
+WORKER_ID=worker-1
+WORKER_CONCURRENCY=1
+JOB_MAX_RETRIES=2
+
+# ---- Frontend (Vite) ----
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_ENABLE_AUTH=false</pre></div>
+  <div class="callout info"><span class="co-title">لماذا قيم Placeholder؟</span>
+    <p>لأن <span class="mono">.env.example</span> يوثّق <strong>أسماء</strong> المتغيّرات المطلوبة، لا قيمها.
+    كل عضو ينسخه ويضع قيمه الخاصة. و<span class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</span> هو مسار أوزان
+    الـ Model الذي يحدّده فريق الذكاء الاصطناعي عند توفّر الـ checkpoint.</p></div>
+
+  <h3>4.6 اتفاقيات تسمية الملفات والفروع</h3>
+  <p>اتفاق التسمية يمنع الالتباس ويسهّل البحث. نلتزم بالقواعد التالية دون استثناء:</p>
+  <table class="tbl">
+    <caption>جدول 4-2: اتفاقيات التسمية</caption>
+    <thead><tr><th class="w26">النوع</th><th class="w36">القاعدة</th><th class="w38">أمثلة</th></tr></thead>
+    <tbody>
+      <tr><td>ملفات Python</td><td>حروف صغيرة مع شرطة سفلية <span class="mono">snake_case</span></td><td class="mono">video_service.py, processing_job.py</td></tr>
+      <tr><td>أصناف Python</td><td><span class="mono">PascalCase</span></td><td class="mono">VideoRepository, VideoOut</td></tr>
+      <tr><td>مكوّنات React</td><td><span class="mono">PascalCase</span> بامتداد <span class="mono">.tsx</span></td><td class="mono">VideoList.tsx, IncidentCard.tsx</td></tr>
+      <tr><td>جداول قاعدة البيانات</td><td>جمع بحروف صغيرة <span class="mono">snake_case</span></td><td class="mono">videos, processing_jobs, incidents</td></tr>
+      <tr><td>الفروع</td><td><span class="mono">type/short-topic</span></td><td class="mono">feat/video-upload, fix/cors-headers</td></tr>
+      <tr><td>رسائل الـ commit</td><td>نوع + وصف قصير</td><td class="mono">feat: add job status endpoint</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="co-title">نصيحة</span>
+    <p>الفرع الرئيسي <span class="mono">main</span> يبقى دائماً قابلاً للتشغيل. لا يُدمج أي فرع إلا عبر
+    Pull Request يراجعه عضو آخر على الأقل.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 4</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>ثبّتنا شجرة المجلدات الرسمية، ووظيفة كل مجلد، وأصناف الملفات الثلاثة التي لا تدخل Git (الملفات
+        الكبيرة، والمخرجات المولَّدة، والأسرار)، وكتبنا <span class="mono">.gitignore</span> و
+        <span class="mono">.env.example</span> كاملين، واتفقنا على قواعد التسمية والفروع.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>إنشاء المستودع وشجرة المجلدات كما في القسم 4.1.</li>
+          <li>إضافة <span class="mono">.gitignore</span> و<span class="mono">.env.example</span> قبل أول commit.</li>
+          <li>نسخ <span class="mono">.env.example</span> إلى <span class="mono">.env</span> على كل جهاز وملء القيم.</li>
+          <li>الاتفاق على حماية الفرع <span class="mono">main</span> من الدفع المباشر.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>مستودع GitHub نظيف يحتوي الكود فقط بلا ملفات كبيرة.</li>
+        <li>ملف <span class="mono">README.md</span> يشرح خطوات التشغيل.</li>
+        <li>قالب بيئة موحّد لكل الأعضاء.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>الأمر <span class="mono">git status</span> لا يُظهر أي ملف في <span class="mono">storage/</span>
+        أو <span class="mono">models/</span>.</li>
+        <li>حجم المستودع بعد <span class="mono">git clone</span> صغير (ميجابايتات قليلة).</li>
+        <li>لا يوجد ملف <span class="mono">.env</span> أو مفتاح حقيقي في تاريخ المستودع.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>رفع ملف <span class="mono">.env</span> الحقيقي بالخطأ.</li>
+        <li>رفع أوزان الـ Models فيصبح الاستنساخ بطيئاً جداً.</li>
+        <li>إنشاء مجلدات بأسماء عشوائية خارج الشجرة المعتمدة.</li>
+        <li>الدفع المباشر إلى <span class="mono">main</span> دون مراجعة.</li></ul></div>
+    </div>
+  </div>
+</section>

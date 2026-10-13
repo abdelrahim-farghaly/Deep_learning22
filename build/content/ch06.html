@@ -1,0 +1,487 @@
+<section class="chapter" id="ch06">
+  <div class="opener">
+    <div class="op-num">06</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH06 &middot; FASTAPI BACKEND</p>
+      <h2>معمارية الـ Backend بـ FastAPI</h2>
+      <p class="op-sub">طبقات واضحة: Route ثم Schema ثم Model ثم Repository ثم Service</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الفصل يبني الـ Backend فعلاً. نضع طبقات واضحة تفصل بين استقبال الطلب ومنطق العمل والوصول لقاعدة
+    البيانات، ونعرض ملفات مترابطة قابلة للتشغيل بأسماء متطابقة في كل مكان، بحيث يستطيع أي عضو تشغيل المشروع
+    وقراءة الكود وفهمه.</p>
+  </div>
+
+  <h3>6.1 الطبقات ولماذا نفصلها</h3>
+  <p>الفصل بين الطبقات يعني أن كل طبقة تعرف الطبقة التي تحتها فقط. الراوتر يستقبل الطلب ويتحقق منه، والـ
+  <strong>Service</strong> يحمل منطق العمل، والـ <strong>Repository</strong> يتحدّث مع قاعدة البيانات، والـ
+  <strong>Model</strong> يعرّف الجدول. هذا يجعل الكود قابلاً للاختبار وللعمل المتوازي، فكل عضو يعمل على طبقة
+  دون أن يكسر الأخرى.</p>
+
+  <h3>6.2 مخطط معمارية الطبقات</h3>
+  <div class="fig">
+    <div class="dg">
+      <div class="dgroup">
+        <div class="dg-title">طبقة العرض</div>
+        <div class="drow">
+          <div class="dbox navy">Router<span class="dsub">api/v1/router.py</span></div>
+          <div class="dbox navy">Endpoints<span class="dsub">health.py, videos.py</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">طبقة التحقق</div>
+        <div class="drow"><div class="dbox teal">Pydantic Schemas<span class="dsub">schemas/video.py</span></div></div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">طبقة المنطق</div>
+        <div class="drow"><div class="dbox green">Service<span class="dsub">services/video_service.py</span></div></div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">طبقة الوصول للبيانات</div>
+        <div class="drow">
+          <div class="dbox orange">Repository<span class="dsub">repositories/video_repository.py</span></div>
+          <div class="dbox violet">Model<span class="dsub">models/video.py</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="drow">
+        <div class="dbox gray">Session<span class="dsub">db/session.py</span></div>
+        <div class="dbox gray">Config<span class="dsub">core/config.py</span></div>
+        <div class="dbox gray">PostgreSQL<span class="dsub">via psycopg</span></div>
+      </div>
+    </div>
+    <div class="fig-cap"><b>شكل 6-1:</b> معمارية طبقات الـ Backend وملفاتها الفعلية</div>
+  </div>
+
+  <h3>6.3 نقطة الدخول والـ Routers</h3>
+  <p><span class="mono">main.py</span> هو نقطة الدخول: ينشئ تطبيق FastAPI، يضيف CORS، ويُدرج الراوتر الرئيسي
+  تحت البادئة <span class="mono">/api/v1</span>.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/main.py</span><span class="ftag">python</span></div>
+<pre>from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.router import api_router
+from app.core.config import settings
+
+app = FastAPI(title=settings.APP_NAME, version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origin_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+@app.get("/")
+def root() -&gt; dict:
+    return {"app": settings.APP_NAME, "docs": "/docs"}</pre></div>
+  <p>الراوتر الرئيسي يجمع راوترات الإصدار الأول في مكان واحد:</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/api/v1/router.py</span><span class="ftag">python</span></div>
+<pre>from fastapi import APIRouter
+
+from app.api.v1.endpoints import health, videos
+
+api_router = APIRouter()
+api_router.include_router(health.router)
+api_router.include_router(videos.router)</pre></div>
+
+  <h3>6.4 إدارة الإعدادات بـ pydantic-settings</h3>
+  <p>كل الإعدادات تُقرأ من متغيّرات البيئة عبر كائن واحد. أسماء الحقول مطابقة تماماً لأسماء متغيّرات البيئة
+  في SPEC.md، وقيمها الافتراضية مناسبة للتشغيل المحلي.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/core/config.py</span><span class="ftag">python</span></div>
+<pre>from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    APP_NAME: str = "SafeVision AI"
+    APP_ENV: str = "development"
+    APP_DEBUG: bool = True
+    API_V1_PREFIX: str = "/api/v1"
+    AUTH_ENABLED: bool = False
+    SECRET_KEY: str = "change-me"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    CORS_ORIGINS: str = "http://localhost:5173"
+
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "safevision"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/safevision"
+
+    STORAGE_BACKEND: str = "local"
+    LOCAL_STORAGE_ROOT: str = "./storage"
+    UPLOAD_DIR: str = "./storage/uploads"
+    EVIDENCE_DIR: str = "./storage/evidence"
+    REPORT_DIR: str = "./storage/reports"
+
+    MAX_UPLOAD_MB: int = 500
+    ALLOWED_VIDEO_EXTENSIONS: str = "mp4,avi,mov,mkv"
+    UPLOAD_CHUNK_MB: int = 4
+
+    @property
+    def cors_origin_list(self) -&gt; list[str]:
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
+    @property
+    def allowed_extension_set(self) -&gt; set[str]:
+        return {e.strip().lower() for e in self.ALLOWED_VIDEO_EXTENSIONS.split(",") if e.strip()}
+
+
+@lru_cache
+def get_settings() -&gt; Settings:
+    return Settings()
+
+
+settings = get_settings()</pre></div>
+
+  <h3>6.5 إدارة الـ session</h3>
+  <p><span class="mono">db/session.py</span> ينشئ المحرّك ومصنع الجلسات، ويوفّر تبعية
+  <span class="mono">get_db</span> التي تُعطي كل طلب جلسة قاعدة بيانات ثم تُغلقها تلقائياً.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/db/session.py</span><span class="ftag">python</span></div>
+<pre>from collections.abc import Generator
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.core.config import settings
+
+engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True, future=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+
+
+def get_db() -&gt; Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()</pre></div>
+
+  <h3>6.6 الـ Model: تعريف جدول <span class="mono">videos</span></h3>
+  <p>الـ <strong>Model</strong> صنف SQLAlchemy يمثّل جدولاً في PostgreSQL. كل حقل يطابق عموداً، ونوعه صريح
+  عبر <span class="mono">Mapped</span>، وهذا ما يجعل Alembic قادراً على توليد الـ migrations.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/models/video.py</span><span class="ftag">python</span></div>
+<pre>import uuid
+from datetime import datetime
+
+from sqlalchemy import BigInteger, DateTime, Integer, Numeric, String, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class Video(Base):
+    __tablename__ = "videos"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(512), unique=True, nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    duration_seconds: Mapped[float | None] = mapped_column(Numeric(10, 3), nullable=True)
+    fps: Mapped[float | None] = mapped_column(Numeric(8, 3), nullable=True)
+    width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    frame_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="uploaded")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )</pre></div>
+  <div class="callout note"><span class="co-title">ملاحظة</span>
+    <p>لتبسيط الفصل عرّفنا <span class="mono">Base</span> هنا؛ في المشروع الكامل يمكن نقله إلى
+    <span class="mono">app/db/base.py</span> ويستورده كل الـ models.</p></div>
+
+  <h3>6.7 الـ Schema: عقد الدخل والخرج</h3>
+  <p>الـ <strong>Schema</strong> صنف Pydantic يحدّد شكل البيانات الداخلة والخارجة. نستخدم
+  <span class="mono">VideoOut</span> للردّ و<span class="mono">VideoCreate</span> للإدخال. الـ
+  <span class="mono">JobOut</span> مضمّن هنا لأن <span class="mono">VideoOut.latest_job</span> يشير إليه، وفي
+  المشروع الكامل يوضع في <span class="mono">schemas/job.py</span>.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/schemas/video.py</span><span class="ftag">python</span></div>
+<pre>import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
+
+class VideoBase(BaseModel):
+    original_filename: str
+    content_type: str
+    size_bytes: int
+
+
+class VideoCreate(VideoBase):
+    stored_filename: str
+    storage_key: str
+
+
+class JobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    video_id: uuid.UUID
+    status: str
+    progress: float
+    frames_total: int | None = None
+    frames_processed: int = 0
+    sample_every_n_frames: int = 5
+    error_message: str | None = None
+    created_at: datetime
+
+
+class VideoOut(VideoBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    stored_filename: str
+    storage_key: str
+    duration_seconds: float | None = None
+    fps: float | None = None
+    width: int | None = None
+    height: int | None = None
+    frame_count: int | None = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    latest_job: JobOut | None = None</pre></div>
+
+  <h3>6.8 طبقة الـ Repository</h3>
+  <p>الـ <strong>Repository</strong> هو المكان الوحيد الذي يكتب استعلامات قاعدة البيانات. الـ Service
+  يستدعيه ولا يكتب SQL بنفسه، وهذا يجعل تغيير طريقة التخزين لاحقاً سهلاً.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/repositories/video_repository.py</span><span class="ftag">python</span></div>
+<pre>import uuid
+
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.models.video import Video
+
+
+class VideoRepository:
+    def __init__(self, db: Session) -&gt; None:
+        self.db = db
+
+    def add(self, video: Video) -&gt; Video:
+        self.db.add(video)
+        self.db.commit()
+        self.db.refresh(video)
+        return video
+
+    def get(self, video_id: uuid.UUID) -&gt; Video | None:
+        return self.db.get(Video, video_id)
+
+    def list(self, offset: int = 0, limit: int = 20) -&gt; list[Video]:
+        stmt = select(Video).order_by(Video.created_at.desc()).offset(offset).limit(limit)
+        return list(self.db.scalars(stmt).all())
+
+    def count(self) -&gt; int:
+        return self.db.scalar(select(func.count()).select_from(Video)) or 0
+
+    def delete(self, video: Video) -&gt; None:
+        self.db.delete(video)
+        self.db.commit()</pre></div>
+
+  <h3>6.9 طبقة الـ Service</h3>
+  <p>الـ <strong>Service</strong> يحمل منطق العمل: يتحقق من الامتداد، يبني كائن الـ Model، ويستدعي الـ
+  Repository. لا يعرف شيئاً عن الـ HTTP ولا عن الاستعلامات.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/services/video_service.py</span><span class="ftag">python</span></div>
+<pre>import uuid
+
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.models.video import Video
+from app.repositories.video_repository import VideoRepository
+from app.schemas.video import VideoCreate
+
+
+class VideoService:
+    def __init__(self, db: Session) -&gt; None:
+        self.repository = VideoRepository(db)
+
+    def is_extension_allowed(self, filename: str) -&gt; bool:
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        return ext in settings.allowed_extension_set
+
+    def create_video(self, payload: VideoCreate) -&gt; Video:
+        video = Video(
+            original_filename=payload.original_filename,
+            stored_filename=payload.stored_filename,
+            storage_key=payload.storage_key,
+            content_type=payload.content_type,
+            size_bytes=payload.size_bytes,
+            status="uploaded",
+        )
+        return self.repository.add(video)
+
+    def get_video(self, video_id: uuid.UUID) -&gt; Video | None:
+        return self.repository.get(video_id)
+
+    def list_videos(self, page: int = 1, page_size: int = 20) -&gt; list[Video]:
+        offset = (page - 1) * page_size
+        return self.repository.list(offset=offset, limit=page_size)</pre></div>
+
+  <h3>6.10 الـ Endpoints</h3>
+  <p>كل ملف في <span class="mono">api/v1/endpoints/</span> يعرّف راوتراً صغيراً. الـ endpoints تستقبل الطلب،
+  تحقّق من الصحة، تستدعي الـ Service، وترمي أخطاء HTTP عند الحاجة.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/health.py</span><span class="ftag">python</span></div>
+<pre>from fastapi import APIRouter, Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+
+router = APIRouter(tags=["health"])
+
+
+@router.get("/health")
+def health(db: Session = Depends(get_db)) -&gt; dict:
+    db_ok = True
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_ok = False
+    return {"status": "ok" if db_ok else "degraded", "database": db_ok}</pre></div>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/videos.py</span><span class="ftag">python</span></div>
+<pre>import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.schemas.video import VideoOut
+from app.services.video_service import VideoService
+
+router = APIRouter(prefix="/videos", tags=["videos"])
+
+
+@router.get("", response_model=list[VideoOut])
+def list_videos(page: int = 1, page_size: int = 20, db: Session = Depends(get_db)):
+    service = VideoService(db)
+    return service.list_videos(page=page, page_size=page_size)
+
+
+@router.get("/{video_id}", response_model=VideoOut)
+def get_video(video_id: uuid.UUID, db: Session = Depends(get_db)):
+    service = VideoService(db)
+    video = service.get_video(video_id)
+    if video is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+    return video</pre></div>
+  <p>بهذا تُبنى المسارات النهائية تلقائياً: <span class="mono">/api/v1/health</span> و
+  <span class="mono">/api/v1/videos</span> و<span class="mono">/api/v1/videos/{video_id}</span>.</p>
+
+  <h3>6.11 Dependency Injection والأخطاء و Logging و CORS</h3>
+  <ul>
+    <li><strong>Dependency Injection:</strong> تمرير التبعيات عبر <span class="mono">Depends</span> كما في
+    <span class="mono">get_db</span>، فيحصل كل طلب على جلسة مستقلة تُغلق تلقائياً.</li>
+    <li><strong>معالجة الأخطاء:</strong> نستخدم <span class="mono">HTTPException</span> بحالات واضحة
+    (404، 400، 409)، ونُسجّل الأخطاء غير المتوقّعة عبر معالج عام دون كشف التفاصيل الحسّاسة للمستخدم.</li>
+    <li><strong>Logging:</strong> سجل موحّد يطبع المسار والحالة وزمن التنفيذ، ويُضبط مستواه بـ
+    <span class="mono">APP_DEBUG</span>.</li>
+    <li><strong>CORS:</strong> نسمح بأصل الـ Frontend فقط عبر <span class="mono">CORS_ORIGINS</span>، وهذه هي
+    أشهر مشكلة عند بداية الربط بين الطرفين.</li>
+  </ul>
+
+  <h3>6.12 التحقق من الملفات والمصادقة وإصدار الـ API</h3>
+  <ul>
+    <li><strong>التحقق من الملف المرفوع:</strong> نتحقق من الامتداد عبر
+    <span class="mono">allowed_extension_set</span> ومن الحجم عبر <span class="mono">MAX_UPLOAD_MB</span>،
+    ونعيد <span class="mono">413</span> للملف الأكبر و<span class="mono">422</span> للنوع غير المسموح.</li>
+    <li><strong>Authentication / Authorization:</strong> خلف علم <span class="mono">AUTH_ENABLED</span>. عند
+    تفعيله نتحقق من الـ JWT عبر <span class="mono">PyJWT</span> ونضبط الصلاحيات حسب
+    <span class="mono">user_role</span>. في وضع العرض التوضيحي يكون <span class="mono">AUTH_ENABLED=false</span>.</li>
+    <li><strong>API versioning:</strong> كل المسارات تحت <span class="mono">/api/v1</span> عبر
+    <span class="mono">API_V1_PREFIX</span>، فإضافة <span class="mono">v2</span> لاحقاً لا تكسر العملاء الحاليين.</li>
+  </ul>
+
+  <h3>6.13 الفرق بين الطبقات وترتيب التنفيذ</h3>
+  <table class="tbl">
+    <caption>جدول 6-1: مسؤولية كل طبقة</caption>
+    <thead><tr><th class="w16">الطبقة</th><th class="w40">مسؤوليتها</th><th class="w44">ما لا تفعله</th></tr></thead>
+    <tbody>
+      <tr><td>Route</td><td>استقبال الطلب، التحقق من الصحة، إعادة الرد</td><td>لا تكتب منطق عمل ولا SQL</td></tr>
+      <tr><td>Schema</td><td>تحديد شكل البيانات الداخلة والخارجة</td><td>لا تتحدّث مع قاعدة البيانات</td></tr>
+      <tr><td>Model</td><td>تعريف الجدول والأعمدة والعلاقات</td><td>لا تحتوي منطق عمل</td></tr>
+      <tr><td>Repository</td><td>كل استعلامات قاعدة البيانات</td><td>لا تقرّر قواعد السلامة</td></tr>
+      <tr><td>Service</td><td>منطق العمل وقواعد القرار</td><td>لا تعرف HTTP ولا SQL</td></tr>
+      <tr><td>Worker</td><td>تشغيل المعالجة الطويلة خارج الطلب</td><td>لا تخدم طلبات HTTP</td></tr>
+    </tbody>
+  </table>
+  <p>ترتيب التنفيذ عند بناء أي وحدة جديدة: <strong>Model</strong> ثم <strong>Schema</strong> ثم
+  <strong>Repository</strong> ثم <strong>Service</strong> ثم <strong>Endpoint</strong>، وأخيراً الـ
+  <strong>Worker</strong> إن كانت الوحدة تحتاج معالجة طويلة.</p>
+
+  <h3>6.14 متطلبات الـ Backend</h3>
+  <p>هذه المكتبات الأساسية. نثبّت الإصدارات النهائية بعد التحقق من المصادر الرسمية كما في الفصل الثالث.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/requirements.txt</span><span class="ftag">text</span></div>
+<pre>fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sqlalchemy
+alembic
+psycopg[binary]
+python-multipart
+pyjwt
+bcrypt
+opencv-python
+numpy
+pandas
+torch
+ultralytics</pre></div>
+  <div class="callout tip"><span class="co-title">تشغيل سريع</span>
+    <p>بعد تثبيت المتطلبات نشغّل الـ Backend بأمر <span class="mono">uvicorn app.main:app --reload</span>، ثم
+    نفتح <span class="mono">http://localhost:8000/docs</span> للتأكد من ظهور الـ endpoints.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 6</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>بنينا الـ Backend بطبقات واضحة: <span class="mono">main.py</span> و<span class="mono">router.py</span>
+        للعرض، و<span class="mono">config.py</span> للإعدادات، و<span class="mono">session.py</span> للجلسات،
+        و<span class="mono">models/video.py</span> للجدول، و<span class="mono">schemas/video.py</span> للتحقق،
+        و<span class="mono">repositories/video_repository.py</span> للوصول، و
+        <span class="mono">services/video_service.py</span> للمنطق، وendpoints الـ health والـ videos.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>إنشاء الملفات بنفس الأسماء والاستيرادات المذكورة أعلاه.</li>
+          <li>تشغيل <span class="mono">uvicorn app.main:app --reload</span> بلا أخطاء استيراد.</li>
+          <li>التأكد من رد <span class="mono">/api/v1/health</span> بحالة سليمة.</li>
+          <li>إضافة باقي الوحدات (jobs, incidents, analytics, reports) بنفس النمط.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>Backend يعمل وSwagger يعرض كل المسارات.</li>
+        <li>طبقات منفصلة بلا استيرادات دائرية.</li>
+        <li>ملف <span class="mono">requirements.txt</span> قابل للتثبيت على أي جهاز.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>لا يستورد أي endpoint قاعدة البيانات مباشرة خارج طبقة الـ Repository.</li>
+        <li>لا توجد استعلامات SQL مكتوبة داخل الـ endpoints.</li>
+        <li>كل ملف يستورد أسماء موجودة فعلاً، ولا أخطاء <span class="mono">ImportError</span>.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>كتابة منطق العمل داخل الـ endpoint بدل الـ Service.</li>
+        <li>نسيان <span class="mono">from_attributes=True</span> فيردّ الـ Schema خطأ تحويل.</li>
+        <li>إرجاع كائن SQLAlchemy مباشرة بدون <span class="mono">response_model</span>.</li>
+        <li>نسيان إغلاق الجلسة، أو مشاركتها بين الطلبات.</li>
+        <li>إغفال CORS فتظهر أخطاء في المتصفح فقط.</li></ul></div>
+    </div>
+  </div>
+</section>

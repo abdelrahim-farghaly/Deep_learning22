@@ -9,30 +9,19 @@
   </div>
 
   <div class="lead">
-    <p>اختيار التقنية ليس "أيّ شيء يعمل"، بل قرار يجب أن نستطيع تبريره. في هذا الفصل نعرض كل أداة استخدمناها،
-    وما وظيفتها، ولماذا اخترناها بدلاً من بديل آخر، وهل هي مطلوبة في الـ <span class="badge mvp">MVP</span>
-    أم اختيارية. الهدف أن يكون كل عضو قادراً على الدفاع عن كل اختيار أمام لجنة المناقشة.</p>
+    <p>اختيار التقنية ليس "أيّ شيء يعمل"، بل قرار يجب أن نبرّره. يعرض هذا الفصل كل أداة، ووظيفتها، وسبب
+    اختيارها، وحالتها (<span class="badge mvp">MVP</span> أم اختيارية)، وبديلها، حتى يكون كل عضو قادراً على
+    الدفاع عن كل قرار أمام لجنة المناقشة.</p>
   </div>
 
   <h3>3.1 معايير اختيار التقنية</h3>
-  <p>لم نختر أي أداة بشكل عشوائي. طبّقنا خمسة معايير على كل خيار، والجدول التالي يشرحها:</p>
-  <table class="tbl">
-    <caption>جدول 3-1: معايير اختيار أي أداة</caption>
-    <thead><tr><th class="w24">المعيار</th><th>المعنى</th></tr></thead>
-    <tbody>
-      <tr><td>الملاءمة للمهمة</td><td>هل الأداة مصمَّمة أصلاً لهذا النوع من العمل؟</td></tr>
-      <tr><td>التوفّر والتوثيق</td><td>هل لها توثيق رسمي جيد ومجتمع نشط؟</td></tr>
-      <tr><td>سهولة التعلّم</td><td>هل يستطيع عضو مبتدئ إتقانها في وقت معقول؟</td></tr>
-      <tr><td>التكامل</td><td>هل تندمج بسلاسة مع بقية حزمة التقنيات؟</td></tr>
-      <tr><td>التشغيل المحلي</td><td>هل تعمل على جهاز الطالب دون تعقيد أو تكلفة؟</td></tr>
-    </tbody>
-  </table>
+  <p>طبّقنا خمسة معايير على كل خيار: <strong>الملاءمة للمهمة</strong> (هل الأداة مصمَّمة لهذا العمل؟)،
+  <strong>التوفّر والتوثيق</strong> الرسمي الجيد، <strong>سهولة التعلّم</strong> لعضو مبتدئ،
+  <strong>التكامل</strong> مع بقية الحزمة، و<strong>التشغيل المحلي</strong> بلا تعقيد أو تكلفة.</p>
 
   <h3>3.2 جدول حزمة التقنيات الكامل</h3>
-  <p>الجدول التالي هو المرجع السريع لكل الأدوات. عمود <span class="en">MVP</span> يعني هل الأداة مطلوبة
-  فعلاً في النسخة الأولى أم اختيارية مؤجَّلة.</p>
   <table class="tbl">
-    <caption>جدول 3-2: حزمة تقنيات SafeVision AI</caption>
+    <caption>جدول 3-1: حزمة تقنيات SafeVision AI</caption>
     <thead><tr><th class="w18">المجال</th><th class="w20">الأداة</th><th class="w34">وظيفتها ولماذا</th><th class="w14">الحالة</th><th class="w14">البديل</th></tr></thead>
     <tbody>
       <tr><td>لغة</td><td class="mono">Python 3.11</td><td>لغة الـ Backend والذكاء الاصطناعي معاً</td><td><span class="badge req">مطلوب</span></td><td>Node.js / Java</td></tr>
@@ -51,7 +40,7 @@
       <tr><td>مصادقة</td><td class="mono">JWT (PyJWT) + bcrypt</td><td>تسجيل الدخول وتجزئة كلمات المرور</td><td><span class="badge opt">اختياري</span></td><td>OAuth / Session</td></tr>
       <tr><td>مهام خلفية</td><td class="mono">DB-backed queue + worker</td><td>تنفيذ المعالجة الطويلة خارج الطلب</td><td><span class="badge req">مطلوب</span></td><td>Celery + Redis</td></tr>
       <tr><td>تحديث الحالة</td><td class="mono">Polling</td><td>الواجهة تسأل عن حالة الـ job دورياً</td><td><span class="badge req">مطلوب</span></td><td>WebSocket</td></tr>
-      <tr><td>واجهة</td><td class="mono">React 18 + TypeScript 5 + Vite 5</td><td>بناء واجهة المستخدم بسرعة وأمان الأنواع</td><td><span class="badge req">مطلوب</span></td><td>Vue / Svelte</td></tr>
+      <tr><td>واجهة</td><td class="mono">React 18 + TypeScript 5 + Vite 5</td><td>واجهة مستخدم سريعة وآمنة الأنواع</td><td><span class="badge req">مطلوب</span></td><td>Vue / Svelte</td></tr>
       <tr><td>تصميم</td><td class="mono">Tailwind CSS 3</td><td>تنسيق الواجهة بفئات جاهزة</td><td><span class="badge req">مطلوب</span></td><td>Bootstrap</td></tr>
       <tr><td>رسوم بيانية</td><td class="mono">Recharts</td><td>رسم مؤشرات الـ Analytics</td><td><span class="badge req">مطلوب</span></td><td>Chart.js</td></tr>
       <tr><td>HTTP client</td><td class="mono">Axios</td><td>إرسال الطلبات للـ Backend</td><td><span class="badge req">مطلوب</span></td><td>fetch</td></tr>
@@ -62,60 +51,97 @@
   </table>
 
   <h3>3.3 لماذا Python للـ Backend وللذكاء الاصطناعي معاً</h3>
-  <p><strong>Python:</strong> لغة برمجة عالية المستوى تُقرأ مثل الإنجليزية تقريباً. اخترناها لأن عالم الذكاء
-  الاصطناعي كله مبني حولها: PyTorch وUltralytics وOpenCV كلها مكتبات Python في المقام الأول. لو اخترنا لغة
-  أخرى للـ Backend لكنا مضطرين لتشغيل عمليتين بلغتين مختلفتين والتنسيق بينهما، وهذا تعقيد لا حاجة له.</p>
-  <p>النسخة المستهدفة <span class="mono">Python 3.11</span> لأنها توازن بين حداثة الميزات واستقرار المكتبات.
-  نستخدم <span class="mono">venv</span> (بيئة افتراضية) لعزل مكتبات المشروع عن مكتبات النظام، وهذا موضوع
-  الفصل الخامس بالتفصيل.</p>
+  <p><strong>Python:</strong> لغة عالية المستوى تُقرأ كالإنجليزية تقريباً. اخترناها لأن عالم الذكاء الاصطناعي
+  مبني حولها (PyTorch وUltralytics وOpenCV كلها مكتبات Python)، فلو اخترنا لغة أخرى للـ Backend لاحتجنا
+  عمليتين بلغتين والتنسيق بينهما. النسخة المستهدفة <span class="mono">Python 3.11</span>، ونستخدم
+  <span class="mono">venv</span> لعزل مكتبات المشروع عن مكتبات النظام.</p>
 
   <h3>3.4 حزمة الذكاء الاصطناعي والرؤية الحاسوبية</h3>
   <ul>
-    <li><strong>PyTorch:</strong> المحرّك الذي يشغّل أوزان الشبكات العصبية. اخترناه لأنه الأكثر استخداماً في
-    الأبحاث والمراجع، ولأن Ultralytics مبنية عليه.</li>
-    <li><strong>Ultralytics YOLO:</strong> مكتبة جاهزة للكشف عن الأجسام. توفّر لنا دالة واحدة للتشغيل ودالة
-    تتبّع <span class="mono">model.track</span>، فلا نكتب منطق الشبكة بأنفسنا.</li>
-    <li><strong>ByteTrack:</strong> خوارزمية تتبّع تُعطي كل شخص معرّفاً ثابتاً عبر الإطارات. مهمّة لأن
-    "شخص بدون خوذة" يجب أن يبقى نفس الشخص عبر الإطارات لنحسب مدة المخالفة.</li>
-    <li><strong>OpenCV:</strong> قراءة الفيديو، استخراج الإطارات، تغيير الحجم، وكتابة الإطارات كصور دليل.</li>
-    <li><strong>NumPy:</strong> العمليات العددية على المصفوفات، وتُستخدم داخلياً في حساب التداخل والمسافات.</li>
-    <li><strong>Pandas:</strong> تجميع الوقائع في جداول للتقارير اليومية والتصدير بصيغة CSV.</li>
+    <li><strong>PyTorch:</strong> المحرّك الذي يشغّل أوزان الشبكات، والأكثر استخداماً في المراجع.</li>
+    <li><strong>Ultralytics YOLO:</strong> كشف الأجسام بدالة واحدة، وتوفّر تتبّعاً جاهزاً عبر
+    <span class="mono">model.track</span> فلا نكتب منطق الشبكة بأنفسنا.</li>
+    <li><strong>ByteTrack:</strong> تتبّع يمنح كل شخص معرّفاً ثابتاً عبر الإطارات لنحسب مدة المخالفة.</li>
+    <li><strong>OpenCV:</strong> قراءة الفيديو واستخراج الإطارات وتغيير الحجم وكتابة صور الدليل.</li>
+    <li><strong>NumPy:</strong> العمليات العددية وحساب التداخل والمسافات. <strong>Pandas:</strong> تجميع
+    الوقائع للتقارير والتصدير.</li>
   </ul>
-  <div class="callout note"><span class="co-title">أين تُشغَّل هذه المكتبات؟</span>
-    <p>داخل عملية الـ <span class="mono">worker</span> لا داخل عملية الـ API. تشغيل PyTorch في عملية الـ API
-    يستهلك الذاكرة ويجمّد الطلبات، لذلك الفصل إلزامي.</p></div>
 
   <h3>3.5 حزمة الـ Backend وقاعدة البيانات</h3>
   <ul>
-    <li><strong>FastAPI:</strong> إطار ويب حديث يبني الـ API بسرعة، ويولّد توثيق <span class="mono">Swagger</span>
-    تلقائياً من أنواع البيانات. يوفّر تحققاً تلقائياً من المدخلات وأداءً عالياً.</li>
-    <li><strong>Uvicorn:</strong> الخادم الذي يشغّل تطبيق FastAPI فعلاً. الأمر المعتاد
-    <span class="mono">uvicorn app.main:app --reload</span>.</li>
-    <li><strong>Pydantic v2:</strong> يتحقق من شكل البيانات الداخلة والخارجة عبر نماذج مكتوبة بأنواع صريحة،
-    ويُعيد رسائل خطأ دقيقة. و<span class="mono">pydantic-settings</span> يقرأ متغيّرات البيئة ويحوّلها إلى كائن
-    إعدادات واحد.</li>
-    <li><strong>SQLAlchemy 2.0:</strong> يربط كود Python بجداول PostgreSQL دون كتابة SQL يدوي لكل استعلام،
-    ويسمح بتعريف الجداول كأصناف (classes).</li>
-    <li><strong>Alembic:</strong> يتتبّع كل تغيير في مخطط قاعدة البيانات كملف <span class="mono">migration</span>
-    يمكن تطبيقه أو التراجع عنه، فيتزامن الفريق دون حذف البيانات.</li>
-    <li><strong>PostgreSQL 16:</strong> قاعدة بيانات علائقية قوية تدعم UUID والأنواع والعناصر الجزئية الفريدة
-    (partial unique index) التي نحتاجها لمنع تشغيل مهمّتين على نفس الفيديو. اخترناها على SQLite لأن SQLite
-    لا تكفي لبيئة متعددة العمليات، وعلى MySQL لتقاربها مع متطلبات المشروع.</li>
-    <li><strong>psycopg (v3):</strong> المشغّل الذي يربط SQLAlchemy بـ PostgreSQL. نسخة v3 هي الحديثة والمستقرة.</li>
-    <li><strong>JWT + bcrypt:</strong> للمصادقة. الـ JWT رمز دخول موقَّع، وbcrypt تجزئة كلمات المرور بحيث لا
-    تُخزَّن أبداً كنص صريح. هذه الحزمة اختيارية خلف علم <span class="mono">AUTH_ENABLED</span>.</li>
+    <li><strong>FastAPI:</strong> يبني الـ API بسرعة ويولّد توثيق Swagger تلقائياً من الأنواع، مع تحقق آلي
+    من المدخلات. <strong>Uvicorn:</strong> الخادم الذي يشغّله بأمر <span class="mono">uvicorn app.main:app --reload</span>.</li>
+    <li><strong>Pydantic v2:</strong> يتحقق من شكل البيانات عبر نماذج بأنواع صريحة، و
+    <span class="mono">pydantic-settings</span> يقرأ متغيّرات البيئة في كائن إعدادات واحد.</li>
+    <li><strong>SQLAlchemy 2.0:</strong> يربط Python بـ PostgreSQL ويعرّف الجداول كأصناف. <strong>Alembic:</strong>
+    يتتبّع تغييرات المخطط كملفات migration قابلة للتطبيق والتراجع.</li>
+    <li><strong>PostgreSQL 16:</strong> تدعم UUID والأنواع والعناصر الجزئية الفريدة (partial unique index)
+    التي نحتاجها لمنع مهمّتين على نفس الفيديو. اخترناها على SQLite لأن الأخيرة لا تكفي لبيئة متعددة العمليات.</li>
+    <li><strong>psycopg (v3):</strong> المشغّل الذي يربط SQLAlchemy بـ PostgreSQL.</li>
+    <li><strong>JWT + bcrypt:</strong> مصادقة اختيارية خلف <span class="mono">AUTH_ENABLED</span>؛ الـ JWT رمز
+    دخول موقَّع، وbcrypt تجزئة كلمات المرور فلا تُخزَّن كنص صريح.</li>
   </ul>
 
-  <h3>3.6 حزمة الـ Frontend</h3>
+  <h3>3.6 حزمة الـ Frontend وأدوات التطوير</h3>
   <ul>
-    <li><strong>React 18:</strong> مكتبة بناء واجهات تعتمد على المكوّنات، فنبني كل صفحة من قطع صغيرة قابلة
-    لإعادة الاستخدام.</li>
-    <li><strong>TypeScript 5:</strong> نسخة من JavaScript بأنواع صريحة، تكتشف أخطاء الوصول لحقول غير موجودة
-    قبل التشغيل. مهمّة جداً لأن عقد الـ API كبير.</li>
-    <li><strong>Vite 5:</strong> أداة تشغيل وبناء سريعة تُحدّث الصفحة فوراً عند تعديل الكود.</li>
-    <li><strong>Tailwind CSS 3:</strong> تنسيق الواجهة بفئات جاهزة مكتوبة داخل الـ HTML مباشرة، بلا ملفات CSS
-    ضخمة.</li>
-    <li><strong>Recharts:</strong> رسم المخططات البيانية لمؤشرات الـ Analytics بأسلوب مكوّنات React.</li>
-    <li><strong>Axios:</strong> إرسال طلبات HTTP إلى الـ Backend مع تعامل مريح مع الأخطاء والرؤوس.</li>
-    <li><strong>react-router-dom v6:</strong> التنقل بين صفحات التطبيق دون إعادة تحميل الصفحة.</li>
+    <li><strong>React 18:</strong> بناء الواجهة من مكوّنات قابلة لإعادة الاستخدام.
+    <strong>TypeScript 5:</strong> أنواع صريحة تكشف الأخطاء قبل التشغيل. <strong>Vite 5:</strong> تشغيل وبناء
+    سريع بتحديث فوري.</li>
+    <li><strong>Tailwind CSS 3</strong> للتنسيق، <strong>Recharts</strong> للمخططات،
+    <strong>Axios</strong> لطلبات HTTP، <strong>react-router-dom v6</strong> للتنقل.</li>
+    <li><strong>Git + GitHub</strong> لتتبّع الإصدارات والتعاون عبر فروع وPull Requests، و
+    <strong>VS Code</strong> كمحرّر مع إضافات Python وESLint وTailwind.</li>
+    <li><strong>Node.js + npm</strong> لبيئة الـ Frontend، و<strong>venv</strong> لبيئة الـ Backend.</li>
+    <li><strong>Docker</strong> لحزم التطبيق، و<strong>Docker Compose</strong> لتشغيل عدة حاويات بأمر واحد عبر
+    <span class="mono">docker-compose.yml</span>. <strong>GitHub Actions</strong> مؤجَّلة لما بعد الـ MVP.</li>
   </ul>
+
+  <h3>3.7 ما لا نستخدمه في الـ MVP ولماذا</h3>
+  <p>قرار "ما لا نستخدمه" لا يقل أهمية؛ كل تقنية إضافية تستهلك وقت الفريق وتعقّد التشغيل.</p>
+  <table class="tbl">
+    <caption>جدول 3-2: تقنيات مستثناة من الـ MVP وتكلفتها</caption>
+    <thead><tr><th class="w20">التقنية</th><th class="w40">التكلفة الحقيقية لو استخدمناها</th><th class="w40">البديل الذي اخترناه</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Kubernetes</td><td>عناقيد وملفات YAML وتشغيل سحابي معقّد لا يحتاجه مشروع تخرّج</td><td>Docker Compose محلياً</td></tr>
+      <tr><td class="mono">Kafka</td><td>وسيط رسائل ثقيل يحتاج تشغيلاً ومراقبة وحجمنا لا يبرّره</td><td>جدول processing_jobs كطابور</td></tr>
+      <tr><td class="mono">Redis</td><td>خدمة إضافية تُدار وتُراقب لحالة الطابور</td><td>حالة الـ job في PostgreSQL</td></tr>
+      <tr><td class="mono">Celery</td><td>إطار مهام يعتمد على وسيط خارجي ويصعّب التصحيح</td><td>worker بسيط يقرأ من قاعدة البيانات</td></tr>
+      <tr><td class="mono">Microservices</td><td>شبكة وعدة قواعد بيانات ومعاملات موزّعة على خمسة أعضاء</td><td>Modular Monolith</td></tr>
+      <tr><td class="mono">RTSP Live</td><td>بث مباشر يحتاج تعاملاً لحظياً وحالات فشل متعدّدة</td><td>رفع ملفات فيديو مسجَّلة</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">تحذير</span>
+    <p>لا نضيف أي تقنية من هذا الجدول "لأنها مشهورة"؛ أي إضافة تتطلب موافقة الفريق وتبريراً مكتوباً.</p></div>
+
+  <h3>3.8 ملاحظة عن أرقام الإصدارات</h3>
+  <p>الإصدارات المذكورة نقطة بداية لا وعد نهائي. القاعدة: تحقّق دائماً من أحدث إصدار مستقر من المصادر
+  الرسمية (PyPI وnpm والتوثيق الرسمي) قبل التثبيت في ملفات المتطلبات، وعند التعارض نختار الإصدار الذي
+  يتوافق معه أكبر عدد من المكتبات الأساسية (PyTorch وUltralytics أولاً).</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 3</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>عرفنا كل أداة: وظيفتها وسبب اختيارها وحالتها وبديلها. وثبّتنا أن Python تخدم الـ Backend والذكاء
+        الاصطناعي معاً، وأن FastAPI وPostgreSQL وReact أعمدة الحزمة، وأن مجموعة تقنيات شهيرة مرفوضة في الـ MVP.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تثبيت الإصدارات في <span class="mono">backend/requirements.txt</span> و<span class="mono">frontend/package.json</span>.</li>
+          <li>التحقق من أحدث إصدار مستقر لكل مكتبة أساسية من المصدر الرسمي.</li>
+          <li>تأجيل كل تقنيات جدول 3-2 حتى إشعار مكتوب.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>ملف <span class="mono">backend/requirements.txt</span> بإصدارات مثبَّتة.</li>
+        <li>ملف <span class="mono">frontend/package.json</span> بإصدارات مثبَّتة.</li>
+        <li>وثيقة <span class="mono">docs/STACK.md</span> تضم جدول 3-1 وتبرير كل اختيار.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل عضو يشرح لماذا اخترنا FastAPI لا Flask، وPostgreSQL لا SQLite.</li>
+        <li>لا مكتبة في المشروع بدون مبرّر مكتوب.</li>
+        <li>لا رقم إصدار غير موثّق من مصدر رسمي.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>إضافة Redis أو Celery بلا حاجة فعلية.</li>
+        <li>تثبيت إصدارات قديمة من درس قديم دون تحقق.</li>
+        <li>تشغيل الـ Model داخل عملية الـ API مباشرة.</li></ul></div>
+    </div>
+  </div>
+</section>

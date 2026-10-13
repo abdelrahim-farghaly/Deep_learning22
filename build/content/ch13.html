@@ -1,0 +1,232 @@
+<section class="chapter" id="ch13">
+  <div class="opener">
+    <div class="op-num">13</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH13 &middot; INCIDENT LIFECYCLE</p>
+      <h2>دورة حياة الواقعة والمراجعة البشرية</h2>
+      <p class="op-sub">detected ثم pending_review ثم confirmed أو rejected ثم closed</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>الواقعة لا تنتهي عند كشفها. لها دورة حياة واضحة تنقلها من حالة تلقائية إلى قرار بشري موثّق. هذا
+  الفصل يوضّح هذه الدورة، وما يفعله مسؤول السلامة، ولماذا نسجّل كل إجراء.</p></div>
+
+  <h3>13.1 دورة حياة الواقعة</h3>
+  <p>خمس حالات فقط، وكل انتقال مسموح مذكور صراحةً. الـ pipeline ينشئ الواقعة بحالة
+  <span class="mono">detected</span>، ثم تُصبح <span class="mono">pending_review</span> في طابور المراجعة،
+  ثم يقرّر المسؤول فتنتقل إلى <span class="mono">confirmed</span> أو <span class="mono">rejected</span>،
+  وأخيراً إلى <span class="mono">closed</span>.</p>
+  <div class="fig"><div class="dg">
+    <div class="drow">
+      <div class="dbox gray">detected<span class="dsub">تلقائي من الـ pipeline</span></div>
+      <div class="darrow-h"></div>
+      <div class="dbox teal">pending_review<span class="dsub">بانتظار مسؤول السلامة</span></div>
+      <div class="darrow-h"></div>
+      <div class="dcol">
+        <div class="dbox green">confirmed<span class="dsub">تأكيد بشري</span></div>
+        <div class="dbox red">rejected<span class="dsub">رفض بشري</span></div>
+      </div>
+      <div class="darrow-h"></div>
+      <div class="dbox navy">closed<span class="dsub">إغلاق نهائي</span></div>
+    </div>
+  </div><div class="fig-cap"><b>شكل 13-1:</b> دورة حياة الواقعة — الانتقالات المسموحة فقط</div></div>
+  <table class="tbl">
+    <caption>جدول 13-1: الانتقالات المسموحة وسبب رفض غيرها</caption>
+    <thead><tr><th class="w30">الانتقال</th><th class="w22">الإجراء المُسجَّل</th><th>القاعدة</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">detected &rarr; pending_review</td><td>—</td><td>تلقائي عند دخول الواقعة طابور المراجعة</td></tr>
+      <tr><td class="mono">pending_review &rarr; confirmed</td><td class="mono">confirm</td><td>مراجعة بشرية بعد فحص الدليل</td></tr>
+      <tr><td class="mono">pending_review &rarr; rejected</td><td class="mono">reject</td><td>مراجعة بشرية: إنذار كاذب</td></tr>
+      <tr><td class="mono">confirmed &rarr; closed</td><td class="mono">close</td><td>انتهاء الإجراء المطلوب</td></tr>
+      <tr><td class="mono">rejected &rarr; closed</td><td class="mono">close</td><td>إغلاق بعد الرفض</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">انتقال غير مسموح</span>
+    <p>لا يمكن الانتقال من <span class="mono">detected</span> مباشرةً إلى <span class="mono">confirmed</span>،
+    ولا إعادة فتح واقعة <span class="mono">closed</span>. أي محاولة كذلك تُرفض بحالة
+    <span class="mono">409</span>.</p></div>
+
+  <h3>13.2 ماذا يفعل مسؤول السلامة</h3>
+  <ul>
+    <li>يفتح قائمة الوقائع <span class="mono">GET /api/v1/incidents</span> ويفلترها بالنوع والخطورة والحالة والتاريخ.</li>
+    <li>يفتح الواقعة <span class="mono">GET /api/v1/incidents/{incident_id}</span> فيرى الدليل والزمن
+    (<span class="mono">started_at_seconds</span>) والفيديو المصدر.</li>
+    <li>يشاهد صورة الدليل <span class="mono">GET /api/v1/evidence/{evidence_id}/file</span>.</li>
+    <li>يؤكّد أو يرفض أو يضيف ملاحظة عبر <span class="mono">PATCH /api/v1/incidents/{incident_id}</span>.</li>
+    <li>يبحث تاريخياً عن المخالفات المتكرّرة لنفس الموقع أو المسار.</li>
+  </ul>
+  <p>في وضع العرض التوضيحي (<span class="mono">AUTH_ENABLED=false</span>) يتصرّف النظام كأن مستخدم
+  <span class="mono">safety_officer</span> افتراضي هو المراجع، ويكون <span class="mono">reviewer_id</span>
+  قابلاً لأن يكون <span class="mono">NULL</span>. عند تفعيل المصادقة يُسجَّل معرّف المستخدم الفعلي.</p>
+
+  <h3>13.3 لماذا نسجّل كل إجراء (<span class="en">Auditability</span>)</h3>
+  <p>كل تغيير حالة يُلحق صفاً جديداً في <span class="mono">incident_reviews</span> يحمل الفاعل والحالة السابقة
+  والجديدة والملاحظة. هذا يعطي: تتبّعاً كاملاً (من فعل ماذا ومتى)، ومسؤولية واضحة، وإمكانية إعادة بناء تاريخ
+  الواقعة. لا نعدّل الصفوف القديمة ولا نحذفها أبداً.</p>
+  <p>وبالاستعلام عن <span class="mono">incident_reviews</span> نعرف من أكّد كل واقعة ومتى، وهو ما تحتاجه أي
+  لجنة تدقيق لاحقاً. أما البحث التاريخي في جدول <span class="mono">incidents</span> (بالنوع والخطورة والحالة
+  ونطاق التاريخ) فيعتمد على الفهارس المذكورة في الفصل 8.</p>
+
+  <h3>13.4 مثال كامل: طلب المراجعة وتحديث القاعدة وسلوك الواجهة</h3>
+  <p>يؤكّد مسؤول السلامة واقعة. الطلب التالي يغيّر الحالة ويُلحق صف مراجعة.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">request.json</span><span class="ftag">http</span></div>
+<pre>PATCH /api/v1/incidents/3f2a1c09-7b44-4e0a-9c11-2d6f0a8b1c9d HTTP/1.1
+Content-Type: application/json
+
+{
+  "status": "confirmed",
+  "note": "confirmed after reviewing the evidence image",
+  "reviewer_id": "8b1d4e77-2c10-4f88-9a03-51c9d2e6f042"
+}
+</pre></div>
+  <div class="code-wrap"><div class="code-head"><span class="fname">response.json</span><span class="ftag">json</span></div>
+<pre>{
+  "id": "3f2a1c09-7b44-4e0a-9c11-2d6f0a8b1c9d",
+  "video_id": "a1b2c3d4-0000-4000-8000-000000000001",
+  "job_id": "d4e5f6a7-0000-4000-8000-000000000002",
+  "incident_type": "ppe_violation",
+  "severity": "medium",
+  "status": "confirmed",
+  "started_at_seconds": 4.0,
+  "ended_at_seconds": 4.4,
+  "frame_number": 110,
+  "track_id": 7,
+  "confidence": 0.8,
+  "class_name": "no_helmet",
+  "zone_name": null,
+  "summary": "ppe_violation detected as no_helmet",
+  "detection_count": 3,
+  "created_at": "2026-01-01T10:00:00Z",
+  "updated_at": "2026-01-01T10:05:00Z",
+  "evidence": [
+    {
+      "id": "9c0e1a55-0000-4000-8000-000000000003",
+      "incident_id": "3f2a1c09-7b44-4e0a-9c11-2d6f0a8b1c9d",
+      "kind": "image",
+      "storage_key": "evidence/3f2a1c09/frame_110.jpg",
+      "content_type": "image/jpeg",
+      "size_bytes": 42133,
+      "frame_number": 110,
+      "timestamp_seconds": 4.4,
+      "file_url": "/api/v1/evidence/9c0e1a55/file"
+    }
+  ]
+}
+</pre></div>
+  <p>على الـ Frontend: بعد الردّ الناجح تُحدَّث حالة الواقعة في الجدول إلى <span class="mono">confirmed</span>،
+  ويظهر صف المراجعة الجديد في سجلّها، ويُزاح العنصر من قائمة <span class="mono">pending_review</span>.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/incidents.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/api/v1/endpoints/incidents.py (PATCH excerpt)</span>
+<span class="kw">import</span> uuid
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends, HTTPException, status
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+<span class="kw">from</span> app.db.session <span class="kw">import</span> get_db
+<span class="kw">from</span> app.models.enums <span class="kw">import</span> IncidentStatus, ReviewAction
+<span class="kw">from</span> app.models.incident <span class="kw">import</span> Incident
+<span class="kw">from</span> app.models.incident_review <span class="kw">import</span> IncidentReview
+<span class="kw">from</span> app.schemas.incident <span class="kw">import</span> IncidentOut, IncidentPatch
+
+router = APIRouter(prefix=<span class="str">"/incidents"</span>, tags=[<span class="str">"incidents"</span>])
+
+<span class="cmt"># target status -&gt; (required current status, audit action)</span>
+TRANSITIONS = {
+    IncidentStatus.confirmed: (IncidentStatus.pending_review, ReviewAction.confirm),
+    IncidentStatus.rejected: (IncidentStatus.pending_review, ReviewAction.reject),
+    IncidentStatus.closed: (IncidentStatus.confirmed, ReviewAction.close),
+}
+
+
+<span class="fn">@router.patch</span>(<span class="str">"/{incident_id}"</span>, response_model=IncidentOut)
+<span class="kw">def</span> <span class="fn">patch_incident</span>(incident_id: uuid.UUID, payload: IncidentPatch,
+                   db: Session = Depends(get_db)) -&gt; IncidentOut:
+    incident = db.get(Incident, incident_id)
+    <span class="kw">if</span> incident <span class="kw">is</span> <span class="kw">None</span>:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_404_NOT_FOUND, <span class="str">"incident not found"</span>)
+
+    new_status = <span class="fn">IncidentStatus</span>(payload.status) <span class="kw">if</span> payload.status <span class="kw">else</span> incident.status
+    <span class="kw">if</span> new_status != incident.status <span class="kw">and</span> new_status <span class="kw">not in</span> TRANSITIONS:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_409_CONFLICT, <span class="str">"status cannot be set directly"</span>)
+    <span class="kw">if</span> new_status != incident.status:
+        required, action = TRANSITIONS[new_status]
+        <span class="kw">if</span> incident.status != required:
+            <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_409_CONFLICT, <span class="str">"invalid status transition"</span>)
+        db.add(<span class="fn">IncidentReview</span>(
+            incident_id=incident.id, reviewer_id=payload.reviewer_id, action=action,
+            previous_status=incident.status, new_status=new_status, note=payload.note))
+        incident.status = new_status
+    <span class="kw">elif</span> payload.note:
+        db.add(<span class="fn">IncidentReview</span>(
+            incident_id=incident.id, reviewer_id=payload.reviewer_id,
+            action=ReviewAction.comment, previous_status=incident.status,
+            new_status=incident.status, note=payload.note))
+
+    db.commit()
+    db.refresh(incident)
+    <span class="kw">return</span> IncidentOut.model_validate(incident)
+</pre></div>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/models/incident_review.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/models/incident_review.py</span>
+<span class="kw">import</span> uuid
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> DateTime, Enum, ForeignKey, Text, func
+<span class="kw">from</span> sqlalchemy.dialects.postgresql <span class="kw">import</span> UUID
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Mapped, mapped_column, relationship
+<span class="kw">from</span> app.db.base <span class="kw">import</span> Base
+<span class="kw">from</span> app.models.enums <span class="kw">import</span> IncidentStatus, ReviewAction
+
+
+<span class="kw">class</span> <span class="fn">IncidentReview</span>(Base):
+    __tablename__ = <span class="str">"incident_reviews"</span>
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=<span class="kw">True</span>), primary_key=<span class="kw">True</span>, default=uuid.uuid4)
+    incident_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(<span class="str">"incidents.id"</span>, ondelete=<span class="str">"CASCADE"</span>), nullable=<span class="kw">False</span>)
+    reviewer_id: Mapped[uuid.UUID | <span class="kw">None</span>] = mapped_column(ForeignKey(<span class="str">"users.id"</span>))
+    action: Mapped[ReviewAction] = mapped_column(
+        Enum(ReviewAction, name=<span class="str">"review_action"</span>), nullable=<span class="kw">False</span>)
+    previous_status: Mapped[IncidentStatus | <span class="kw">None</span>] = mapped_column(
+        Enum(IncidentStatus, name=<span class="str">"incident_status"</span>))
+    new_status: Mapped[IncidentStatus | <span class="kw">None</span>] = mapped_column(
+        Enum(IncidentStatus, name=<span class="str">"incident_status"</span>))
+    note: Mapped[str | <span class="kw">None</span>] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=<span class="kw">True</span>), server_default=func.now())
+
+    incident = relationship(<span class="str">"Incident"</span>, back_populates=<span class="str">"reviews"</span>)
+</pre></div>
+
+  <h3>13.5 الكشف الآلي يساعد المراجعة ولا يحلّ محل الحكم المهني</h3>
+  <div class="callout danger"><span class="co-title">حدّ أساسي في النظام</span>
+    <p>النظام أداة فرز ومساعدة، وليس بديلاً عن مسؤول السلامة. الكشف الآلي قد يُخطئ (إنذار كاذب) وقد يُفوّت
+    (حدث مفقود)، والقرار النهائي دائماً بشري. لذلك لا تنتقل أي واقعة إلى <span class="mono">confirmed</span>
+    تلقائياً، ولا يُبنى أي إجراء تأديبي على مخرجات الـ Model وحدها. الواجهة تعرض دائماً عبارة واضحة بأن
+    النتيجة كشف آلي يحتاج مراجعة.</p></div>
+  <p>عملياً، تعرض الواجهة شارة "كشف آلي" بجانب كل واقعة، وتطلب من المراجع فحص الدليل قبل أي قرار. هذا التصميم
+  يحمي الفريق من الادّعاء بأن النظام يحكم على العاملين بدل أن يساعدهم.</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 13</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>دورة حياة الواقعة بانتقالاتها الخمس، وما يفعله مسؤول السلامة، ولماذا نسجّل كل إجراء في
+        <span class="mono">incident_reviews</span>، وأن الكشف الآلي يدعم المراجعة ولا يستبدلها.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">incident_review.py</span> وجدول <span class="mono">incident_reviews</span>.</li>
+          <li>تنفيذ <span class="mono">PATCH /api/v1/incidents/{incident_id}</span> مع التحقق من الانتقالات.</li>
+          <li>إظهار الدليل والزمن والفيديو المصدر في صفحة الواقعة.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>واقعة قابلة للتأكيد أو الرفض مع صف مراجعة لكل إجراء.</li>
+        <li>سجل تدقيق كامل قابل للعرض.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>تأكيد واقعة يُلحق صفاً بالإجراء <span class="mono">confirm</span> والحالة الجديدة <span class="mono">confirmed</span>.</li>
+        <li>محاولة انتقال غير مسموح تُرجع <span class="mono">409</span>.</li>
+        <li>لا توجد واقعة تُصبح <span class="mono">confirmed</span> بدون صف مراجعة.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تأكيد الوقائع آلياً من الـ pipeline.</li>
+        <li>تعديل أو حذف صفوف المراجعة القديمة.</li>
+        <li>السماح بانتقالات حالة غير معرّفة.</li>
+        <li>تقديم الكشف الآلي كحكم نهائي بدل دعم القرار البشري.</li></ul></div>
+    </div>
+  </div>
+</section>

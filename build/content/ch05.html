@@ -1,0 +1,171 @@
+<section class="chapter" id="ch05">
+  <div class="opener">
+    <div class="op-num">05</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH05 &middot; ENVIRONMENT SETUP</p>
+      <h2>تجهيز بيئة التطوير</h2>
+      <p class="op-sub">من جهاز فارغ إلى Backend و Frontend يعملان ويتحدثان معاً</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الفصل عملي بالكامل. الهدف أن يصل كل عضو من جهاز فارغ إلى نظام يعمل: الـ Backend يرد على الطلبات،
+    والـ Frontend يعرض البيانات، والاثنان يتحدثان معاً. نُقدّم أوامر كاملة قابلة للنسخ، بنسخة
+    <strong>Windows PowerShell</strong> أولاً ثم بدائل <strong>Linux / macOS</strong>.</p>
+  </div>
+
+  <h3>5.1 مفاهيم أساسية قبل البدء</h3>
+  <ul>
+    <li><strong>Terminal:</strong> نافذة نصية نكتب فيها الأوامر. في Windows نستخدم PowerShell، وفي Linux/macOS نستخدم Bash.</li>
+    <li><strong>Working Directory:</strong> المجلد الحالي الذي ينفّذ فيه الطرفية الأوامر. الأوامر النسبية تُحسب منه، لذا يجب التأكد من مكاننا قبل التنفيذ.</li>
+    <li><strong>Port:</strong> رقم يحدّد الخدمة على الجهاز. الـ Backend يعمل على <span class="mono">8000</span>، والـ Frontend على <span class="mono">5173</span>، وPostgreSQL على <span class="mono">5432</span>. لا يمكن لخدمتين استخدام نفس المنفذ.</li>
+    <li><strong>Environment Variable:</strong> متغيّر يُخزَّن خارج الكود ليحمل الإعدادات والأسرار. نضعها في ملف <span class="mono">.env</span> ولا نرفعه إلى Git.</li>
+  </ul>
+
+  <h3>5.2 الأدوات المطلوبة والتحقق منها</h3>
+  <table class="tbl">
+    <caption>جدول 5-1: الأدوات وأمر التحقق من التثبيت</caption>
+    <thead><tr><th class="w22">الأداة</th><th class="w40">الإصدار المستهدف</th><th class="w38">أمر التحقق</th></tr></thead>
+    <tbody>
+      <tr><td>Python</td><td>3.11</td><td class="mono">python --version</td></tr>
+      <tr><td>Git</td><td>أحدث إصدار مستقر</td><td class="mono">git --version</td></tr>
+      <tr><td>Node.js + npm</td><td>Node 20 LTS أو أحدث</td><td class="mono">node --version &amp;&amp; npm --version</td></tr>
+      <tr><td>PostgreSQL</td><td>16 (أو Docker)</td><td class="mono">psql --version</td></tr>
+      <tr><td>Docker Desktop</td><td>أحدث إصدار</td><td class="mono">docker --version</td></tr>
+      <tr><td>VS Code</td><td>أحدث إصدار</td><td>يفتح من قائمة البرامج</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">تحذير</span>
+    <p>إذا لم يظهر رقم إصدار بعد الأمر، فالأداة غير مثبّتة أو غير مضافة إلى <span class="mono">PATH</span>.
+    أعد تثبيتها مع خيار "Add to PATH" قبل المتابعة.</p></div>
+
+  <h3>5.3 الخطوات الاثنا عشر خطوة بخطوة</h3>
+
+  <h4>الخطوة 1: إنشاء المستودع محلياً</h4>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell</span></div>
+<pre class="term">$ git clone https://github.com/&lt;YOUR_ORG&gt;/safevision-ai.git
+$ cd safevision-ai</pre></div>
+
+  <h4>الخطوة 2: إنشاء البيئة الافتراضية</h4>
+  <p>ننشئ <span class="mono">venv</span> في جذر المشروع لعزل مكتبات الـ Backend عن النظام.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term"># Windows PowerShell
+$ python -m venv .venv
+
+# Linux / macOS
+$ python3 -m venv .venv</pre></div>
+
+  <h4>الخطوة 3: تنشيط البيئة الافتراضية</h4>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term"># Windows PowerShell
+$ .venv\Scripts\Activate.ps1
+# If script execution is blocked, run this once for the current session:
+$ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# Linux / macOS
+$ source .venv/bin/activate</pre></div>
+
+  <h4>الخطوة 4: تثبيت متطلبات الـ Backend</h4>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ cd backend
+$ pip install --upgrade pip
+$ pip install -r requirements.txt</pre></div>
+
+  <h4>الخطوة 5: إنشاء تطبيق React بـ Vite و TypeScript</h4>
+  <p>إن كان مجلد <span class="mono">frontend</span> فارغاً نُنشئ فيه مشروع Vite بقالب TypeScript.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ cd ../frontend
+$ npm create vite@latest . -- --template react-ts
+$ npm install</pre></div>
+
+  <h4>الخطوة 6: تثبيت متطلبات الـ Frontend</h4>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ npm install axios react-router-dom recharts
+$ npm install -D tailwindcss postcss autoprefixer
+$ npx tailwindcss init -p</pre></div>
+
+  <h4>الخطوة 7: إعداد ملف <span class="mono">.env</span></h4>
+  <p>ننسخ القالب ثم نملأ القيم الحقيقية محلياً (كلمة مرور قاعدة البيانات، مسارات الـ checkpoints).</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term"># Windows PowerShell
+$ Copy-Item .env.example .env
+
+# Linux / macOS
+$ cp .env.example .env</pre></div>
+
+  <h4>الخطوة 8: تشغيل PostgreSQL</h4>
+  <p>الطريقة الموصى بها عبر Docker Compose، والبديل تشغيل حاوية مباشرة.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term"># Preferred: start the database service from docker-compose.yml
+$ docker compose up -d db
+
+# Alternative: run a single PostgreSQL 16 container
+docker run --name safevision-db -d -p 5432:5432 ^
+  -e POSTGRES_USER=&lt;DB_USER&gt; -e POSTGRES_PASSWORD=&lt;DB_PASSWORD&gt; ^
+  -e POSTGRES_DB=safevision postgres:16</pre></div>
+
+  <h4>الخطوة 9: تشغيل الـ Backend</h4>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ cd backend
+$ uvicorn app.main:app --reload --port 8000</pre></div>
+
+  <h4>الخطوة 10: تشغيل الـ Frontend</h4>
+  <p>نفتح طرفية ثانية ونترك الأولى تعمل.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ cd frontend
+$ npm run dev</pre></div>
+
+  <h4>الخطوة 11: فتح توثيق Swagger</h4>
+  <p>افتح في المتصفح <span class="mono">http://localhost:8000/docs</span> لتظهر كل الـ Endpoints وتجربتها مباشرة.</p>
+
+  <h4>الخطوة 12: التأكد من التواصل</h4>
+  <p>نتأكد أن الـ Backend يرد، وأن الـ Frontend يصل إليه عبر <span class="mono">VITE_API_BASE_URL</span>.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal</span><span class="ftag">powershell / bash</span></div>
+<pre class="term">$ curl http://localhost:8000/api/v1/health
+# expected: {"status":"ok"}</pre></div>
+
+  <h3>5.4 أخطاء الإعداد الشائعة وحلولها</h3>
+  <table class="tbl">
+    <caption>جدول 5-2: أخطاء شائعة عند الإعداد</caption>
+    <thead><tr><th class="w34">الخطأ</th><th class="w30">السبب المحتمل</th><th class="w36">الحل</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">python: command not found</span></td><td>Python غير مثبّت أو غير مضاف لـ PATH</td><td>أعد التثبيت مع خيار Add to PATH</td></tr>
+      <tr><td>تنشيط venv مرفوض في PowerShell</td><td>سياسة تنفيذ السكربتات</td><td><span class="mono">Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</span></td></tr>
+      <tr><td><span class="mono">ModuleNotFoundError</span></td><td>نسيان تنشيط venv أو تثبيت المتطلبات</td><td>نشّط <span class="mono">.venv</span> ثم <span class="mono">pip install -r requirements.txt</span></td></tr>
+      <tr><td>فشل الاتصال بـ PostgreSQL</td><td>الحاوية لا تعمل أو المنفذ مشغول</td><td>تحقق بـ <span class="mono">docker ps</span> وتأكد من <span class="mono">POSTGRES_PORT</span></td></tr>
+      <tr><td>خطأ CORS في المتصفح</td><td>الأصل غير مسموح به</td><td>أضف عنوان الـ Frontend إلى <span class="mono">CORS_ORIGINS</span></td></tr>
+      <tr><td>المنفذ 8000 أو 5173 مشغول</td><td>خدمة أخرى تستخدم المنفذ</td><td>أغلق العملية أو غيّر رقم المنفذ</td></tr>
+      <tr><td>الـ Frontend لا يرى البيانات</td><td><span class="mono">VITE_API_BASE_URL</span> خاطئ</td><td>تأكد أنه <span class="mono">http://localhost:8000/api/v1</span> ثم أعد تشغيل Vite</td></tr>
+    </tbody>
+  </table>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 5</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>فهمنا الطرفية ومجلد العمل والمنافذ ومتغيّرات البيئة، وتحقّقنا من الأدوات الست، ونفّذنا الخطوات
+        الاثنتي عشرة من الاستنساخ حتى تأكيد التواصل، وعرفنا حلول أكثر أخطاء الإعداد شيوعاً.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تثبيت الأدوات الست والتحقق من إصداراتها.</li>
+          <li>إنشاء <span class="mono">.venv</span> وتنشيطه وتثبيت المتطلبات.</li>
+          <li>نسخ <span class="mono">.env.example</span> إلى <span class="mono">.env</span> وملء القيم.</li>
+          <li>تشغيل PostgreSQL ثم الـ Backend ثم الـ Frontend.</li>
+          <li>التأكد من رد <span class="mono">/api/v1/health</span> بلا أخطاء CORS.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>جهاز كل عضو يشغّل النظام كاملاً محلياً.</li>
+        <li>Swagger يعمل على <span class="mono">http://localhost:8000/docs</span>.</li>
+        <li>الـ Frontend يعرض بيانات قادمة من الـ Backend فعلاً.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>الأمر <span class="mono">curl http://localhost:8000/api/v1/health</span> يعيد <span class="mono">status ok</span>.</li>
+        <li>لا يوجد خطأ CORS في وحدة تحكّم المتصفح.</li>
+        <li>المنافذ 8000 و5173 و5432 مفتوحة وتعمل معاً.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تثبيت المكتبات في بيئة النظام بدل <span class="mono">.venv</span>.</li>
+        <li>نسيان تشغيل قاعدة البيانات قبل الـ Backend.</li>
+        <li>تعديل <span class="mono">.env.example</span> بقيم حقيقية بدل <span class="mono">.env</span>.</li>
+        <li>إغلاق طرفية الـ Backend أثناء العمل على الـ Frontend.</li></ul></div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,260 @@
+<section class="chapter" id="ch22">
+  <div class="opener">
+    <div class="op-num">22</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH22 &middot; TESTING</p>
+      <h2>الاختبارات وضمان الجودة</h2>
+      <p class="op-sub">كيف نتأكد أن النظام يعمل فعلاً قبل المناقشة</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>عبارة "جرّبته وشغّل عندي" لا تكفي أمام لجنة المناقشة. هذا الفصل يحوّل الثقة إلى دليل: اختبارات
+    وحدات للقواعد والحسابات، واختبارات تكامل بين الـ API وقاعدة البيانات، ورحلة كاملة من الطرف للطرف،
+    وجدول حالات اختبار تُملأ خاناته بعد التنفيذ الفعلي. القاعدة: <strong>لا نكتب نتيجة لم تُنفَّذ</strong>.</p>
+  </div>
+
+  <h3>22.1 ثلاثة مستويات من الاختبار</h3>
+  <table class="tbl">
+    <caption>جدول 22-1: مستويات الاختبار الثلاثة ونطاق كل واحد</caption>
+    <thead><tr><th>المستوى</th><th>ما يختبره</th><th>أدوات</th><th>سرعة</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Unit Testing</span></td><td>دالة واحدة معزولة: فلترة الثقة، تقييم قاعدة، حساب تقرير</td><td class="mono">pytest</td><td>أجزاء من الثانية</td></tr>
+      <tr><td><span class="en">Integration Testing</span></td><td>عدة مكوّنات معاً: API + قاعدة بيانات، Job + AI، وقائع + تقارير</td><td class="mono">pytest + httpx</td><td>ثوانٍ</td></tr>
+      <tr><td><span class="en">End-to-End Testing</span></td><td>رحلة المستخدم الكاملة من الرفع حتى التقرير</td><td>تشغيل كامل + المتصفح</td><td>دقائق</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Unit Test (اختبار وحدة):</strong> يفحص أصغر قطعة منطق بمعزل عن غيرها، فلا يحتاج قاعدة بيانات ولا
+  GPU ولا شبكة. و<strong>Integration Test (اختبار تكامل):</strong> يفحص أن قطعتين تعملان معاً بالطريقة
+  الصحيحة، مثل أن يرفع الـ API فيديو فيظهر فعلاً في جدول <span class="mono">videos</span>.</p>
+
+  <h3>22.2 اختبارات الوحدة: ماذا نغطّي بالضبط</h3>
+  <ul>
+    <li>التحقق من الفيديو: امتداد مسموح/مرفوض، حجم أكبر من <span class="mono">MAX_UPLOAD_MB</span>، ملف تالف.</li>
+    <li>خريطة الأصناف: تحويل اسم class من الـ Model إلى نوع واقعة صحيح.</li>
+    <li>فلترة الثقة: كشف أقل من <span class="mono">DETECTION_CONF_THRESHOLD</span> يُستبعد.</li>
+    <li>تقييم القواعد: مخالفة PPE تتطلب عدد إطارات متتالية، والدخان يتطلب عتبة أعلى.</li>
+    <li>منع تكرار الوقائع: واقعة داخل <span class="mono">INCIDENT_COOLDOWN_SECONDS</span> لا تُنشأ مرتين.</li>
+    <li>حسابات التقارير: تجميع الوقائع يومياً يعطي نفس مجموع المدخلات.</li>
+  </ul>
+
+  <h3>22.3 اختبارات التكامل: نقاط الوصل الحرجة</h3>
+  <p>نركّز على الوصلات التي يكثر فيها الخطأ: الـ API مع قاعدة البيانات، الرفع مع التخزين، الـ Job مع الـ AI،
+  مخرجات الـ AI مع سجلات الوقائع، الوقائع مع التقارير، والـ Frontend مع الـ Backend. في كل اختبار نتحقق من
+  رمز الحالة (<span class="mono">201</span>، <span class="mono">202</span>، <span class="mono">200</span>) ومن
+  شكل الاستجابة المطابق للعقد في الفصل 7، ومن أن البيانات وصلت فعلاً للجدول الصحيح.</p>
+
+  <h3>22.4 اختبار الرحلة الكاملة (End-to-End)</h3>
+  <ol>
+    <li>فتح الواجهة والتأكد من نجاح نداء <span class="mono">GET /api/v1/health</span>.</li>
+    <li>رفع فيديو صغير عبر <span class="mono">POST /api/v1/videos</span> وظهوره في القائمة.</li>
+    <li>بدء المعالجة <span class="mono">POST /api/v1/videos/{video_id}/process</span> والحصول على 202.</li>
+    <li>متابعة <span class="mono">GET /api/v1/jobs/{job_id}</span> حتى <span class="mono">completed</span>.</li>
+    <li>ظهور وقائع في <span class="mono">GET /api/v1/incidents</span>.</li>
+    <li>فتح تفاصيل واقعة وعرض صورة الدليل عبر <span class="mono">/api/v1/evidence/{evidence_id}/file</span>.</li>
+    <li>تنفيذ مراجعة <span class="mono">PATCH /api/v1/incidents/{incident_id}</span> وتغيّر الحالة.</li>
+    <li>فتح التحليلات <span class="mono">GET /api/v1/analytics/overview</span> وظهور الأرقام.</li>
+    <li>تصدير التقرير <span class="mono">GET /api/v1/reports/export</span> وفتح ملف CSV.</li>
+    <li>حذف الفيديو والتأكد من اختفاء وقائعه وملفاته.</li>
+  </ol>
+
+  <h3>22.5 جدول حالات الاختبار</h3>
+  <p>الخانتان <strong>Actual</strong> و<strong>Pass/Fail</strong> تُتركان فارغتين وتُملآن بعد التنفيذ الفعلي فقط.</p>
+  <table class="tbl">
+    <caption>جدول 22-2: حالات الاختبار (يُملأ بعد التنفيذ)</caption>
+    <thead><tr><th>Test ID</th><th>Scenario</th><th>Preconditions</th><th>Steps</th><th>Expected</th><th>Actual</th><th>Pass/Fail</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">TC-01</td><td>رفع فيديو صالح</td><td>Backend و DB يعملان</td><td>اختيار ملف mp4 وإرساله</td><td>201 و<span class="mono">status=uploaded</span></td><td></td><td></td></tr>
+      <tr><td class="mono">TC-02</td><td>رفض امتداد غير مسموح</td><td>نفس ما سبق</td><td>رفع ملف <span class="mono">.txt</span></td><td>400 مع رسالة واضحة</td><td></td><td></td></tr>
+      <tr><td class="mono">TC-03</td><td>بدء معالجة</td><td>يوجد فيديو مرفوع</td><td>نداء process</td><td>202 مع JobOut <span class="mono">queued</span></td><td></td><td></td></tr>
+      <tr><td class="mono">TC-04</td><td>توليد وقائع</td><td>job مكتمل</td><td>فتح قائمة الوقائع</td><td>وقائع بأنواع من الـ enum</td><td></td><td></td></tr>
+      <tr><td class="mono">TC-05</td><td>منع job مزدوج</td><td>job نشط لنفس الفيديو</td><td>نداء process مرة أخرى</td><td>رفض واضح (تعارض)</td><td></td><td></td></tr>
+      <tr><td class="mono">TC-06</td><td>مراجعة واقعة</td><td>واقعة <span class="mono">pending_review</span></td><td>PATCH بالحالة confirmed</td><td>تغيّر الحالة وسجل مراجعة</td><td></td><td></td></tr>
+      <tr><td class="mono">TC-07</td><td>تصدير CSV</td><td>توجد وقائع</td><td>نداء reports/export</td><td>ملف CSV صالح</td><td></td><td></td></tr>
+      <tr><td class="mono">TC-08</td><td>فشل الـ checkpoint</td><td>مسار model خاطئ</td><td>بدء المعالجة</td><td>job <span class="mono">failed</span> ورسالة خطأ</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>22.6 الاختبار بدون GPU وفيديو صناعي صغير</h3>
+  <p>الاختبارات الآلية يجب ألا تحتاج GPU ولا ملف فيديو حقيقي. ننشئ <strong>fixture</strong> — وهو بيانات
+  ثابتة تُجهَّز تلقائياً قبل الاختبار — على شكل فيديو صناعي صغير جداً نولّده برمجياً بإطارات ملوّنة، أو حتى
+  صور مصفوفة في الذاكرة. هذا يجعل الاختبار سريعاً وقابلاً للتشغيل في CI على CPU. نضبط في الاختبارات
+  <span class="mono">MODEL_DEVICE=cpu</span> و<span class="mono">AUTH_ENABLED=false</span> لتفادي الـ GPU
+  ولتفادي التعامل مع التوكنات، ونستبدل الـ Model الثقيل بـ <span class="en">stub</span> يعيد كشوفات وهمية
+  ثابتة عند اختبار القواعد فقط.</p>
+
+  <h3>22.7 ملف الـ fixtures</h3>
+  <p>هذا الملف يجهّز البيانات المشتركة لكل الاختبارات: فيديو صناعي صغير، وعميل HTTP للـ API، وجلسة قاعدة
+  بيانات معاملة تُلغى في النهاية حتى لا تترك أثراً.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/conftest.py</span><span class="ftag">python</span></div>
+<pre>import numpy as np
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from app.main import app
+
+# Tests always run on CPU and without auth so they work in CI and on any laptop.
+CPU_ENV = {"MODEL_DEVICE": "cpu", "AUTH_ENABLED": "false"}
+
+
+@pytest.fixture(scope="session")
+def client() -&gt; TestClient:
+    return TestClient(app)
+
+
+@pytest.fixture()
+def tiny_video(tmp_path):
+    """Write a very short synthetic mp4 with a few solid-colour frames."""
+    import cv2
+
+    path = tmp_path / "synthetic_3f.mp4"
+    writer = cv2.VideoWriter(
+        str(path), cv2.VideoWriter_fourcc(*"mp4v"), 5.0, (64, 64)
+    )
+    for colour in ((10, 10, 10), (200, 200, 200), (10, 10, 10)):
+        frame = np.full((64, 64, 3), colour, dtype=np.uint8)
+        writer.write(frame)
+    writer.release()
+    return path
+
+
+@pytest.fixture()
+def db_session():
+    """A transaction that is rolled back after each test."""
+    engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
+    TestingSession = sessionmaker(bind=engine, future=True)
+    session = TestingSession()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
+</pre></div>
+
+  <h3>22.8 اختبار قواعد السلامة</h3>
+  <p>نختبر دالة تقييم القواعد بكشوفات مصنوعة يدوياً، فلا نحتاج Model ولا GPU. الحالة الأولى: مخالفة PPE
+  أقل من عدد الإطارات المطلوب لا تُنتج واقعة. الحالة الثانية: واقعة داخل فترة التهدئة لا تُكرَّر.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/test_rules.py</span><span class="ftag">python</span></div>
+<pre>from app.ai.rules import evaluate_ppe_violation, should_create_incident
+
+
+def make_detection(frame_number, class_name="person_no_helmet", confidence=0.9):
+    return {
+        "class_name": class_name,
+        "confidence": confidence,
+        "bbox": [10, 10, 50, 50],
+        "frame_number": frame_number,
+        "timestamp_seconds": frame_number / 5.0,
+    }
+
+
+def test_single_frame_below_confirm_threshold_makes_no_incident():
+    # INCIDENT_CONFIRM_FRAMES is higher than one, so a single frame is not enough.
+    detections = [make_detection(1)]
+    assert evaluate_ppe_violation(detections, confirm_frames=3) is None
+
+
+def test_repeated_frames_produce_one_incident():
+    detections = [make_detection(n) for n in range(1, 6)]
+    incident = evaluate_ppe_violation(detections, confirm_frames=3)
+    assert incident is not None
+    assert incident["incident_type"] == "ppe_violation"
+    assert incident["detection_count"] &gt;= 3
+
+
+def test_cooldown_blocks_duplicate_incident():
+    last_seen_seconds = 4.0
+    new_detection_seconds = 6.0
+    assert should_create_incident(
+        last_seen_seconds, new_detection_seconds, cooldown_seconds=10.0
+    ) is False
+</pre></div>
+
+  <h3>22.9 اختبار تكامل الـ API مع قاعدة البيانات</h3>
+  <p>هذا الاختبار يمرّ عبر الـ API الحقيقي ويتحقق من رمز الحالة ومن شكل الاستجابة ومن أن الحالة تتغيّر
+  فعلاً. نستخدم <span class="mono">TestClient</span> الموجود داخل FastAPI، ويمكن استبداله بـ
+  <span class="mono">httpx.AsyncClient</span> عند اختبار endpoints غير متزامنة.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/test_api_incidents.py</span><span class="ftag">python</span></div>
+<pre>def test_list_incidents_returns_pagination_envelope(client):
+    response = client.get("/api/v1/incidents")
+    assert response.status_code == 200
+    body = response.json()
+    # The pagination envelope is defined in the API contract.
+    for key in ("items", "total", "page", "page_size", "pages"):
+        assert key in body
+
+
+def test_incident_status_change_is_recorded(client):
+    # Assumes a seeded incident exists in the test database.
+    incident_id = client.get("/api/v1/incidents").json()["items"][0]["id"]
+    response = client.patch(
+        f"/api/v1/incidents/{incident_id}",
+        json={"status": "confirmed", "note": "checked by reviewer"},
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "confirmed"
+
+
+def test_reject_invalid_status_value(client):
+    incident_id = client.get("/api/v1/incidents").json()["items"][0]["id"]
+    response = client.patch(
+        f"/api/v1/incidents/{incident_id}", json={"status": "not_a_real_status"}
+    )
+    assert response.status_code == 422
+</pre></div>
+
+  <h3>22.10 اختبار الواجهة بـ Vitest</h3>
+  <p>على جهة الـ Frontend نستخدم <strong>Vitest</strong> لاختبار الدوال النقية: تنسيق الأرقام، التحقق من
+  الامتداد قبل الرفع، وتحويل قيم الـ enums إلى نصوص عربية للعرض. لا نختبر الـ API نفسه هنا، بل المنطق فقط.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/utils/format.test.ts</span><span class="ftag">typescript</span></div>
+<pre>import { describe, expect, it } from "vitest";
+import { formatProgress, isAllowedVideo } from "./format";
+
+describe("isAllowedVideo", () =&gt; {
+  it("accepts mp4 and rejects txt", () =&gt; {
+    expect(isAllowedVideo("clip.mp4")).toBe(true);
+    expect(isAllowedVideo("notes.txt")).toBe(false);
+  });
+});
+
+describe("formatProgress", () =&gt; {
+  it("rounds a fraction to a percentage string", () =&gt; {
+    expect(formatProgress(0.425)).toBe("43%");
+  });
+});
+</pre></div>
+  <div class="callout tip"><span class="co-title">أوامر التشغيل</span>
+    <p>الـ Backend: <span class="mono">pytest backend/tests -q</span>. الـ Frontend:
+    <span class="mono">npm run test -- --run</span>. شغّل الأمرين محلياً قبل كل push، لأن ذلك أسرع من انتظار CI.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 22</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>قسّمنا الاختبارات إلى وحدة وتكامل ورحلة كاملة، وحدّدنا ما نغطّيه في كل مستوى، وجهّزنا فيديو صناعياً
+        صغيراً يعمل بدون GPU، وربطنا كل اختبار برمز الحالة وشكل الاستجابة في العقد.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">backend/tests/conftest.py</span> بالـ fixtures.</li>
+          <li>كتابة اختبارات القواعد والـ API وتشغيلها بنجاح محلياً.</li>
+          <li>تعبئة جدول حالات الاختبار بعد تنفيذ فعلي حقيقي.</li>
+          <li>إضافة Vitest لاختبار دوال الواجهة.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>حزمة اختبارات تعمل بالكامل على CPU.</li>
+        <li>جدول حالات اختبار مكتمل بالنتائج الحقيقية.</li>
+        <li>تقرير مختصر بعدد الاختبارات الناجحة والفاشلة.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>تشغيل <span class="mono">pytest</span> دون أخطاء جمع أو فشل غير متوقع.</li>
+        <li>كل صف في جدول الحالات له نتيجة مكتوبة وسبب.</li>
+        <li>إمكانية تشغيل الاختبارات على جهاز بلا GPU.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>كتابة Expected في خانة Actual لمجرد أن الاختبار "يجب" أن ينجح.</li>
+        <li>الاعتماد على بيانات حقيقية في الاختبارات الآلية.</li>
+        <li>اختبارات تعتمد على ترتيب التنفيذ أو تترك بيانات في قاعدة البيانات.</li>
+        <li>نسيان تشغيل الاختبارات قبل كل push.</li></ul></div>
+    </div>
+  </div>
+</section>

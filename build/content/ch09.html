@@ -1,0 +1,258 @@
+<section class="chapter" id="ch09">
+  <div class="opener">
+    <div class="op-num">09</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH09 &middot; UPLOAD &amp; STORAGE</p>
+      <h2>رفع الفيديو وتخزين الملفات</h2>
+      <p class="op-sub">كيف يستقبل النظام الفيديو ويتحقّق منه ويحفظه بأمان بعيداً عن قاعدة البيانات</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>هذا الفصل يغطّي أول خطوة في النظام: وصول ملف الفيديو إلى الخادم. الهدف أن نقبل الملفات الصحيحة
+  فقط، ونمنع التكرار، ونحفظ الملف بمفتاح (<span class="en">storage key</span>) آمن، مع بقاء بياناته الوصفية
+  في <span class="en">PostgreSQL</span> والملف نفسه في طبقة تخزين مستقلة.</p></div>
+
+  <h3>9.1 الصيغ المدعومة وحدود الحجم</h3>
+  <p>نُقيّد الرفع بقائمة امتدادات مسموح بها وحد أقصى للحجم، ونقرأ هذه القيم من متغيّرات البيئة لا من الكود،
+  حتى يمكن تغييرها دون إعادة بناء المشروع.</p>
+  <table class="tbl">
+    <caption>جدول 9-1: قيود الرفع ومتغيّراتها</caption>
+    <thead><tr><th class="w30">القيد</th><th class="w30">المتغيّر</th><th>القيمة الافتراضية المقترحة</th></tr></thead>
+    <tbody>
+      <tr><td>الامتدادات المسموح بها</td><td class="mono">ALLOWED_VIDEO_EXTENSIONS</td><td><span class="mono">mp4, mov, avi, mkv</span></td></tr>
+      <tr><td>الحد الأقصى للحجم (ميغابايت)</td><td class="mono">MAX_UPLOAD_MB</td><td>يُحدَّد حسب الفيديو المتاح</td></tr>
+      <tr><td>حجم قطعة القراءة (ميغابايت)</td><td class="mono">UPLOAD_CHUNK_MB</td><td><span class="mono">4</span></td></tr>
+      <tr><td>مجلّد الفيديوهات المرفوعة</td><td class="mono">UPLOAD_DIR</td><td><span class="mono">storage/uploads</span></td></tr>
+      <tr><td>مجلّد أدلة الوقائع</td><td class="mono">EVIDENCE_DIR</td><td><span class="mono">storage/evidence</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 التحقق من الملف في ثلاث طبقات</h3>
+  <p>لا نثق باسم الملف وحده؛ نتحقّق في ثلاث مراحل متتالية:</p>
+  <ol>
+    <li><strong>الامتداد:</strong> يجب أن يكون ضمن <span class="mono">ALLOWED_VIDEO_EXTENSIONS</span>.</li>
+    <li><strong>البصمة الرقمية للمحتوى (<span class="en">magic bytes</span>):</strong> نقرأ أول بايتات الملف ونقارنها
+    بتوقيع صيغ الفيديو المعروفة، فيُرفض ملف تنفيذي مُسمّى <span class="mono">.mp4</span>.</li>
+    <li><strong>فحص المحتوى:</strong> نفتح الملف بـ <span class="en">OpenCV</span> لقراءة عدد الإطارات والأبعاد
+    والمدة، وإن فشل الفتح نعتبره فيديو تالفاً ونرفضه.</li>
+  </ol>
+  <div class="callout warn"><span class="co-title">لا تحفظ قبل التحقق</span>
+    <p>الخطأ الشائع هو كتابة الملف على القرص ثم التحقق منه. الأفضل تجميع القطع في الذاكرة أثناء الفحص، ثم
+    حفظ الملف مرة واحدة فقط بعد اجتياز كل الفحوص.</p></div>
+
+  <h3>9.3 أسماء الملفات الآمنة والمسارات والبيانات الوصفية</h3>
+  <p>اسم الملف الأصلي لا يُستخدم أبداً على القرص. نولّد اسماً فريداً (<span class="mono">stored_filename</span>)
+  من معرّف <span class="mono">UUID</span> مع الامتداد، ونبني المفتاح <span class="mono">storage_key</span>
+  مثل <span class="mono">uploads/&lt;uuid&gt;.mp4</span>. هذا يمنع اجتياز المسار
+  (<span class="en">path traversal</span>) ويمنع تعارض الأسماء. الاسم الأصلي يبقى في
+  <span class="mono">original_filename</span> للعرض فقط.</p>
+  <table class="tbl">
+    <caption>جدول 9-2: الفرق بين السجل في القاعدة والملف على القرص</caption>
+    <thead><tr><th class="w33">العنصر</th><th class="w30">المكان</th><th>مثال</th></tr></thead>
+    <tbody>
+      <tr><td>السجل الوصفي</td><td><span class="mono">videos</span> في <span class="mono">PostgreSQL</span></td><td class="mono">id, size_bytes, status</td></tr>
+      <tr><td>اسم العرض</td><td><span class="mono">original_filename</span></td><td class="mono">site_a_cam1.mp4</td></tr>
+      <tr><td>الاسم على القرص</td><td><span class="mono">stored_filename</span></td><td class="mono">8f3c...a1.mp4</td></tr>
+      <tr><td>المفتاح</td><td><span class="mono">storage_key</span></td><td class="mono">uploads/8f3c...a1.mp4</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.4 منع التكرار بـ <span class="mono">checksum</span></h3>
+  <p>أثناء القراءة نحسب <span class="mono">sha256</span> للمحتوى ونخزّنه في <span class="mono">checksum_sha256</span>.
+  قبل الحفظ نسأل القاعدة: هل يوجد فيديو بنفس البصمة؟ إن وُجد، نعيد السجل الموجود بدل تخزين نسخة مكرّرة،
+  فنوفّر مساحة القرص ونمنع معالجة نفس الملف مرّتين. عمود البصمة مفهرس لهذا الاستعلام تحديداً.</p>
+
+  <h3>9.5 طبقة <span class="en">Storage abstraction</span></h3>
+  <p>نفصل الكود عن مكان التخزين الفعلي عبر واجهة واحدة <span class="mono">StorageBackend</span>، ولها تطبيقان:
+  محلي للتطوير وتخزين كائنات للإنتاج. الـ endpoint يتعامل مع الواجهة فقط، ولا يعرف إن كان الملف على القرص
+  أم في السحابة.</p>
+  <div class="fig"><div class="dg">
+    <div class="drow">
+      <div class="dbox navy">Upload Endpoint<span class="dsub">POST /api/v1/videos</span></div>
+      <div class="darrow-h"></div>
+      <div class="dbox teal">StorageBackend<span class="dsub">interface</span></div>
+      <div class="darrow-h"></div>
+      <div class="dbox green">LocalStorage<span class="dsub">dev</span></div>
+      <div class="dbox violet">S3Storage<span class="dsub">prod</span></div>
+    </div>
+  </div><div class="fig-cap"><b>شكل 9-1:</b> طبقة التخزين تفصل الـ endpoint عن مكان الملف</div></div>
+  <p>الفائدة العملية أن الـ endpoint والـ worker لا يحتاجان تعديلاً عند تغيير مكان التخزين؛ يكفي تبديل
+  التطبيق المختار حسب قيمة <span class="mono">STORAGE_BACKEND</span>.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/storage/base.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/storage/base.py</span>
+<span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> BinaryIO
+
+
+<span class="fn">@dataclass</span>
+<span class="kw">class</span> <span class="fn">StoredObject</span>:
+    storage_key: str
+    size_bytes: int
+    content_type: str
+
+
+<span class="kw">class</span> <span class="fn">StorageBackend</span>(ABC):
+    <span class="str">"""Common interface for local and object storage."""</span>
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">save</span>(self, key: str, data: bytes, content_type: str) -&gt; StoredObject: ...
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">open_stream</span>(self, key: str) -&gt; BinaryIO: ...
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">exists</span>(self, key: str) -&gt; bool: ...
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">delete</span>(self, key: str) -&gt; None: ...
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">url_for</span>(self, key: str) -&gt; str: ...
+</pre></div>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/storage/local.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/storage/local.py</span>
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+<span class="kw">from</span> typing <span class="kw">import</span> BinaryIO
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+<span class="kw">from</span> app.storage.base <span class="kw">import</span> StorageBackend, StoredObject
+
+
+<span class="kw">class</span> <span class="fn">LocalStorage</span>(StorageBackend):
+    <span class="str">"""Filesystem storage used for local development."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, root: str | None = None) -&gt; None:
+        self.root = Path(root <span class="kw">or</span> settings.LOCAL_STORAGE_ROOT).resolve()
+        self.root.mkdir(parents=<span class="kw">True</span>, exist_ok=<span class="kw">True</span>)
+
+    <span class="kw">def</span> <span class="fn">_path</span>(self, key: str) -&gt; Path:
+        target = (self.root / key.lstrip(<span class="str">"/"</span>)).resolve()
+        <span class="kw">if</span> <span class="kw">not</span> str(target).startswith(str(self.root)):
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"storage key escapes the storage root"</span>)
+        <span class="kw">return</span> target
+
+    <span class="kw">def</span> <span class="fn">save</span>(self, key, data, content_type) -&gt; StoredObject:
+        path = self._path(key)
+        path.parent.mkdir(parents=<span class="kw">True</span>, exist_ok=<span class="kw">True</span>)
+        path.write_bytes(data)
+        <span class="kw">return</span> <span class="fn">StoredObject</span>(key, <span class="fn">len</span>(data), content_type)
+
+    <span class="kw">def</span> <span class="fn">open_stream</span>(self, key) -&gt; BinaryIO:
+        <span class="kw">return</span> <span class="fn">open</span>(self._path(key), <span class="str">"rb"</span>)
+
+    <span class="kw">def</span> <span class="fn">exists</span>(self, key) -&gt; bool:
+        <span class="kw">return</span> self._path(key).is_file()
+
+    <span class="kw">def</span> <span class="fn">delete</span>(self, key) -&gt; None:
+        self._path(key).unlink(missing_ok=<span class="kw">True</span>)
+
+    <span class="kw">def</span> <span class="fn">url_for</span>(self, key) -&gt; str:
+        <span class="kw">return</span> <span class="str">f"/api/v1/evidence/file?key={key}"</span>
+</pre></div>
+
+  <h3>9.6 نقطة الرفع <span class="mono">POST /api/v1/videos</span></h3>
+  <p>هذه هي النقطة التي يرفع إليها الـ Frontend الملف بصيغة <span class="mono">multipart/form-data</span>.
+  تقرأ الملف على قطع، تتحقق من الحد الأقصى والحجم، تحسب البصمة، ثم تفوّض الحفظ والتحقق العميق إلى
+  <span class="mono">VideoService</span>. الرد بحالة <span class="mono">201</span> يحمل كائن
+  <span class="mono">VideoOut</span>.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/videos.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/api/v1/endpoints/videos.py (upload excerpt)</span>
+<span class="kw">import</span> hashlib
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends, File, HTTPException, UploadFile, status
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+<span class="kw">from</span> app.dependencies <span class="kw">import</span> get_storage, get_video_service
+<span class="kw">from</span> app.schemas.video <span class="kw">import</span> VideoOut
+
+router = APIRouter(prefix=<span class="str">"/videos"</span>, tags=[<span class="str">"videos"</span>])
+
+
+<span class="fn">@router.post</span>(<span class="str">""</span>, response_model=VideoOut, status_code=status.HTTP_201_CREATED)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">upload_video</span>(file: UploadFile = File(...), storage=Depends(get_storage),
+                 service=Depends(get_video_service)) -&gt; VideoOut:
+    ext = (file.filename <span class="kw">or</span> <span class="str">""</span>).rsplit(<span class="str">"."</span>, <span class="num">1</span>)[-<span class="num">1</span>].lower()
+    <span class="kw">if</span> ext <span class="kw">not in</span> settings.ALLOWED_VIDEO_EXTENSIONS:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, <span class="str">"extension not allowed"</span>)
+
+    digest, total, chunks = hashlib.sha256(), <span class="num">0</span>, []
+    limit = settings.MAX_UPLOAD_MB * <span class="num">1024</span> * <span class="num">1024</span>
+    <span class="kw">while</span> chunk := <span class="kw">await</span> file.read(settings.UPLOAD_CHUNK_MB * <span class="num">1024</span> * <span class="num">1024</span>):
+        total += <span class="fn">len</span>(chunk)
+        <span class="kw">if</span> total &gt; limit:
+            <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, <span class="str">"file too large"</span>)
+        digest.update(chunk)
+        chunks.append(chunk)
+
+    payload = <span class="str">b""</span>.join(chunks)
+    <span class="kw">if</span> <span class="kw">not</span> service.looks_like_video(payload[:<span class="num">64</span>]):
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status.HTTP_400_BAD_REQUEST, <span class="str">"not a valid video file"</span>)
+
+    video = <span class="kw">await</span> service.create_from_upload(
+        original_filename=file.filename,
+        content_type=file.content_type <span class="kw">or</span> <span class="str">"application/octet-stream"</span>,
+        payload=payload, checksum=digest.hexdigest(), storage=storage)
+    <span class="kw">return</span> VideoOut.model_validate(video)
+</pre></div>
+  <div class="callout info"><span class="co-title">ماذا يفعل VideoService؟</span>
+    <p><span class="mono">looks_like_video</span> يفحص البصمة الرقمية، و<span class="mono">create_from_upload</span>
+    يفتح الملف بـ <span class="en">OpenCV</span> لقراءة المدة وعدد الإطارات، ثم يحفظه ويُنشئ صف
+    <span class="mono">videos</span> بالحالة <span class="mono">uploaded</span>.</p></div>
+
+  <h3>9.7 الوصول الآمن والتنظيف والاحتفاظ</h3>
+  <ul>
+    <li><strong>الوصول للملفات:</strong> لا نكشف مسارات القرص مباشرةً. الـ Frontend يطلب
+    <span class="mono">GET /api/v1/evidence/{evidence_id}/file</span>، والخادم يبثّ الملف
+    (<span class="en">streaming</span>) بعد التحقق من الصلاحية.</li>
+    <li><strong>تنظيف الرفع المتروك:</strong> أي ملف كُتب ثم فشل إنشاء السجل يُحذف فوراً لتفادي الملفات اليتيمة.</li>
+    <li><strong>سياسة الاحتفاظ:</strong> عند حذف فيديو (<span class="mono">DELETE /api/v1/videos/{video_id}</span>)
+    نحذف سجله وملفاته وأدلته، مع إبقاء ما يفرضه الموقع من مدة احتفاظ قانونية.</li>
+    <li><strong>الأدلة:</strong> عند إنشاء واقعة نقتطع صورة من الإطار ونحفظها في <span class="mono">EVIDENCE_DIR</span>
+    ونربطها بجدول <span class="mono">evidence</span> (الفصل 12).</li>
+  </ul>
+  <p>عند توليد الدليل نقتطع صورة <span class="mono">JPEG</span> من الإطار الذي وقعت فيه الواقعة عبر
+  <span class="en">OpenCV</span> بنوع محتوى <span class="mono">image/jpeg</span>. المقطع القصير
+  (<span class="en">clip</span>) اختياري في الـ MVP ويُضاف بنفس آلية التخزين لاحقاً. المهم أن الصورة والمقطع
+  يُخزَّنان كملفّين مستقلّين، ولا يُقحمان داخل صف قاعدة البيانات.</p>
+
+  <h3>9.8 مقارنة خيارات التخزين</h3>
+  <table class="tbl">
+    <caption>جدول 9-3: خيارات التخزين ومتى نستخدم كل خيار</caption>
+    <thead><tr><th class="w22">الخيار</th><th class="w20">المتغيّر <span class="mono">STORAGE_BACKEND</span></th><th>الاستخدام</th></tr></thead>
+    <tbody>
+      <tr><td>مجلد محلي</td><td class="mono">local</td><td>التطوير والعرض التوضيحي على جهاز واحد، لا يحتاج شبكة أو حساب سحابي</td></tr>
+      <tr><td>تخزين متوافق مع <span class="mono">S3</span></td><td class="mono">s3</td><td>الإنتاج: يُعدّ بمتغيّرات <span class="mono">S3_ENDPOINT_URL</span> و <span class="mono">S3_BUCKET</span> و المفاتيح</td></tr>
+      <tr><td>تخزين سحابي مُدار</td><td>يُبنى فوق واجهة <span class="mono">S3</span></td><td>خيار مستقبلي؛ نفس الواجهة بلا تغيير في الكود</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="co-title">نصيحة تنفيذ</span>
+    <p>ابدأ دائماً بـ <span class="mono">local</span> حتى يعمل الرفع والمعالجة من البداية للنهاية، ثم انتقل إلى
+    <span class="mono">s3</span> بتغيير متغيّر واحد فقط، وهذا هو مكسب الطبقة المجرّدة. بهذا يصبح الانتقال من
+    التطوير إلى الإنتاج خطوة إعداد لا إعادة كتابة.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 9</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>كيف نستقبل الفيديو ونتحقّق منه في ثلاث طبقات، ونولّد مفتاح تخزين آمناً، ونمنع التكرار بالبصمة،
+        ونفصل الكود عن مكان التخزين عبر واجهة <span class="mono">StorageBackend</span>.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">app/storage/base.py</span> و <span class="mono">local.py</span>.</li>
+          <li>ضبط <span class="mono">MAX_UPLOAD_MB</span> و <span class="mono">ALLOWED_VIDEO_EXTENSIONS</span> و <span class="mono">UPLOAD_CHUNK_MB</span>.</li>
+          <li>تنفيذ <span class="mono">POST /api/v1/videos</span> مع التحقق والبصمة.</li>
+          <li>تنفيذ نقطة البثّ الآمن للأدلة.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>ملف فيديو محفوظ بمفتاح آمن وصف <span class="mono">videos</span> بحالة <span class="mono">uploaded</span>.</li>
+        <li>رفض واضح للملفات الكبيرة أو التالفة أو المكرّرة.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>رفع نفس الملف مرتين لا يُنشئ نسختين على القرص.</li>
+        <li>ملف نصّي بامتداد <span class="mono">.mp4</span> يُرفض.</li>
+        <li>الوصول المباشر لمسار القرص غير ممكن، والقراءة تتم عبر الـ API فقط.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>استخدام اسم الملف الأصلي على القرص.</li>
+        <li>حفظ الملف قبل التحقق فيترك ملفات يتيمة.</li>
+        <li>كشف مسار التخزين للـ Frontend.</li>
+        <li>وضع بيانات اعتماد التخزين داخل الكود بدل متغيّرات البيئة.</li></ul></div>
+    </div>
+  </div>
+</section>

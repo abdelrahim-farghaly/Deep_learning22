@@ -1,0 +1,452 @@
+<section class="chapter" id="ch19">
+  <div class="opener">
+    <div class="op-num">19</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH19 &middot; DOCKER</p>
+      <h2>Docker والنشر المحلي</h2>
+      <p class="op-sub">تشغيل الـ Backend و الـ Frontend و PostgreSQL بأمر واحد</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>حتى هذه اللحظة كان كل عضو يشغّل النظام بطريقته: نسخة Python هنا، ومنفذ مختلف هناك، وقاعدة بيانات
+    ثالثة على جهاز زميله. هذا الفصل يحلّ مشكلة "يعمل عندي ولا يعمل عندك" عبر تغليف كل مكوّن في حاوية
+    <span class="en">Container</span> وربطها بأمر واحد. الهدف العملي: أن يستطيع أي عضو — أو لجنة المناقشة —
+    تشغيل النظام كاملاً على جهاز نظيف دون تثبيت Python أو Node أو PostgreSQL يدوياً.</p>
+  </div>
+
+  <h3>19.1 شرح Docker و Docker Compose من البداية</h3>
+  <p><strong>Docker:</strong> أداة تُغلّف التطبيق مع كل ما يحتاجه (نسخة اللغة، المكتبات، إعدادات النظام) في
+  وحدة واحدة قابلة للتشغيل تسمّى <strong>Image (صورة)</strong>. عند تشغيل الصورة نحصل على
+  <strong>Container (حاوية)</strong>: عملية معزولة تشبه جهازاً صغيراً مستقلاً. الفائدة أن الحاوية تعطي نفس
+  النتيجة على Windows و Linux و macOS لأنها لا تعتمد على مكتبات الجهاز المضيف.</p>
+  <p><strong>Docker Compose:</strong> أداة تُشغّل عدة حاويات معاً من ملف واحد اسمه
+  <span class="mono">docker-compose.yml</span>. النظام عندنا يحتاج أربع حاويات (قاعدة بيانات، backend،
+  worker، frontend) تشتغل وتتحدّث مع بعضها، وبدون Compose كنّا سنكتب أربعة أوامر طويلة وننسى ترتيبها.
+  Compose ينشئ أيضاً <strong>network (شبكة)</strong> خاصة و<strong>volumes</strong> مشتركة تلقائياً.</p>
+  <table class="tbl">
+    <caption>جدول 19-1: المصطلحات الأربعة التي يجب ألا يخلط بينها الفريق</caption>
+    <thead><tr><th>المصطلح</th><th>المعنى بالعربية</th><th>مثال في مشروعنا</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Image</td><td>قالب ثابت غير قابل للتغيير يصف التطبيق ومتطلباته</td><td class="mono">safevision-backend</td></tr>
+      <tr><td class="mono">Container</td><td>نسخة عاملة من الصورة، لها حالة وتُشغَّل وتُوقَف</td><td>حاوية الـ backend التي تخدم المنفذ 8000</td></tr>
+      <tr><td class="mono">Volume</td><td>مساحة تخزين دائمة تبقى بعد حذف الحاوية</td><td>مجلد الـ models والفيديوهات وقاعدة البيانات</td></tr>
+      <tr><td class="mono">Network</td><td>شبكة داخلية تربط الحاويات بأسماء ثابتة</td><td class="mono">safevision-net</td></tr>
+    </tbody>
+  </table>
+
+  <h3>19.2 الحاويات الأربع ومسؤولية كل واحدة</h3>
+  <p>لا نضع كل شيء في حاوية واحدة، ولا نُفرط في التقسيم. أربع حاويات هي الحد المعقول لمشروع طلابي:</p>
+  <table class="tbl">
+    <caption>جدول 19-2: خدمات Docker Compose ومسؤولية كل خدمة</caption>
+    <thead><tr><th>اسم الخدمة</th><th>المسؤولية</th><th>الصورة / البناء</th><th>المنفذ المنشور</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">db</td><td>قاعدة بيانات PostgreSQL: كل البيانات الوصفية</td><td class="mono">postgres:16</td><td class="c">5432</td></tr>
+      <tr><td class="mono">backend</td><td>واجهة FastAPI وكل نقاط <span class="mono">/api/v1</span></td><td>بناء من <span class="mono">backend/Dockerfile</span></td><td class="c">8000</td></tr>
+      <tr><td class="mono">worker</td><td>معالجة الـ jobs (نفس صورة الـ backend، أمر تشغيل مختلف)</td><td>نفس صورة الـ backend</td><td class="c">لا يوجد</td></tr>
+      <tr><td class="mono">frontend</td><td>خدمة ملفات React عبر nginx</td><td>بناء من <span class="mono">frontend/Dockerfile</span></td><td class="c">5173</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="co-title">لماذا الـ worker منفصل؟</span>
+    <p>لأن معالجة الفيديو تستهلك الوقت والذاكرة، ولا نريدها أن تُجمّد الـ API. الـ worker عملية مستقلة تقرأ
+    الـ jobs من قاعدة البيانات بالترتيب (<span class="en">DB-backed queue</span>)، ولذلك يمكن إيقافه وإعادة
+    تشغيله دون إسقاط الـ API.</p></div>
+
+  <h3>19.3 مخطط النشر بـ Docker</h3>
+  <div class="fig">
+    <div class="dg">
+      <div class="dgroup">
+        <div class="dg-title">الجهاز المضيف Host</div>
+        <div class="drow">
+          <div class="dbox teal">المتصفح<span class="dsub">localhost:5173</span></div>
+        </div>
+        <div class="darrow"></div>
+        <div class="dgroup">
+          <div class="dg-title">شبكة safevision-net</div>
+          <div class="drow">
+            <div class="dbox navy">frontend<span class="dsub">nginx :80</span><span class="dtag">5173</span></div>
+            <div class="dbox navy">backend<span class="dsub">uvicorn :8000</span><span class="dtag">8000</span></div>
+            <div class="dbox gray">worker<span class="dsub">job loop</span></div>
+          </div>
+          <div class="darrow"></div>
+          <div class="drow">
+            <div class="dbox violet">db<span class="dsub">postgres:16 :5432</span><span class="dtag">5432</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="drow">
+        <div class="dbox orange">volume: pgdata<span class="dsub">/var/lib/postgresql/data</span></div>
+        <div class="dbox orange">volume: storage<span class="dsub">videos + evidence</span></div>
+        <div class="dbox dash">volume: models (ro)<span class="dsub">checkpoints</span></div>
+      </div>
+    </div>
+    <div class="fig-cap"><b>شكل 19-1:</b> مخطط نشر Docker: الحاويات الأربع على شبكة واحدة مع الـ volumes الدائمة</div>
+  </div>
+
+  <h3>19.4 شبكة الحاويات: أسماء الخدمات بدل localhost</h3>
+  <p>هذا أهم مفهوم يجب أن يفهمه الفريق قبل كتابة أي ملف. داخل شبكة Docker، كل حاوية لها عنوان IP خاص،
+  و<strong>لا يمكن استخدام <span class="mono">localhost</span></strong> للوصول إلى حاوية أخرى، لأن
+  <span class="mono">localhost</span> داخل حاوية الـ backend يشير إلى الـ backend نفسه لا إلى قاعدة البيانات.
+  لذلك نستخدم <strong>اسم الخدمة</strong> كاسم نطاق داخلي: الحاوية <span class="mono">db</span> تُنادى باسم
+  <span class="mono">db</span>، والـ <span class="mono">backend</span> يُنادى باسم <span class="mono">backend</span>.</p>
+  <table class="tbl">
+    <caption>جدول 19-3: من يتحدّث إلى من، وبأي عنوان</caption>
+    <thead><tr><th>المتصل</th><th>الهدف</th><th>العنوان داخل الحاويات</th><th>العنوان من المتصفح على الجهاز</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">backend</td><td class="mono">db</td><td class="mono">db:5432</td><td>لا ينطبق (اتصال داخلي)</td></tr>
+      <tr><td class="mono">worker</td><td class="mono">db</td><td class="mono">db:5432</td><td>لا ينطبق (اتصال داخلي)</td></tr>
+      <tr><td>المتصفح</td><td class="mono">backend</td><td>لا ينطبق</td><td class="mono">http://localhost:8000</td></tr>
+      <tr><td>المتصفح</td><td class="mono">frontend</td><td>لا ينطبق</td><td class="mono">http://localhost:5173</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">الخطأ الأشهر</span>
+    <p>كتابة <span class="mono">DATABASE_URL=...@localhost:5432/...</span> داخل حاوية الـ backend. هذه القيمة
+    صحيحة عند التشغيل المباشر على الجهاز، لكنها خاطئة داخل Docker ويظهر خطأ
+    <span class="mono">connection refused</span>. القيمة الصحيحة داخل الحاويات تستخدم اسم الخدمة
+    <span class="mono">db</span>. أمّا من المتصفح على الجهاز فنستخدم <span class="mono">localhost</span> لأن
+    المنافذ منشورة (published) على الجهاز المضيف.</p></div>
+
+  <h3>19.5 الـ Volumes: كيف تصل ملفات الـ Models والفيديوهات للحاويات</h3>
+  <p>الحاوية قابلة للحذف، ولذلك لا نضع فيها شيئاً نفقد فقدانه. ثلاثة أنواع من التخزين في مشروعنا:</p>
+  <ul>
+    <li><strong>pgdata</strong> (named volume): يحفظ ملفات PostgreSQL فيبقى كل شيء بعد إعادة تشغيل الحاوية.</li>
+    <li><strong>storage</strong>: مجلد مشترك بين الـ backend والـ worker يحتوي الفيديوهات المرفوعة
+      (<span class="mono">uploads</span>) وصور الدليل (<span class="mono">evidence</span>) والتقارير.</li>
+    <li><strong>models</strong> (bind mount للقراءة فقط): يُربط بمجلد <span class="mono">./models</span> على
+      الجهاز، لأن ملفات الـ checkpoints كبيرة ولا تُرفع إلى Git ولا تُنسخ داخل الصورة.</li>
+  </ul>
+  <div class="callout info"><span class="co-title">لماذا bind mount للـ models؟</span>
+    <p>لأن مسار الـ checkpoint يُحدَّد من متغيّر <span class="mono">PPE_MODEL_PATH</span> و
+    <span class="mono">FIRE_SMOKE_MODEL_PATH</span>. ربط المجلد يجعل تغيير الـ checkpoint عملية نسخ ملف بسيطة
+    دون إعادة بناء الصورة. نضع <span class="mono">:ro</span> لضمان أن الحاوية تقرأ ولا تكتب.</p></div>
+
+  <h3>19.6 ملف الـ Backend Dockerfile</h3>
+  <p>صورة الـ backend مبنية على Python 3.11، وتُثبّت المتطلبات أولاً ثم يُنسخ الكود، لأن Docker يخزّن كل خطوة
+  مؤقتاً (<span class="en">layer cache</span>) فلا يعيد التثبيت عند تغيير الكود فقط. نستخدم الـ worker نفس
+  الصورة مع أمر تشغيل مختلف.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/Dockerfile</span><span class="ftag">dockerfile</span></div>
+<pre># SafeVision AI - backend image (also used by the worker service)
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# System libraries required by OpenCV and psycopg
+RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 curl \
+    &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies first so the layer is cached
+COPY requirements.txt .
+RUN pip install --upgrade pip &amp;&amp; pip install -r requirements.txt
+
+# Application code
+COPY . .
+
+EXPOSE 8000
+
+# Default command runs the API; the worker overrides this in compose
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+</pre></div>
+
+  <h3>19.7 ملف الـ Frontend Dockerfile</h3>
+  <p>نبني الواجهة في مرحلة أولى (builder) ثم ننقل الناتج الثابت إلى صورة nginx صغيرة. هذا نمط
+  <span class="en">multi-stage build</span> ويقلّل حجم الصورة كثيراً، لأن Node و
+  <span class="mono">node_modules</span> لا تدخل الصورة النهائية. قيمة
+  <span class="mono">VITE_API_BASE_URL</span> تُثبَّت وقت البناء لأن Vite يدمج المتغيّرات في ملفات الإنتاج.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/Dockerfile</span><span class="ftag">dockerfile</span></div>
+<pre># SafeVision AI - frontend image (multi-stage build)
+# ---- Stage 1: build the static assets ----
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+# Vite inlines env vars at build time, so it must be present here
+ARG VITE_API_BASE_URL=http://localhost:8000
+ARG VITE_ENABLE_AUTH=false
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_ENABLE_AUTH=$VITE_ENABLE_AUTH
+RUN npm run build
+
+# ---- Stage 2: serve the static files ----
+FROM nginx:1.27-alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+</pre></div>
+
+  <h3>19.8 ملف .dockerignore</h3>
+  <p>الملف <span class="mono">.dockerignore</span> يمنع إرسال الملفات غير الضرورية إلى محرّك Docker. الفائدة
+  مزدوجة: بناء أسرع، وحماية من تسريب الأسرار أو الفيديوهات الخاصة إلى داخل الصورة بالخطأ.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">.dockerignore</span><span class="ftag">text</span></div>
+<pre># Never ship secrets, big binaries or local artifacts inside an image
+.git
+.gitignore
+.env
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+
+# Large local data must stay on the host, not in the image
+models/
+data/
+storage/
+
+# Frontend build output and dependencies are rebuilt inside the image
+frontend/node_modules
+frontend/dist
+
+# Local docs and editor folders
+docs/
+.vscode
+.idea
+*.md
+</pre></div>
+
+  <h3>19.9 ملف docker-compose.yml</h3>
+  <p>هذا الملف هو قلب التشغيل. لاحظ ثلاثة أمور: أسماء الخدمات (<span class="mono">db</span>,
+  <span class="mono">backend</span>, <span class="mono">worker</span>, <span class="mono">frontend</span>)،
+  و<span class="mono">DATABASE_URL</span> الذي يستخدم اسم الخدمة <span class="mono">db</span>،
+  و<span class="mono">depends_on</span> مع فحص الصحة <span class="mono">healthcheck</span> لضمان أن الـ backend
+  لا يبدأ قبل جاهزية قاعدة البيانات.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">docker-compose.yml</span><span class="ftag">yaml</span></div>
+<pre>services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - safevision-net
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      # Inside the network the host name is the service name, not localhost
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+      - ./models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - safevision-net
+
+  worker:
+    build: ./backend
+    command: ["python", "-m", "app.workers.main"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      WORKER_ID: worker-docker-1
+    volumes:
+      - ./storage:/app/storage
+      - ./models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - safevision-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_ENABLE_AUTH: ${VITE_ENABLE_AUTH}
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - safevision-net
+
+volumes:
+  pgdata:
+
+networks:
+  safevision-net:
+    driver: bridge
+</pre></div>
+  <div class="callout tip"><span class="co-title">ترتيب البدء</span>
+    <p><span class="mono">depends_on</span> مع <span class="mono">condition: service_healthy</span> يجعل
+    Compose ينتظر حتى تجيب PostgreSQL على فحص <span class="mono">pg_isready</span> قبل تشغيل الـ backend.
+    هذا يمنع أشهر خطأ في النشر المحلي: بدء الـ API قبل جهوزية قاعدة البيانات.</p></div>
+
+  <h3>19.10 ملف .env.example الخاص بـ Docker</h3>
+  <p>القيم الحقيقية تُكتب في <span class="mono">.env</span> (وهو مستثنى من Git). ملف
+  <span class="mono">.env.example</span> يُرفع للمستودع ويحتوي قيماً توضيحية فقط، مع ملاحظة أن قاعدة البيانات
+  تُنادى باسم الخدمة <span class="mono">db</span>.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">text</span></div>
+<pre># Copy to .env and replace every placeholder before running.
+APP_NAME=SafeVision AI
+APP_ENV=development
+APP_DEBUG=true
+API_V1_PREFIX=/api/v1
+
+# Inside Docker the database host is the service name "db"
+POSTGRES_USER=safevision
+POSTGRES_PASSWORD=change-me
+POSTGRES_DB=safevision
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql+psycopg://safevision:change-me@db:5432/safevision
+
+STORAGE_BACKEND=local
+LOCAL_STORAGE_ROOT=/app/storage
+UPLOAD_DIR=/app/storage/uploads
+EVIDENCE_DIR=/app/storage/evidence
+REPORT_DIR=/app/storage/reports
+
+MODEL_DIR=/app/models
+PPE_MODEL_PATH=/app/models/&lt;PPE_MODEL_CHECKPOINT_PATH&gt;
+FIRE_SMOKE_MODEL_PATH=/app/models/&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;
+PERSON_TRACKER_PATH=/app/models/&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;
+MODEL_DEVICE=cpu
+
+# Frontend build-time variables
+VITE_API_BASE_URL=http://localhost:8000
+VITE_ENABLE_AUTH=false
+</pre></div>
+
+  <h3>19.11 الخطوات السبع للتشغيل</h3>
+  <ol>
+    <li><strong>Build (البناء):</strong> نبني صور الـ backend والـ frontend من الـ Dockerfiles.</li>
+    <li><strong>Up (التشغيل):</strong> نرفع الحاويات الأربع مع الشبكة والـ volumes.</li>
+    <li><strong>Logs (السجلات):</strong> نتابع مخرجات كل خدمة لاكتشاف أخطاء البدء.</li>
+    <li><strong>Migrate (الترحيل):</strong> ننفّذ ترحيلات Alembic داخل حاوية الـ backend لإنشاء الجداول.</li>
+    <li><strong>Health (الفحص):</strong> نتأكد من <span class="mono">GET /api/v1/health</span> ومن فتح الواجهة.</li>
+    <li><strong>Restart (إعادة التشغيل):</strong> نعيد خدمة واحدة بعد تعديل الكود دون إسقاط الباقي.</li>
+    <li><strong>Data persistence (دوام البيانات):</strong> نتأكد أن الفيديوهات والوقائع باقية بعد إعادة التشغيل.</li>
+  </ol>
+  <div class="code-wrap"><div class="code-head"><span class="fname">terminal &mdash; run the full stack</span><span class="ftag">bash</span></div>
+<pre class="term"># 1) Build images from the two Dockerfiles
+$ docker compose build
+
+# 2) Start db + backend + worker + frontend
+$ docker compose up -d
+
+# 3) Follow logs (Ctrl+C stops following, not the containers)
+$ docker compose logs -f backend worker
+
+# 4) Create the database schema with Alembic
+$ docker compose exec backend alembic upgrade head
+
+# 5) Health check and open the UI
+$ curl http://localhost:8000/api/v1/health
+$ start http://localhost:5173
+
+# 6) Restart one service after a code change
+$ docker compose restart backend
+
+# 7) Verify data persistence
+$ docker compose down
+$ docker compose up -d
+$ curl http://localhost:8000/api/v1/videos
+</pre></div>
+
+  <h3>19.12 جدول أوامر Docker Compose</h3>
+  <table class="tbl">
+    <caption>جدول 19-4: أوامر Docker Compose اليومية</caption>
+    <thead><tr><th>الأمر</th><th>ماذا يفعل</th><th>متى نستخدمه</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">docker compose build</td><td>يبني الصور من الـ Dockerfiles</td><td>بعد تغيير متطلبات أو ملف Dockerfile</td></tr>
+      <tr><td class="mono">docker compose up -d</td><td>يشغّل كل الخدمات في الخلفية</td><td>بدء العمل اليومي</td></tr>
+      <tr><td class="mono">docker compose ps</td><td>يعرض الحاويات وحالتها وصحتها</td><td>عند الشك في خدمة متوقفة</td></tr>
+      <tr><td class="mono">docker compose logs -f backend</td><td>يتابع سجلات خدمة واحدة</td><td>تتبّع خطأ في الـ API</td></tr>
+      <tr><td class="mono">docker compose exec backend alembic upgrade head</td><td>ينفّذ الترحيلات داخل الحاوية</td><td>بعد إضافة جدول أو عمود</td></tr>
+      <tr><td class="mono">docker compose exec db psql -U safevision -d safevision</td><td>يفتح صدفة SQL داخل قاعدة البيانات</td><td>فحص البيانات يدوياً</td></tr>
+      <tr><td class="mono">docker compose restart worker</td><td>يعيد خدمة واحدة</td><td>بعد تعديل كود المعالجة</td></tr>
+      <tr><td class="mono">docker compose down</td><td>يوقف ويحذف الحاويات مع بقاء الـ volumes</td><td>إنهاء العمل دون فقدان البيانات</td></tr>
+      <tr><td class="mono">docker compose down -v</td><td>يحذف الحاويات و<strong>الـ volumes أيضاً</strong></td><td>تنظيف كامل (يحذف كل البيانات)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout danger"><span class="co-title">تحذير</span>
+    <p><span class="mono">docker compose down -v</span> يحذف قاعدة البيانات والفيديوهات وصور الدليل نهائياً.
+    لا يُستخدم إلا عند الرغبة في البدء من الصفر، ولا يُشغَّل أبداً على نسخة فيها نتائج عرض توضيحي.</p></div>
+
+  <h3>19.13 حدود دعم GPU في Docker وبديل CPU</h3>
+  <p>تشغيل PyTorch على GPU داخل Docker يحتاج تعريف الحاوية ببطاقة الرسوميات. على Linux يمكن ذلك عبر
+  <span class="en">NVIDIA Container Toolkit</span> وإضافة قسم <span class="mono">deploy.resources</span> في
+  Compose. أمّا على Windows فيعتمد الأمر على إصدار Docker Desktop ووجود WSL2 ودعم البطاقة، وقد لا يتوفّر
+  أصلاً على أجهزة الـ GPU المدمجة. لذلك نتبنّى قاعدة عملية واضحة:</p>
+  <ul>
+    <li><strong>وضع GPU:</strong> يضاف قسم الموارد، ويُضبط <span class="mono">MODEL_DEVICE=cuda</span>.
+      يُستخدم على جهاز الفريق الذي يملك بطاقة متوافقة عند الحاجة إلى سرعة أعلى.</li>
+    <li><strong>وضع CPU (الافتراضي للعرض):</strong> يبقى <span class="mono">MODEL_DEVICE=cpu</span>، ويعمل
+      النظام كاملاً بدون أي بطاقة. أبطأ، لكنه يعمل على أي جهاز ولجنة المناقشة.</li>
+  </ul>
+  <div class="callout warn"><span class="co-title">حدود GPU غير مضمونة</span>
+    <p>لا نضمن توفر GPU على جهاز العرض أو على أي استضافة. الأرقام المتعلقة بالسرعة تُقاس على الجهاز المستخدم
+    فعلاً وتُوثَّق في الفصل 23، ولا نفترض أن الحاوية سترى البطاقة تلقائياً. إن فشل تشغيل CUDA فالحل الآمن هو
+    العودة إلى <span class="mono">MODEL_DEVICE=cpu</span>، وهذا هو وضع العرض الافتراضي في الفصل 28.</p></div>
+  <div class="code-wrap"><div class="code-head"><span class="fname">docker-compose.override.yml &mdash; optional GPU block (Linux + NVIDIA)</span><span class="ftag">yaml</span></div>
+<pre># Optional file. Only use it on a machine that really exposes a GPU.
+services:
+  worker:
+    environment:
+      MODEL_DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+</pre></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 19</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>غلافنا النظام في أربع حاويات (<span class="mono">db</span>، <span class="mono">backend</span>،
+        <span class="mono">worker</span>، <span class="mono">frontend</span>) على شبكة واحدة، وفهمنا أن
+        الحاويات تتحدّث بأسماء الخدمات لا بـ <span class="mono">localhost</span>، وأن البيانات الدائمة تعيش في
+        الـ volumes. وثبّتنا وضع CPU كافتراضي ووضع GPU كخيار مشروط.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">backend/Dockerfile</span> و<span class="mono">frontend/Dockerfile</span>.</li>
+          <li>كتابة <span class="mono">.dockerignore</span> و<span class="mono">docker-compose.yml</span>.</li>
+          <li>ضبط <span class="mono">DATABASE_URL</span> لاستخدام اسم الخدمة <span class="mono">db</span>.</li>
+          <li>تجهيز مجلد <span class="mono">./models</span> بملفات الـ checkpoints قبل البناء.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>أمر واحد <span class="mono">docker compose up -d</span> يشغّل النظام كاملاً.</li>
+        <li>واجهة على <span class="mono">localhost:5173</span> و API على <span class="mono">localhost:8000</span>.</li>
+        <li>بيانات باقية بعد <span class="mono">docker compose down</span> ثم <span class="mono">up</span>.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li><span class="mono">GET /api/v1/health</span> يعيد 200 بعد التشغيل النظيف.</li>
+        <li>الـ worker يلتقط job ويحدّث التقدّم داخل الحاوية.</li>
+        <li>رفع فيديو من الواجهة ينجح ويظهر في قائمة <span class="mono">/api/v1/videos</span>.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>استخدام <span class="mono">localhost</span> في <span class="mono">DATABASE_URL</span> داخل الحاويات.</li>
+        <li>نسيان ربط مجلد الـ models فتظهر رسالة "checkpoint not found".</li>
+        <li>افتراض أن GPU سيعمل تلقائياً على Windows.</li>
+        <li>تشغيل <span class="mono">down -v</span> على بيانات حقيقية.</li></ul></div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,156 @@
+<section class="chapter" id="ch26">
+  <div class="opener">
+    <div class="op-num">26</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH26 &middot; TIMELINE</p>
+      <h2>الجدول الزمني والمراحل</h2>
+      <p class="op-sub">خطة 8&ndash;10 أسابيع قابلة للتعديل</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>الخطة ليست وعداً، بل أداة لتوزيع الوقت وكشف التعطّل مبكراً. هذا الفصل يقسّم المشروع إلى عشر مراحل
+    واضحة، لكل مرحلة مدة ومهام واعتماديات ومخرجات ومعايير قبول ومخاطر. المدد هنا تقديرية ويمكن تعديلها حسب
+    إيقاع الفريق، لكن ترتيب الاعتماديات لا يتغيّر.</p>
+  </div>
+
+  <h3>26.1 نظرة عامة</h3>
+  <p>نفترض خطة من <strong>عشرة أسابيع</strong>، قابلة للضغط إلى ثمانية أو التمديد قليلاً. الأسبوع الأول
+  للتثبيت والاتفاق، والأسابيع من الثاني إلى الثامن للتنفيذ المتوازي والتكامل المستمر، والأسبوعان الأخيران
+  للتجميد والاختبار والعرض. القاعدة الذهبية: <strong>لا نؤجّل التكامل إلى النهاية</strong>، بل ندمج كل أسبوع.</p>
+  <table class="tbl">
+    <caption>جدول 26-1: توزيع الأسابيع على المحاور</caption>
+    <thead><tr><th>الأسابيع</th><th>التركيز الأساسي</th><th>المخرج الرئيسي</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع والبيئة</td><td>مستودع يعمل واتفاق على عقد الـ API</td></tr>
+      <tr><td class="c">2&ndash;4</td><td>قاعدة البيانات، الـ Backend، دمج الـ inference</td><td>رفع فيديو ومعالجة أولية تنتج كشوفات</td></tr>
+      <tr><td class="c">5&ndash;7</td><td>خط الوقائع والدليل، لوحة التحكم، التقارير</td><td>دورة كاملة من الرفع إلى التقرير</td></tr>
+      <tr><td class="c">8&ndash;9</td><td>التكامل والاختبارات والتغليف بـ Docker</td><td>نظام يعمل بأمر واحد ومُختبر</td></tr>
+      <tr><td class="c">10</td><td>تجميد، تدريب على العرض، قائمة التحقق النهائية</td><td>عرض توضيحي جاهز ومُختبر</td></tr>
+    </tbody>
+  </table>
+
+  <h3>26.2 المراحل العشر</h3>
+  <table class="tbl">
+    <caption>جدول 26-2: المراحل العشر بمهامها ومعايير قبولها ومخاطرها</caption>
+    <thead><tr><th class="c">#</th><th>المرحلة</th><th class="c">المدة</th><th>المهام</th><th>الاعتماديات</th><th>المخرجات</th><th>معيار القبول</th><th>المخاطر</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع</td><td class="c">أسبوع 1</td>
+        <td>جدول النطاق، عقد الـ API، <span class="mono">.gitignore</span>، <span class="mono">.env.example</span></td>
+        <td>لا شيء</td><td><span class="mono">docs/SCOPE.md</span> و<span class="mono">docs/API_CHANGELOG.md</span></td>
+        <td>كل عضو يستطيع تشغيل المستودع</td><td>توسّع النطاق</td></tr>
+      <tr><td class="c">2</td><td>بيئة التطوير وعقد الـ API</td><td class="c">أسبوع 1&ndash;2</td>
+        <td>venv، Node، PostgreSQL، Swagger، تثبيت الهياكل</td>
+        <td>المرحلة 1</td><td>Backend وFrontend يعملان ويتحدثان</td>
+        <td>طلب <span class="mono">GET /api/v1/health</span> ينجح من الواجهة</td><td>اختلاف الإصدارات</td></tr>
+      <tr><td class="c">3</td><td>قاعدة البيانات وأساس الـ Backend</td><td class="c">أسبوع 2&ndash;3</td>
+        <td>الجداول، ترحيلات <span class="mono">Alembic</span>، الراوترات، الـ Repository</td>
+        <td>المرحلة 2</td><td>قاعدة بيانات مهاجَرة ومسارات رفع/قائمة</td>
+        <td>رفع فيديو وحفظ بياناته الوصفية</td><td>تغيّر المخطط دون ترحيل</td></tr>
+      <tr><td class="c">4</td><td>دمج الـ inference</td><td class="c">أسبوع 3&ndash;4</td>
+        <td>تحميل الـ checkpoints، المخرج الموحّد، التتبّع</td>
+        <td>المرحلة 1 للنطاق</td><td>وحدة <span class="mono">app/ai/</span> تعمل على فيديو</td>
+        <td>مخرج موحّد صالح لكل إطار معالج</td><td>نقص بيانات/أوزان</td></tr>
+      <tr><td class="c">5</td><td>معالجة الفيديو والـ jobs</td><td class="c">أسبوع 4&ndash;5</td>
+        <td>الـ worker، طابور المهام، التقدّم، <span class="mono">polling</span></td>
+        <td>المراحل 3 و4</td><td>job من <span class="mono">queued</span> إلى <span class="mono">completed</span></td>
+        <td>تحديث نسبة التقدّم أثناء التشغيل</td><td>تعليق الـ worker</td></tr>
+      <tr><td class="c">6</td><td>خط الوقائع والدليل</td><td class="c">أسبوع 5&ndash;6</td>
+        <td>محرّك القواعد، إنشاء الـ incidents، حفظ الصور</td>
+        <td>المرحلة 5</td><td>جدولا <span class="mono">incidents</span> و<span class="mono">evidence</span></td>
+        <td>واقعة واحدة على الأقل لكل نوع من فيديو حقيقي</td><td>تكرار الوقائع</td></tr>
+      <tr><td class="c">7</td><td>لوحة التحكم</td><td class="c">أسبوع 6&ndash;7</td>
+        <td>صفحات الرفع والتقدّم والوقائع والمراجعة والتحليلات</td>
+        <td>المرحلة 3 (العقد)</td><td>واجهة React متصلة بالـ API</td>
+        <td>دورة كاملة من الرفع إلى المراجعة بلا تدخّل يدوي</td><td>ربط خاطئ للحقول</td></tr>
+      <tr><td class="c">8</td><td>التقارير والمراجعة</td><td class="c">أسبوع 7&ndash;8</td>
+        <td>التحليلات، التصدير <span class="mono">CSV</span>، إجراءات المراجعة</td>
+        <td>المرحلتان 6 و7</td><td><span class="mono">/api/v1/reports/export</span> يعمل</td>
+        <td>تقرير يُصدَّر من سجلات حقيقية</td><td>حساب مؤشرات من بيانات وهمية</td></tr>
+      <tr><td class="c">9</td><td>التكامل والاختبارات</td><td class="c">أسبوع 8&ndash;9</td>
+        <td>اختبارات الوحدة والتكامل، إصلاح الأخطاء، إدارة الفروع</td>
+        <td>كل المراحل السابقة</td><td>نسخة مستقرة ومسار اختبار</td>
+        <td>اجتياز سيناريو العرض بلا أخطاء حاجبة</td><td>أخطاء دمج متأخرة</td></tr>
+      <tr><td class="c">10</td><td>Docker والعرض التوضيحي</td><td class="c">أسبوع 9&ndash;10</td>
+        <td>التغليف، <span class="mono">docker-compose</span>، فيديو العرض، التدريب</td>
+        <td>المرحلة 9</td><td>تعليمات تشغيل + عرض مُختبر</td>
+        <td>النظام يعمل بأمر واحد على جهاز نظيف</td><td>فشل الشبكة/GPU</td></tr>
+    </tbody>
+  </table>
+
+  <h3>26.3 ما يمكن تنفيذه بالتوازي</h3>
+  <p>التوازي هو ما يحمي الخطة من التأخير، لكنه مشروط بأن يكون عقد الـ API مثبّتاً. نعرض المسارات المتوازية:</p>
+  <div class="grid2">
+    <div class="card teal"><h5>مسار متوازٍ A (بعد الأسبوع 1)</h5>
+      <ul><li><span class="mono">M3</span> يبني الـ Backend والجداول.</li>
+      <li><span class="mono">M4</span> يبني الواجهة على بيانات وهمية مطابقة للعقد.</li>
+      <li><span class="mono">M1</span> يجهّز النماذج بمعزل عن الـ Backend.</li></ul></div>
+    <div class="card green"><h5>مسار متوازٍ B (بعد الأسبوع 3)</h5>
+      <ul><li><span class="mono">M2</span> يربط القواعد بمخرج <span class="mono">M1</span>.</li>
+      <li><span class="mono">M5</span> يبني سكربتات الاختبار و<span class="mono">Docker</span> مبكراً.</li>
+      <li><span class="mono">M4</span> يبدّل mock بعنوان الـ API الحقيقي.</li></ul></div>
+  </div>
+  <div class="callout info"><span class="co-title">ما لا يمكن توازيه</span>
+    <p>لا يمكن بناء خط الوقائع قبل توفر مخرج الكشف، ولا بناء التحليلات قبل وجود وقائع حقيقية. لذلك هذه المهام
+    تبقى متسلسلة، وما عداها يعمل بالتوازي.</p></div>
+
+  <h3>26.4 المخطط الزمني المبسّط</h3>
+  <div class="fig">
+    <div class="dg">
+      <div class="dg-title">Gantt مبسّط &mdash; عشرة أسابيع</div>
+      <div class="drow"><div class="dbox gray">W1 تثبيت</div><div class="dbox navy">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W2 البيئة والعقد</div><div class="dbox navy">1</div><div class="dbox navy">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W3 قاعدة البيانات</div><div class="dbox dash">1</div><div class="dbox teal">2</div><div class="dbox teal">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W4 الـ inference</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox violet">3</div><div class="dbox violet">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W5 الـ jobs</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox teal">4</div><div class="dbox teal">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W6 الوقائع والدليل</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox green">5</div><div class="dbox green">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W7 لوحة التحكم</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox orange">6</div><div class="dbox orange">7</div><div class="dbox dash">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W8 التقارير</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox orange">7</div><div class="dbox orange">8</div><div class="dbox dash">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W9 التكامل والاختبار</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox red">8</div><div class="dbox red">9</div><div class="dbox dash">10</div></div>
+      <div class="drow"><div class="dbox gray">W10 Docker والعرض</div><div class="dbox dash">1</div><div class="dbox dash">2</div><div class="dbox dash">3</div><div class="dbox dash">4</div><div class="dbox dash">5</div><div class="dbox dash">6</div><div class="dbox dash">7</div><div class="dbox dash">8</div><div class="dbox red">9</div><div class="dbox red">10</div></div>
+    </div>
+    <div class="fig-cap"><b>شكل 26-1:</b> مخطط Gantt مبسّط؛ المربّعات الملوّنة أسابيع نشطة والمربّعات المتقطّعة أسابيع خاملة</div>
+  </div>
+
+  <h3>26.5 قائمة تحقق المراحل</h3>
+  <ul class="checklist">
+    <li>المرحلة 1: عقد الـ API مثبّت و<span class="mono">.env.example</span> موجود بلا أسرار.</li>
+    <li>المرحلة 2: الـ Frontend يقرأ <span class="mono">/api/v1/health</span> بنجاح.</li>
+    <li>المرحلة 3: ترحيل <span class="mono">Alembic</span> ينشئ كل الجداول على قاعدة نظيفة.</li>
+    <li>المرحلة 4: المخرج الموحّد صالح على فيديو اختبار قصير.</li>
+    <li>المرحلة 5: job يصل إلى <span class="mono">completed</span> مع نسبة تقدّم حقيقية.</li>
+    <li>المرحلة 6: واقعة واحدة على الأقل لكل نوع مع صورة دليل.</li>
+    <li>المرحلة 7: دورة كاملة من الرفع إلى المراجعة من المتصفح.</li>
+    <li>المرحلة 8: تصدير <span class="mono">CSV</span> من سجلات حقيقية.</li>
+    <li>المرحلة 9: سيناريو العرض يمر بلا أخطاء حاجبة.</li>
+    <li>المرحلة 10: تشغيل بأمر واحد على جهاز نظيف.</li>
+  </ul>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 26</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>قسّمنا المشروع إلى عشر مراحل بترتيب اعتماديات واضح، وحدّدنا لكل مرحلة مدتها ومهامها ومخرجاتها ومعيار
+        قبولها ومخاطرها، وعرضنا مسارات العمل المتوازية والمخطط الزمني المبسّط.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تثبيت تواريخ فعلية للمراحل في <span class="mono">docs/PLAN.md</span>.</li>
+          <li>تحديد مالك كل مرحلة من <span class="mono">M1</span> إلى <span class="mono">M5</span>.</li>
+          <li>تسجيل المخاطر المتوقعة وخطة تخفيفها.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>جدول مراحل معتمد بمعايير قبول قابلة للقياس.</li>
+        <li>مخطط زمني مرئي محدَّث أسبوعياً.</li>
+        <li>سجل مخاطر حيّ يُراجَع في الاجتماع الأسبوعي.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل معيار قبول يمكن إثباته بعرض عملي لا بوصف شفهي.</li>
+        <li>لا مرحلة تبدأ قبل إغلاق اعتمادياتها.</li>
+        <li>يوجد تكامل واحد على الأقل كل أسبوع من الأسبوع الثاني.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>البدء في الواجهة قبل تثبيت عقد الـ API.</li>
+        <li>تأجيل <span class="mono">Docker</span> والاختبارات إلى الأسبوع الأخير.</li>
+        <li>إضافة مراحل غير مذكورة في النطاق أثناء التنفيذ.</li>
+        <li>تفسير التأخير بتفاؤل بدل تعديل الخطة.</li></ul></div>
+    </div>
+  </div>
+</section>

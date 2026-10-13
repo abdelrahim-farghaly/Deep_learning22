@@ -1,0 +1,214 @@
+<section class="chapter" id="ch21">
+  <div class="opener">
+    <div class="op-num">21</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH21 &middot; CI/CD</p>
+      <h2>الـ CI/CD وسير عمل GitHub</h2>
+      <p class="op-sub">كيف يعمل خمسة طلاب على مستودع واحد دون فوضى</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>أكبر خطر في مشروع فريق هو فقدان العمل أو دمج كود يكسر ما بناه غيرك. هذا الفصل يثبّت قواعد عمل بسيطة
+    على مستودع <span class="mono">safevision-ai</span>، ثم يعرض ملف CI اختيارياً يفحص الكود تلقائياً عند كل
+    تغيير. القاعدة الحاكمة: <strong>لا أحد يعمل مباشرة على الفرع <span class="mono">main</span></strong>.</p>
+  </div>
+
+  <h3>21.1 نموذج الفروع الذي نستخدمه</h3>
+  <p><strong>Branch (فرع):</strong> نسخة مستقلة من الكود يمكن التعديل عليها دون التأثير على الفرع الرئيسي.
+  نستخدم نموذجاً بسيطاً يكفي خمسة أعضاء: فرع <span class="mono">main</span> يمثّل النسخة المستقرّة دائماً،
+  وفرع مؤقت لكل مهمة يُنشأ منه ثم يُدمج فيه عبر Pull Request.</p>
+  <table class="tbl">
+    <caption>جدول 21-1: قواعد التسمية</caption>
+    <thead><tr><th>النوع</th><th>الصيغة</th><th>أمثلة</th></tr></thead>
+    <tbody>
+      <tr><td>فرع ميزة</td><td class="mono">feat/&lt;short-name&gt;</td><td class="mono">feat/video-upload, feat/incident-list</td></tr>
+      <tr><td>إصلاح خطأ</td><td class="mono">fix/&lt;short-name&gt;</td><td class="mono">fix/cors-origins, fix/job-progress</td></tr>
+      <tr><td>توثيق</td><td class="mono">docs/&lt;short-name&gt;</td><td class="mono">docs/api-contract</td></tr>
+      <tr><td>الوسوم</td><td class="mono">v&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</td><td class="mono">v0.1.0, v1.0.0</td></tr>
+    </tbody>
+  </table>
+
+  <h3>21.2 Pull Requests ومراجعة الكود</h3>
+  <p><strong>Pull Request (PR):</strong> طلب دمج فرعك في <span class="mono">main</span> مع عرض التغييرات
+  للنقاش. لا يُدمج أي PR قبل مراجعة عضو آخر على الأقل. نُبقي الـ PR صغيراً: مهمة واحدة، تغيير محدود، وصف
+  واضح لما تغيّر وكيف اختُبر. هذا يجعل المراجعة سريعة ويمنع تعارضات الدمج الكبيرة.</p>
+  <div class="grid2">
+    <div class="card green"><h5>PR جيّد</h5>
+      <ul><li>مهمة واحدة فقط ورسالة واضحة.</li>
+      <li>يربط بـ Issue برقمه.</li>
+      <li>يشرح كيف اختُبر يدوياً.</li>
+      <li>صغير بما يكفي لمراجعته في دقائق.</li></ul></div>
+    <div class="card red"><h5>PR سيّئ</h5>
+      <ul><li>يخلط بين ميزات متعددة.</li>
+      <li>يحتوي ملفات كبيرة أو أسراراً بالخطأ.</li>
+      <li>بدون وصف ولا خطوات اختبار.</li>
+      <li>يبقى مفتوحاً أسابيع فيتعارض مع غيره.</li></ul></div>
+  </div>
+
+  <h3>21.3 حل تعارضات الدمج ورسائل الـ Commit</h3>
+  <p>يحدث <strong>Merge Conflict</strong> عندما يعدّل فرعان نفس الأسطر. الحل دائماً: اسحب أحدث نسخة من
+  <span class="mono">main</span> إلى فرعك مبكراً، ثم حلّ التعارض يدوياً واختبار الكود قبل الدمج. أما رسائل
+  الـ commit فنتبع صيغة مختصرة <span class="mono">type(scope): message</span> بالإنجليزية.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">terminal &mdash; daily Git workflow</span><span class="ftag">bash</span></div>
+<pre class="term"># Start a task from an up-to-date main
+$ git checkout main
+$ git pull origin main
+$ git checkout -b feat/video-upload
+
+# Work, then stage and commit in small logical steps
+$ git add backend/app/api/v1/videos.py
+$ git commit -m "feat(videos): add multipart upload endpoint"
+
+# Pull main into your branch early to resolve conflicts while they are small
+$ git fetch origin
+$ git rebase origin/main
+
+# Push and open a Pull Request
+$ git push -u origin feat/video-upload
+
+# After the PR is reviewed and merged, clean up the branch
+$ git checkout main
+$ git pull origin main
+$ git branch -d feat/video-upload
+</pre></div>
+  <div class="callout tip"><span class="co-title">قاعدة الدمج المبكر</span>
+    <p>كلما طال بقاء الفرع منفصلاً كبرت التعارضات. القاعدة: اسحب أحدث نسخة من <span class="mono">main</span>
+    إلى فرعك مرة كل يوم عمل على الأقل، ولا تُبقِ فرعاً بدون دمج أكثر من بضعة أيام. وإن كبر التعارض، فالحل
+    ليس إجبار الدمج (<span class="mono">push --force</span>) على فرع مشترك، بل حلّ التعارض ملفاً ملفاً واختبار
+    الكود بعد الحل.</p></div>
+
+  <table class="tbl">
+    <caption>جدول 21-2: أمثلة رسائل commit مقبولة</caption>
+    <thead><tr><th>النوع</th><th>المعنى</th><th>مثال</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">feat</td><td>ميزة جديدة</td><td class="mono">feat(jobs): expose progress field</td></tr>
+      <tr><td class="mono">fix</td><td>إصلاح خطأ</td><td class="mono">fix(ai): clamp bbox to frame size</td></tr>
+      <tr><td class="mono">docs</td><td>توثيق فقط</td><td class="mono">docs(readme): add run instructions</td></tr>
+      <tr><td class="mono">refactor</td><td>إعادة تنظيم بدون تغيير السلوك</td><td class="mono">refactor(services): split incident service</td></tr>
+      <tr><td class="mono">test</td><td>إضافة أو تعديل اختبارات</td><td class="mono">test(rules): add ppe cooldown case</td></tr>
+    </tbody>
+  </table>
+
+  <h3>21.4 Issues و Milestones و Release Tags</h3>
+  <p>نستخدم <strong>Issues</strong> لتسجيل كل مهمة أو خطأ، و<strong>Milestones</strong> لتجميع الإصدارات
+  في مجموعات قابلة للقياس (مثل: الأساس، خط المعالجة، الواجهة، العرض النهائي). وكلما وصل النظام إلى حالة
+  مستقرة نضع وسم إصدار <strong>Tag</strong> بالإنجليزية. هذا يعطي الفريق خط أساس يعود إليه عند كسر شيء.</p>
+
+  <p>ويُفضّل أن يحمل كل Issue قائمة تحقق صغيرة (<span class="en">definition of done</span>) تُغلق
+  المهمة فقط عند إتمامها، وأن يُربط اسم الفرع برقم الـ Issue ليعرف المراجع سياق التغيير فوراً.</p>
+
+  <h3>21.5 GitHub Actions اختياري</h3>
+  <p><strong>GitHub Actions:</strong> خدمة تشغيل أوامر تلقائياً عند كل push أو PR. الـ CI مفيد فعلاً بعد أن
+  يصبح لدينا اختبارات قابلة للتشغيل. الملف التالي يفحص صياغة Python، ويشغّل الاختبارات، ويبني الواجهة
+  ويفحص الأنواع، ويبني صورة Docker للـ backend. نستخدم <span class="mono">services</span> لتوفير PostgreSQL
+  مؤقتة للاختبارات، ونأخذ الأسرار من <span class="mono">secrets</span> لا من الكود.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">.github/workflows/ci.yml</span><span class="ftag">yaml</span></div>
+<pre>name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: safevision
+          POSTGRES_PASSWORD: safevision
+          POSTGRES_DB: safevision_test
+        ports: ["5432:5432"]
+        options: &gt;-
+          --health-cmd "pg_isready -U safevision"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql+psycopg://safevision:safevision@localhost:5432/safevision_test
+      MODEL_DEVICE: cpu
+      AUTH_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r backend/requirements.txt
+      - run: ruff check backend
+      - run: pytest backend/tests -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npx tsc --noEmit
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t safevision-backend ./backend
+</pre></div>
+  <div class="callout warn"><span class="co-title">تحذير أمني صريح</span>
+    <p>لا تُرفع إلى GitHub أبداً: فيديوهات العملاء أو أي فيديو حقيقي، ملفات الـ checkpoints الضخمة
+    (<span class="mono">models/</span>)، ملف <span class="mono">.env</span> الذي يحوي كلمات مرور، أو أي مفتاح
+    <span class="mono">S3_SECRET_ACCESS_KEY</span>. كل هذه مستثناة في <span class="mono">.gitignore</span>
+    وفي <span class="mono">.dockerignore</span>. إن رُفع سرّ بالخطأ فالحل ليس حذف الملف في commit جديد، بل
+    إلغاء السرّ فوراً من المصدر لأنه يبقى في تاريخ Git.</p></div>
+
+  <h3>21.6 متى يصبح الـ CI/CD مفيداً فعلاً</h3>
+  <p>الـ CI ليس هدفاً في ذاته، بل أداة. يصبح مفيداً عندما تتحقق ثلاثة شروط: أن توجد اختبارات يمكن تشغيلها
+  آلياً، وأن يكون الكود على فرع <span class="mono">main</span> صالحاً للتشغيل دائماً، وأن يستطيع عضو جديد
+  تشغيل المشروع من التعليمات وحدها. قبل ذلك يتحوّل الـ CI إلى عمل زائد يستهلك وقت الفريق.</p>
+  <p>لذلك الترتيب الصحيح: نكتب الكود والاختبارات أولاً، ونضبط <span class="mono">.gitignore</span>، ثم نضيف
+  ملف الـ workflow. البوابة الأولى (<span class="en">gate</span>) هي تشغيل <span class="mono">pytest</span>
+  و<span class="mono">npm run build</span> محلياً قبل الـ push، لأن تشغيل الأمر على جهازك أسرع بكثير من انتظار
+  CI. أمّا CI فقيمته الحقيقية أنه يمنع دمج كود يكسر فرع <span class="mono">main</span> دون أن يلاحظه أحد.</p>
+  <p>نقطة أخيرة: لا نعتمد على CI لتشغيل الـ AI على GPU. الاختبارات في CI تعمل على CPU وبفيديو صناعي صغير
+  جداً (الفصل 22)، وأي شيء يحتاج GPU أو بيانات حقيقية يبقى اختباراً يدوياً موثّقاً. هكذا تبقى بوابة CI سريعة
+  وغير مكلفة، ولا تفشل بسبب موارد غير متوفرة.</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 21</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>ثبّتنا نموذج فروع بسيطاً: <span class="mono">main</span> مستقر دائماً، وفرع لكل مهمة، ودمج عبر
+        Pull Request بمراجعة. واتفقنا على صيغة رسائل الـ commit، وعلى Issues وMilestones وTags، وعلى ملف
+        CI اختياري يفحص الـ backend والـ frontend ويبني الصورة.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تفعيل حماية فرع <span class="mono">main</span> ومنع الدفع المباشر.</li>
+          <li>إنشاء قالب للـ Pull Request يطلب وصف التغيير وخطوات الاختبار.</li>
+          <li>التحقق من <span class="mono">.gitignore</span> قبل أول commit.</li>
+          <li>إضافة <span class="mono">.github/workflows/ci.yml</span> عند جاهزية الاختبارات.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>مستودع فيه فرع <span class="mono">main</span> نظيف ووسوم إصدار.</li>
+        <li>لوحة Issues وMilestones تغطّي كل مهام الفصل 26.</li>
+        <li>تشغيل CI أخضر على آخر PR.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>لا يمكن الدفع مباشرة إلى <span class="mono">main</span>.</li>
+        <li>كل PR له مراجع واحد على الأقل ووصف واضح.</li>
+        <li>لا يوجد ملف سرّ أو فيديو داخل المستودع.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>العمل مباشرة على <span class="mono">main</span> من عدة أعضاء.</li>
+        <li>ترك فروع مفتوحة طويلاً حتى تكبر التعارضات.</li>
+        <li>رفع ملف <span class="mono">.env</span> أو مجلد <span class="mono">models/</span> بالخطأ.</li>
+        <li>توقّع أن CI يصلح الكود بدل أن يكتشف الأخطاء فقط.</li></ul></div>
+    </div>
+  </div>
+</section>

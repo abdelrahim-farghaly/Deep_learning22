@@ -4,6 +4,7 @@ build/.pptr/
 build/node_modules/
 build/preview/
 build/*.pdf
+build/preview/
 build/httpd.log
 __pycache__/
 *.pyc

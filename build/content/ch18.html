@@ -1,0 +1,230 @@
+<section class="chapter" id="ch18">
+  <div class="opener">
+    <div class="op-num">18</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH18 &middot; SECURITY &amp; PRIVACY</p>
+      <h2>الأمان والخصوصية والمصادقة</h2>
+      <p class="op-sub">أمان عملي لمشروع طلابي صناعي، بدون مبالغة وبدون ثغرات واضحة</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>النظام يتعامل مع فيديو أماكن عمل، والخطأ الأمني فيه لا يهدّد البيانات فقط بل خصوصية العاملين. هذا الفصل
+  يضع حدّاً أدنى صلباً من الأمان: كلمات مرور مشفَّرة، توكن صالح، أدوار محدودة، رفع محكم، أسرار خارج الكود، وخصوصية
+  محفوظة بعدم التعرف على الوجوه. الهدف عملي: لا ثغرة واضحة، ودون تعقيد يعطّل الـ MVP.</p></div>
+
+  <h3>18.1 المصادقة مقابل التصريح</h3>
+  <p><strong>المصادقة (<span class="en">Authentication</span>):</strong> مَن أنت؟ تُتحقّق من هوية المستخدم عبر
+  بريد وكلمة مرور. <strong>التصريح (<span class="en">Authorization</span>):</strong> ما المسموح لك فعله؟
+  يُحدَّد بدورك في النظام. الخطأ الشائع هو الخلط بينهما، فيكفي تسجيل الدخول لأداء أي إجراء.</p>
+  <table class="tbl">
+    <caption>جدول 18-1: الفرق بين المصادقة والتصريح</caption>
+    <thead><tr><th class="w22">الجانب</th><th class="w30">المصادقة</th><th>التصريح</th></tr></thead>
+    <tbody>
+      <tr><td>السؤال</td><td>مَن أنت؟</td><td>ماذا يُسمح لك؟</td></tr>
+      <tr><td>الأداة</td><td>كلمة مرور + <span class="mono">bcrypt</span> + توكن <span class="mono">JWT</span></td><td>دور المستخدم (<span class="mono">user_role</span>)</td></tr>
+      <tr><td>عند الفشل</td><td><span class="mono">401 Unauthorized</span></td><td><span class="mono">403 Forbidden</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout info"><span class="co-title">وضع العرض التوضيحي</span>
+    <p>عند <span class="mono">AUTH_ENABLED=false</span> يتجاوز النظام المصادقة ويعمل بمستخدم افتراضي دوره
+    <span class="mono">safety_officer</span>، وهذا مقبول لعرض الـ MVP. عند <span class="mono">true</span> تُفرض
+    المصادقة على كل المسارات المعلَّمة بـ <span class="mono">yes*</span>، وتُرسل الواجهة التوكن في ترويسة
+    <span class="mono">Authorization</span>. الفرق بين الوضعين يجب أن يكون <strong>معلَماً بصراحة في الواجهة</strong>.</p></div>
+
+  <h3>18.2 تشفير كلمات المرور</h3>
+  <p>لا تُخزَّن كلمة المرور أبداً كنص صريح. نستخدم <span class="mono">bcrypt</span> الذي يضيف
+  <span class="en">salt</span> عشوائياً لكل كلمة، فيستحيل مقارنة الهاشين لكلمتين متطابقتين، ويصبح كسر الهاش
+  مكلفاً. عمود القاعدة <span class="mono">hashed_password</span> يحمل الهاش فقط.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/core/security.py</span><span class="ftag">python</span></div>
+<pre># backend/app/core/security.py
+from datetime import datetime, timedelta, timezone
+
+import bcrypt
+import jwt
+
+from app.core.config import settings
+
+
+def hash_password(plain: str) -&gt; str:
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(plain: str, hashed: str) -&gt; bool:
+    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+
+
+def create_access_token(subject: str, role: str) -&gt; str:
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    payload = {"sub": subject, "role": role, "exp": expire}
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def decode_token(token: str) -&gt; dict:
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])</pre></div>
+
+  <h3>18.3 التوكن والاعتماديات والتصريح بالأدوار</h3>
+  <p>الـ <span class="mono">JWT</span> توكن موقَّع يحتوي هوية المستخدم ودوره ووقت انتهائه. الـ dependency
+  <span class="mono">get_current_user</span> تُستخدم في كل مسار محمي، وتتجاوز المصادقة عند إيقاف العلم. ثم
+  <span class="mono">require_role</span> يمنع الأدوار غير المصرّح لها.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/api/deps.py</span><span class="ftag">python</span></div>
+<pre>from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.security import decode_token
+from app.db.session import get_db
+from app.models.user import User
+
+bearer = HTTPBearer(auto_error=False)
+DEFAULT_USER = {"id": None, "email": "demo@safevision.local", "role": "safety_officer"}
+
+
+def get_current_user(
+    creds: HTTPAuthorizationCredentials | None = Depends(bearer),
+    db: Session = Depends(get_db),
+):
+    if not settings.AUTH_ENABLED:
+        return DEFAULT_USER  # MVP demo mode
+    if creds is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing token")
+    try:
+        payload = decode_token(creds.credentials)
+    except Exception:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
+    user = db.get(User, payload["sub"])
+    if user is None or not user.is_active:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Inactive user")
+    return user
+
+
+def require_role(*roles: str):
+    def checker(user=Depends(get_current_user)):
+        role = user["role"] if isinstance(user, dict) else user.role
+        if settings.AUTH_ENABLED and role not in roles:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient role")
+        return user
+    return checker</pre></div>
+  <table class="tbl">
+    <caption>جدول 18-2: الأدوار والصلاحيات (RBAC)</caption>
+    <thead><tr><th class="w20">الدور</th><th>الصلاحيات</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">admin</td><td>كل شيء: إدارة المستخدمين، حذف الفيديوهات، الإعدادات</td></tr>
+      <tr><td class="mono">safety_officer</td><td>الرفع، بدء المعالجة، مراجعة الوقائع، التقارير</td></tr>
+      <tr><td class="mono">viewer</td><td>قراءة فقط: القوائم والتحليلات دون مراجعة أو حذف</td></tr>
+    </tbody>
+  </table>
+
+  <h3>18.4 أمان رفع الملفات</h3>
+  <p>الرفع هو أكبر مدخل خطر لأنه يستقبل ملفاً من خارج النظام. نطبّق عليه قيوداً متراكبة:</p>
+  <ul>
+    <li><strong>حد الحجم:</strong> نرفض ما يتجاوز <span class="mono">MAX_UPLOAD_MB</span> ونعيد
+    <span class="mono">413</span> بدل إسقاط الاتصال.</li>
+    <li><strong>الامتداد والمحتوى:</strong> نتحقق من <span class="mono">ALLOWED_VIDEO_EXTENSIONS</span>
+    ومن <span class="en">magic bytes</span> ومن فتح الملف بـ <span class="en">OpenCV</span> (تفصيله في الفصل 9).</li>
+    <li><strong>أسماء الملفات:</strong> لا نستخدم الاسم الأصلي على القرص أبداً؛ نولّد اسم <span class="mono">UUID</span>
+    ونبني <span class="mono">storage_key</span> منه، وهذا يمنع <span class="en">path traversal</span>.</li>
+    <li><strong>عدم التنفيذ:</strong> مجلّدات التخزين لا تُخدَم كملفات تنفيذية، والوصول للفيديو والدليل يمرّ
+    عبر endpoint يتحقق من الصلاحية بدل كشف المسار المباشر.</li>
+  </ul>
+
+  <h3>18.5 تقييد CORS والتحقق من المدخلات ومنع SQL Injection</h3>
+  <ul>
+    <li><strong>CORS:</strong> نسمح فقط بأصول الواجهة المحدَّدة في <span class="mono">CORS_ORIGINS</span>،
+    ولا نستخدم <span class="mono">"*"</span> في الإنتاج.</li>
+    <li><strong>التحقق من المدخلات:</strong> كل جسم طلب يمرّ على مخطط <span class="en">Pydantic</span>، وكل
+    معامل استعلام محدَّد النوع، فالفشل يعيد <span class="mono">422</span> قبل الوصول للمنطق.</li>
+    <li><strong>منع <span class="en">SQL Injection</span>:</strong> نستخدم <span class="en">SQLAlchemy</span>
+    مع معاملات مرتبطة (<span class="en">bound parameters</span>) ولا نُركّب نصوص SQL يدوياً، فلا يمكن للمدخل
+    أن يغيّر الاستعلام.</li>
+    <li><strong>Rate limiting:</strong> غير ضروري في العرض المحلي، لكن يُضاف على <span class="mono">/auth/login</span>
+    عند النشر العام لمنع التخمين المتكرّر.</li>
+  </ul>
+
+  <h3>18.6 إدارة الأسرار</h3>
+  <p>لا يُكتب أي سرّ في الكود ولا في Git. المفتاح <span class="mono">SECRET_KEY</span> وكلمات قاعدة البيانات
+  تُقرأ من البيئة، ويحتوي المستودع ملف <span class="mono">.env.example</span> بقيم Placeholder فقط. إذا رُفع
+  سرّ إلى Git بالخطأ، يجب تغييره فوراً لا حذفه فقط.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">.env.example (placeholders only)</span><span class="ftag">ini</span></div>
+<pre>APP_NAME=SafeVision AI
+APP_ENV=development
+APP_DEBUG=true
+API_V1_PREFIX=/api/v1
+AUTH_ENABLED=false
+SECRET_KEY=&lt;CHANGE_ME_RANDOM_32_BYTES&gt;
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+CORS_ORIGINS=http://localhost:5173
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=&lt;CHANGE_ME&gt;
+POSTGRES_DB=safevision
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql+psycopg://postgres:&lt;CHANGE_ME&gt;@localhost:5432/safevision
+
+STORAGE_BACKEND=local
+LOCAL_STORAGE_ROOT=storage
+UPLOAD_DIR=storage/uploads
+EVIDENCE_DIR=storage/evidence
+REPORT_DIR=storage/reports
+MAX_UPLOAD_MB=&lt;SET_MAX_UPLOAD_MB&gt;
+ALLOWED_VIDEO_EXTENSIONS=mp4,mov,avi,mkv
+
+VITE_API_BASE_URL=http://localhost:8000
+VITE_ENABLE_AUTH=false</pre></div>
+
+  <h3>18.7 الخصوصية: تتبّع مجهول بلا تعرّف على الوجوه</h3>
+  <div class="callout danger"><span class="co-title">لا تعرّف على الوجوه</span>
+    <p>النظام <strong>لا يستخدم التعرف على الوجوه ولا يخزّن هويات حقيقية للعاملين</strong>. الـ
+    <span class="mono">track_id</span> مجرّد رقم مؤقت داخل فيديو واحد لربط كشوفات الشخص نفسه في الإطارات
+    المتتالية؛ هو <em>ليس</em> هوية ولا يمكن ربطه بشخص في فيديو آخر. عند رفع فيديو جديد يبدأ الترقيم من جديد.</p></div>
+  <ul>
+    <li><strong>التتبّع المجهول:</strong> نخزّن رقم المسار وزمنه ودرجة الخطورة، دون أي بيانات تُعرّف الشخص.</li>
+    <li><strong>الوصول للفيديو والدليل:</strong> محمي بالصلاحيات؛ الـ <span class="mono">file_url</span> يمرّ
+    عبر endpoint يتحقق من المستخدم بدل رابط مباشر قابل للمشاركة.</li>
+    <li><strong>سياسات الاحتفاظ:</strong> الفيديوهات وأدلة الوقائع لها مدة احتفاظ محدَّدة تُحذف بعدها
+    (بما فيها الملفات من طبقة التخزين)، والوقائع تبقى كسجلات إحصائية.</li>
+    <li><strong>الموافقة والغرض:</strong> الفيديو يُستخدم لغرض السلامة فقط، ولا يُعاد استخدامه لأي غرض آخر.</li>
+  </ul>
+
+  <h3>18.8 السجلات والنسخ الاحتياطي</h3>
+  <p>الـ <span class="en">logs</span> لا تحتوي كلمات مرور ولا توكنات ولا مسارات ملفات حساسة؛ نُسجّل المعرّفات
+  والأخطاء فقط. ولحماية البيانات نأخذ نسخة احتياطية دورية من <span class="mono">PostgreSQL</span> (مثلاً
+  <span class="mono">pg_dump</span>) مع نسخة من مجلّدات التخزين، ونختبر استرجاع نسخة واحدة فعلياً لأن نسخة
+  لم تُجرَّب ليست نسخة.</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 18</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>فرّقنا بين المصادقة والتصريح، وشفّرنا كلمات المرور بـ bcrypt، وبنينا توكن JWT مع
+        <span class="mono">get_current_user</span> و<span class="mono">require_role</span>، وأحكمنا الرفع وCORS
+        ومنع SQL Injection، وأخرجنا الأسرار للبيئة، وثبّتنا خصوصية بلا تعرّف على الوجوه.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>توليد <span class="mono">SECRET_KEY</span> عشوائي ووضعه في البيئة لا في الكود.</li>
+          <li>ربط المسارات الحساسة بـ <span class="mono">Depends(require_role(...))</span>.</li>
+          <li>التأكد أن كل مسار محمي يمرّ بـ <span class="mono">get_current_user</span>.</li>
+          <li>كتابة سياسة احتفاظ مكتوبة وضبط مدة الحذف.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>جدول مستخدمين بكلمات مرور مشفَّرة فقط.</li>
+        <li>ملف <span class="mono">.env.example</span> بقيم Placeholder فقط.</li>
+        <li>توضيح مكتوب أن التتبّع مجهول وأن الـ track_id مؤقت.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>لا يوجد نص صريح لكلمة مرور في قاعدة البيانات.</li>
+        <li>طلب مسار محمي بلا توكن يعيد <span class="mono">401</span> عند تفعيل المصادقة.</li>
+        <li>دور غير مصرّح له يحصل على <span class="mono">403</span>.</li>
+        <li>لا يوجد سرّ مكتوب في الكود أو في Git.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تخزين كلمة المرور كنص صريح أو بـ <span class="mono">md5</span>.</li>
+        <li>السماح بـ <span class="mono">CORS "*"</span> في الإنتاج.</li>
+        <li>بناء استعلام SQL بتركيب نصي مباشر.</li>
+        <li>استخدام الـ <span class="mono">track_id</span> كهوية شخص أو ربطه بين فيديوهات.</li>
+        <li>وضع الأسرار في الكود أو رفع <span class="mono">.env</span> إلى Git.</li></ul></div>
+    </div>
+  </div>
+</section>

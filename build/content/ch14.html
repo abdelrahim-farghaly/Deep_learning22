@@ -1,0 +1,327 @@
+<section class="chapter" id="ch14">
+  <div class="opener">
+    <div class="op-num">14</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH14 &middot; FRONTEND ARCHITECTURE</p>
+      <h2>معمارية الـ Frontend بـ React و TypeScript</h2>
+      <p class="op-sub">بنية قابلة للصيانة، هوية بصرية صناعية، وتجربة استخدام واضحة</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>هذا الفصل يضع هيكل واجهة المستخدم قبل كتابة مكوّناتها: كيف نقسّم الكود، وكيف ننظّم المسارات،
+  وكيف نطابق أنواع <span class="en">TypeScript</span> مع عقد الـ API حرفياً. الهدف أن يجد أي عضو مكانه بسرعة،
+  وأن تكون الشاشة العشر واضحة الغرض والبيانات قبل تنفيذها في الفصل التالي.</p></div>
+
+  <h3>14.1 بنية تطبيق React</h3>
+  <p>نقسّم <span class="mono">src</span> حسب <strong>الميزة (feature)</strong> لا حسب نوع الملف فقط، فيصبح كل
+  جزء مسؤولاً عن نفسه. الطبقة <span class="mono">api</span> تعزل نداءات الشبكة، و<span class="mono">hooks</span>
+  تحتوي المنطق القابل لإعادة الاستخدام، و<span class="mono">types</span> تحتوي عقد البيانات المشترك.</p>
+  <table class="tbl">
+    <caption>جدول 14-1: طبقات الـ Frontend ومسؤولية كل طبقة</caption>
+    <thead><tr><th class="w22">المجلّد</th><th>المسؤولية</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">api/</td><td>عميل Axios ونداءات كل مورد؛ المكان الوحيد الذي يعرف عناوين المسارات</td></tr>
+      <tr><td class="mono">hooks/</td><td>منطق مشترك: الترقيم، الاستطلاع، الجلب، التنبيهات</td></tr>
+      <tr><td class="mono">types/</td><td>أنواع مطابقة لعقد الـ API، تُستورد في كل مكان</td></tr>
+      <tr><td class="mono">features/</td><td>مكوّنات وصفحات كل ميزة: <span class="mono">videos, incidents, analytics, reports</span></td></tr>
+      <tr><td class="mono">components/</td><td>مكوّنات عامة: <span class="mono">Button, Table, Modal, Toast, EmptyState</span></td></tr>
+      <tr><td class="mono">layouts/</td><td>الهيكل العام: الشريط الجانبي والرأس ومنطقة المحتوى</td></tr>
+      <tr><td class="mono">routes.tsx</td><td>تعريف المسارات وربطها بالصفحات وحمايتها بالمصادقة</td></tr>
+    </tbody>
+  </table>
+
+  <h3>14.2 خريطة الصفحات والمسارات</h3>
+  <p>نستخدم <span class="mono">react-router-dom v6</span>، ونجمع الصفحات في ثلاثة أقسام: قسم المصادقة
+  (اختياري)، قسم التشغيل اليومي، وقسم التحليل والتقارير. المسارات المحمية تُحوَّل إلى <span class="mono">/login</span>
+  فقط عند <span class="mono">VITE_ENABLE_AUTH=true</span>.</p>
+  <div class="fig"><div class="dg">
+    <div class="dgroup"><div class="dg-title">Authentication (optional)</div>
+      <div class="drow"><div class="dbox navy">/login<span class="dsub">LoginPage</span></div></div></div>
+    <div class="darrow"></div>
+    <div class="dgroup"><div class="dg-title">Daily Operations</div>
+      <div class="drow">
+        <div class="dbox teal">/<span class="dsub">DashboardPage</span></div>
+        <div class="dbox teal">/videos<span class="dsub">VideoLibraryPage</span></div>
+        <div class="dbox teal">/videos/:videoId<span class="dsub">VideoDetailPage</span></div>
+        <div class="dbox teal">/jobs<span class="dsub">JobsPage</span></div>
+      </div>
+      <div class="drow">
+        <div class="dbox orange">/incidents<span class="dsub">IncidentListPage</span></div>
+        <div class="dbox orange">/incidents/:incidentId<span class="dsub">IncidentDetailPage</span></div>
+      </div>
+    </div>
+    <div class="darrow"></div>
+    <div class="dgroup"><div class="dg-title">Analytics &amp; Reports</div>
+      <div class="drow">
+        <div class="dbox green">/analytics<span class="dsub">AnalyticsPage</span></div>
+        <div class="dbox green">/reports<span class="dsub">ReportsPage</span></div>
+        <div class="dbox gray">/settings<span class="dsub">SettingsPage (admin)</span></div>
+      </div></div>
+  </div><div class="fig-cap"><b>شكل 14-1:</b> خريطة صفحات الـ Frontend ومساراتها</div></div>
+
+  <h3>14.3 وصف الصفحات العشر</h3>
+  <p>لكل صفحة غرض واحد واضح، ونداءات محدَّدة، وإجراءات مستخدم معروفة، وسلوك تحميل وخطأ صريح. لا نبني
+  صفحة "تاعمل كل حاجة"، بل نبني عشر شاشات مركّزة.</p>
+  <table class="tbl">
+    <caption>جدول 14-2: الصفحات العشر ونداءاتها وسلوكها</caption>
+    <thead><tr><th class="w20">الصفحة / المسار</th><th class="w26">الغرض والمكوّنات</th><th class="w30">نداءات الـ API</th><th>إجراءات المستخدم وسلوك التحميل/الخطأ</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">/login</td><td>دخول آمن (اختياري) مع نموذج بريد وكلمة مرور</td><td class="mono">POST /auth/login</td><td>تسجيل دخول، تخزين التوكن؛ خطأ <span class="mono">401</span> يظهر رسالة عربية</td></tr>
+      <tr><td class="mono">/</td><td>Dashboard: بطاقات KPI، أحدث الوقائع، حالة الـ Jobs</td><td class="mono">GET /analytics/overview</td><td>فتح واقعة، الانتقال للأقسام؛ هيكل تحميل عند الجلب</td></tr>
+      <tr><td class="mono">/videos</td><td>Video Library: جدول، رفع، بحث وفلترة، إعادة معالجة</td><td class="mono">GET /videos, POST /videos, POST /videos/{id}/process</td><td>رفع ملف، بدء معالجة، حذف؛ شريط تقدّم الرفع</td></tr>
+      <tr><td class="mono">/videos/:videoId</td><td>تفاصيل فيديو + أحدث job + وقائعه</td><td class="mono">GET /videos/{id}, GET /incidents?video_id=</td><td>متابعة التقدّم، الانتقال لواقعة؛ <span class="mono">404</span> صفحة غير موجودة</td></tr>
+      <tr><td class="mono">/jobs</td><td>سجل الـ Jobs وحالاتها وأخطاؤها</td><td class="mono">GET /jobs</td><td>فلترة بالحالة؛ عرض <span class="mono">error_message</span></td></tr>
+      <tr><td class="mono">/incidents</td><td>جدول الوقائع مع فلترة ونطاق تاريخ وترقيم</td><td class="mono">GET /incidents</td><td>فلترة النوع/الخطورة/الحالة، تنقّل الصفحات؛ حالة فارغة واضحة</td></tr>
+      <tr><td class="mono">/incidents/:incidentId</td><td>تفاصيل الواقعة + معرض الدليل + المراجعة</td><td class="mono">GET /incidents/{id}, PATCH /incidents/{id}</td><td>تأكيد/رفض/إغلاق + ملاحظة؛ تحديث فوري بعد الـ PATCH</td></tr>
+      <tr><td class="mono">/analytics</td><td>اتجاهات زمنية وتوزيعات حسب النوع والخطورة</td><td class="mono">GET /analytics/overview, GET /analytics/timeseries</td><td>تغيير النطاق الزمني؛ رسوم Recharts</td></tr>
+      <tr><td class="mono">/reports</td><td>ملخص يومي/أسبوعي وتصدير CSV</td><td class="mono">GET /reports/daily, GET /reports/export</td><td>اختيار التاريخ، تنزيل الملف؛ زر معطّل أثناء التنزيل</td></tr>
+      <tr><td class="mono">/settings</td><td>حالة النظام والإعدادات (admin)</td><td class="mono">GET /health</td><td>عرض حالة المكوّنات؛ للقراءة فقط في الـ MVP</td></tr>
+    </tbody>
+  </table>
+
+  <h3>14.4 Wireframes للصفحات الرئيسية</h3>
+  <p>رسومات مصغّرة تحدّد التخطيط قبل التنفيذ: أي عنصر في أي منطقة، وأين أزرار الإجراء. هذه الرسومات هي
+  مرجع التصميم المتجاوب، فالشريط الجانبي يتحوّل إلى قائمة منسدلة على الشاشات الصغيرة.</p>
+  <div class="grid2">
+    <div class="wf"><div class="wf-top">Dashboard &mdash; /</div>
+      <div class="wf-body"><div class="wf-side">Dashboard<br>Videos<br>Incidents<br>Analytics<br>Reports</div>
+      <div class="wf-main">
+        <div class="wf-row solid">KPI cards: Videos | Incidents | Pending | Failed</div>
+        <div class="wf-row">Charts: timeseries + severity</div>
+        <div class="wf-row">Latest incidents table</div>
+      </div></div></div>
+    <div class="wf"><div class="wf-top">Video Library &mdash; /videos</div>
+      <div class="wf-body"><div class="wf-side">Dashboard<br>Videos<br>Incidents<br>Analytics<br>Reports</div>
+      <div class="wf-main">
+        <div class="wf-row solid"><span class="wf-btn">Upload</span><span class="wf-btn alt">Process</span> search + filters</div>
+        <div class="wf-row">video table: name | status | size | created</div>
+        <div class="wf-row">pagination</div>
+      </div></div></div>
+    <div class="wf"><div class="wf-top">Incident List &mdash; /incidents</div>
+      <div class="wf-body"><div class="wf-side">filters: type<br>severity<br>status<br>date range</div>
+      <div class="wf-main">
+        <div class="wf-row solid">incident table: type | severity | status | time</div>
+        <div class="wf-row">row actions: view evidence / review</div>
+        <div class="wf-row">pagination + total</div>
+      </div></div></div>
+    <div class="wf"><div class="wf-top">Incident Detail &mdash; /incidents/:id</div>
+      <div class="wf-body"><div class="wf-side">meta<br>type / severity<br>time range<br>track id</div>
+      <div class="wf-main">
+        <div class="wf-row solid">evidence gallery (images / clip)</div>
+        <div class="wf-row">summary + detection count</div>
+        <div class="wf-row"><span class="wf-btn">Confirm</span><span class="wf-btn alt">Reject</span> note</div>
+      </div></div></div>
+  </div>
+
+  <h3>14.5 أنواع TypeScript المشتركة</h3>
+  <p>هذا الملف هو الجسر بين عقد الـ API والواجهة. كل واجهة هنا تطابق كائن رد في <span class="mono">SPEC.md</span>
+  بنفس أسماء الحقول؛ أي اختلاف حرف واحد يُعدّ خطأً يجب إصلاحه. الاتحادات (<span class="en">union types</span>)
+  تأتي من قيم الـ enum المتفق عليها.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/types/api.ts</span><span class="ftag">typescript</span></div>
+<pre>// Mirrors SPEC.md response shapes exactly. Do not rename fields.
+
+export type VideoStatus = "uploaded" | "processing" | "processed" | "failed";
+export type JobStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+export type IncidentType = "ppe_violation" | "fire_smoke" | "machine_proximity";
+export type Severity = "low" | "medium" | "high" | "critical";
+export type IncidentStatus =
+  | "detected" | "pending_review" | "confirmed" | "rejected" | "closed";
+export type EvidenceKind = "image" | "clip" | "metadata";
+
+export interface JobOut {
+  id: string;
+  video_id: string;
+  status: JobStatus;
+  progress: number;
+  frames_total: number | null;
+  frames_processed: number;
+  sample_every_n_frames: number;
+  started_at: string | null;
+  finished_at: string | null;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface VideoOut {
+  id: string;
+  original_filename: string;
+  stored_filename: string;
+  content_type: string;
+  size_bytes: number;
+  duration_seconds: number | null;
+  fps: number | null;
+  width: number | null;
+  height: number | null;
+  frame_count: number | null;
+  status: VideoStatus;
+  created_at: string;
+  updated_at: string;
+  latest_job: JobOut | null;
+}
+
+export interface EvidenceOut {
+  id: string;
+  incident_id: string;
+  kind: EvidenceKind;
+  storage_key: string;
+  content_type: string | null;
+  size_bytes: number | null;
+  frame_number: number | null;
+  timestamp_seconds: number | null;
+  file_url: string;
+}
+
+export interface IncidentOut {
+  id: string;
+  video_id: string;
+  job_id: string | null;
+  incident_type: IncidentType;
+  severity: Severity;
+  status: IncidentStatus;
+  started_at_seconds: number;
+  ended_at_seconds: number | null;
+  frame_number: number | null;
+  track_id: number | null;
+  confidence: number | null;
+  class_name: string | null;
+  zone_name: string | null;
+  summary: string | null;
+  detection_count: number;
+  created_at: string;
+  updated_at: string;
+  evidence: EvidenceOut[];
+}
+
+export interface IncidentPatch {
+  status?: IncidentStatus;
+  note?: string;
+  reviewer_id?: string;
+}
+
+export interface AnalyticsOverview {
+  total_videos: number;
+  processed_videos: number;
+  total_incidents: number;
+  incidents_by_type: Record&lt;string, number&gt;;
+  incidents_by_severity: Record&lt;string, number&gt;;
+  incidents_by_status: Record&lt;string, number&gt;;
+  pending_review: number;
+  jobs_running: number;
+  jobs_failed: number;
+  last_incident_at: string | null;
+}
+
+export interface TimeseriesPoint {
+  date: string; // YYYY-MM-DD
+  ppe_violation: number;
+  fire_smoke: number;
+  machine_proximity: number;
+  total: number;
+}
+
+export interface Paginated&lt;T&gt; {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+}</pre></div>
+
+  <h3>14.6 شجرة <span class="mono">frontend/src</span> الكاملة</h3>
+  <p>هذه الشجرة هي المرجع الحرفي لأماكن الملفات، وتطابق أسماء الملفات المستخدمة في الفصل التالي.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src (tree)</span><span class="ftag">text</span></div>
+<pre>frontend/src/
+  main.tsx                 # app bootstrap, router provider
+  App.tsx                  # layout shell + route outlet
+  routes.tsx               # route table and auth guard
+  index.css                # tailwind entry + design tokens
+  vite-env.d.ts
+  api/
+    client.ts              # axios instance, base URL, interceptors
+    videos.ts              # list/upload/process/delete calls
+    incidents.ts           # list/detail/patch/evidence calls
+    analytics.ts           # overview + timeseries calls
+    reports.ts             # daily rows + CSV download
+  hooks/
+    usePolling.ts          # generic interval polling hook
+    useJobStatus.ts        # poll one job until terminal state
+    useDebounce.ts
+  types/
+    api.ts                 # shared API types (see 14.5)
+  components/
+    Button.tsx  Table.tsx  Modal.tsx  Toast.tsx
+    EmptyState.tsx  ErrorState.tsx  Spinner.tsx  StatusBadge.tsx
+  layouts/
+    AppLayout.tsx          # sidebar + header + content
+    AuthGuard.tsx
+  features/
+    videos/
+      VideoLibraryPage.tsx  VideoDetailPage.tsx
+      UploadVideoForm.tsx    VideoTable.tsx
+    incidents/
+      IncidentListPage.tsx   IncidentDetailPage.tsx
+      IncidentTable.tsx      IncidentFilters.tsx  EvidenceGallery.tsx
+    analytics/
+      AnalyticsPage.tsx      OverviewCards.tsx
+      IncidentsTimeseries.tsx  SeverityPie.tsx
+    reports/
+      ReportsPage.tsx        ExportCsvButton.tsx
+    auth/
+      LoginPage.tsx          useAuth.ts</pre></div>
+
+  <h3>14.7 الحالات والتجربة والهوية البصرية</h3>
+  <p>الواجهة الجيدة لا تُظهر شاشة بيضاء ولا خطأ صامتاً. لكل قائمة أو بطاقة ثلاث حالات صريحة، ونتعامل معها
+  بمكوّنات موحّدة بدل تكرار الشروط في كل صفحة.</p>
+  <table class="tbl">
+    <caption>جدول 14-3: الحالات الثلاث ومكوّناتها</caption>
+    <thead><tr><th class="w20">الحالة</th><th class="w30">المكوّن</th><th>القاعدة</th></tr></thead>
+    <tbody>
+      <tr><td>Loading</td><td class="mono">Spinner</td><td>هيكل ثابت يمنع اهتزاز الصفحة أثناء الجلب</td></tr>
+      <tr><td>Error</td><td class="mono">ErrorState</td><td>رسالة عربية + زر إعادة المحاولة، دون كشف تفاصيل تقنية</td></tr>
+      <tr><td>Empty</td><td class="mono">EmptyState</td><td>نص يشرح الخطوة التالية ("ارفع فيديو للبدء") بدل جدول فارغ</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>النماذج (<span class="en">forms</span>):</strong> تحقق قبل الإرسال (حجم الملف، الامتداد، التاريخ)، وزر معطّل أثناء الإرسال لمنع الطلب المزدوج.</li>
+    <li><strong>الإشعارات (<span class="en">Toast</span>):</strong> تأكيد نجاح أو فشل الإجراء، وتُدار من سياق واحد أعلى الشجرة.</li>
+    <li><strong>حالة المصادقة:</strong> يعتمد سلوكها على <span class="mono">VITE_ENABLE_AUTH</span>؛ عند <span class="mono">false</span> نتجاوز شاشة الدخول، وعند <span class="mono">true</span> نحمي المسارات ونرسل التوكن.</li>
+    <li><strong>التصميم المتجاوب وإمكانية الوصول:</strong> تخطيط شبكي يتكيّف مع العرض، وتباين لوني كافٍ، ونصوص بديلة للصور، وتنقّل بلوحة المفاتيح.</li>
+  </ul>
+  <p><strong>الهوية البصرية:</strong> <span class="en">Dark Navy</span> للبنية والعناوين، <span class="en">Teal</span>
+  للمعلومات، <span class="en">Orange</span> للتحذير، <span class="en">Red</span> للخطر، وخلفيات محايدة للنصوص.
+  نتجنّب التدرجات الزائدة والحركات غير الضرورية لأنها تشتّت عن المعلومة وتُثقل الأداء. ألوان الخطورة في الواجهة
+  تتبع الـ enum نفسه: <span class="mono">low, medium, high, critical</span>.</p>
+  <div class="callout info"><span class="co-title">لا روابط إنتاج داخل المكوّنات</span>
+    <p>لا نكتب <span class="mono">http://localhost:8000</span> ولا أي عنوان إنتاجي داخل أي مكوّن. العنوان يأتي
+    دائماً من <span class="mono">import.meta.env.VITE_API_BASE_URL</span> عبر عميل واحد في
+    <span class="mono">api/client.ts</span>.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 14</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>قسّمنا الـ Frontend حسب الميزة، ورسمنا خريطة الصفحات والمسارات، ووصفنا الشاشات العشر بنداءاتها
+        وسلوكها، وأثبتنا أنواع TypeScript المطابقة للـ API، وثبّتنا حالات التحميل والخطأ والفراغ والهوية البصرية.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>إنشاء مجلّدات <span class="mono">features/hooks/api/types</span> كما في الشجرة.</li>
+          <li>نسخ <span class="mono">types/api.ts</span> حرفياً وربطه بعميل الـ API.</li>
+          <li>بناء المكوّنات العامة (Button, Table, EmptyState, ErrorState, Spinner).</li>
+          <li>تعريف المسارات مع حارس مصادقة يقرأ <span class="mono">VITE_ENABLE_AUTH</span>.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>هيكل <span class="mono">frontend/src</span> كامل وفارغ من الأخطاء النوعية.</li>
+        <li>ملف أنواع واحد يطابق SPEC دون اختلاف.</li>
+        <li>تخطيط عام (Layout) يعمل على الشاشات المختلفة.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li><span class="mono">npm run build</span> ينجح دون أخطاء TypeScript.</li>
+        <li>كل صفحة من العشر لها مسار ومكوّن محدَّد.</li>
+        <li>لا يوجد عنوان API مكتوب داخل أي مكوّن.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>خلط أنواع الواجهة بأسماء حقول مختلفة عن الـ API.</li>
+        <li>كتابة عناوين الـ Backend داخل المكوّنات.</li>
+        <li>إهمال حالة الفراغ فيظهر جدول فارغ بلا شرح.</li>
+        <li>مبالغة في الحركات والتدرجات فتشتّت المستخدم.</li></ul></div>
+    </div>
+  </div>
+</section>

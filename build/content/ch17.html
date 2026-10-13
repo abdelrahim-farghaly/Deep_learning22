@@ -1,0 +1,213 @@
+<section class="chapter" id="ch17">
+  <div class="opener">
+    <div class="op-num">17</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH17 &middot; ANALYTICS &amp; REPORTS</p>
+      <h2>التحليلات وتقارير الالتزام والتصدير</h2>
+      <p class="op-sub">كل رقم في اللوحة يجب أن يأتي من صف مخزَّن في قاعدة البيانات</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>التحليلات ليست رسوماً تجميلية، بل إجابة عن أسئلة السلامة: كم واقعة حدثت؟ وفي أي نوع؟ وما خطورتها؟
+  وما زال ينتظر المراجعة؟ هذا الفصل يبني كل هذه الأرقام من صفوف حقيقية في <span class="mono">PostgreSQL</span>،
+  ويصدّرها كملف CSV قابل للمشاركة.</p></div>
+
+  <h3>17.1 مبدأ واحد: كل رقم من صف مخزَّن</h3>
+  <p>ممنوع كتابة أي رقم في الكود. المؤشرات تُحسب بـ <span class="en">SQL</span> عبر استعلامات تجميع
+  (<span class="en">aggregation</span>) على جداول <span class="mono">incidents</span> و<span class="mono">videos</span>
+  و<span class="mono">processing_jobs</span>. الفائدة أن اللوحة تتغيّر تلقائياً مع كل واقعة جديدة دون أي تعديل
+  في الكود. الاستعلامات كلها مقيدة بالفلترة بالتاريخ والفيديو والنوع، حتى تُعرض نفس الأرقام لمدى زمني مختلف
+  دون كتابة مسار جديد.</p>
+
+  <h3>17.2 خدمة التحليلات واستعلاماتها</h3>
+  <p>الخدمة تُرجع كائناً مطابقاً حرفياً لـ <span class="mono">AnalyticsOverview</span>، وتُبني كل حقول
+  <span class="mono">incidents_by_type / by_severity / by_status</span> من مجموعة تجميع واحدة لكل بعد.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/services/analytics_service.py</span><span class="ftag">python</span></div>
+<pre>from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.models.incident import Incident
+from app.models.processing_job import ProcessingJob
+from app.models.video import Video
+
+
+def _count_by(db: Session, column):
+    rows = db.execute(select(column, func.count()).group_by(column)).all()
+    return {str(key): int(count) for key, count in rows}
+
+
+def get_overview(db: Session) -&gt; dict:
+    total_videos = db.scalar(select(func.count()).select_from(Video)) or 0
+    processed = db.scalar(
+        select(func.count()).select_from(Video).where(Video.status == "processed")
+    ) or 0
+    total_incidents = db.scalar(select(func.count()).select_from(Incident)) or 0
+    pending = db.scalar(
+        select(func.count()).select_from(Incident).where(Incident.status == "pending_review")
+    ) or 0
+    jobs_running = db.scalar(
+        select(func.count()).select_from(ProcessingJob).where(ProcessingJob.status == "running")
+    ) or 0
+    jobs_failed = db.scalar(
+        select(func.count()).select_from(ProcessingJob).where(ProcessingJob.status == "failed")
+    ) or 0
+    last_incident_at = db.scalar(select(func.max(Incident.created_at)))
+    return {
+        "total_videos": int(total_videos),
+        "processed_videos": int(processed),
+        "total_incidents": int(total_incidents),
+        "incidents_by_type": _count_by(db, Incident.incident_type),
+        "incidents_by_severity": _count_by(db, Incident.severity),
+        "incidents_by_status": _count_by(db, Incident.status),
+        "pending_review": int(pending),
+        "jobs_running": int(jobs_running),
+        "jobs_failed": int(jobs_failed),
+        "last_incident_at": last_incident_at,
+    }</pre></div>
+  <p>الاتجاه الزمني يُبنى من تجميع على اليوم والنوع، ثم يُحوَّل إلى صفوف بشكل
+  <span class="mono">TimeseriesPoint</span> بحيث يحمل كل يوم المفاتيح الأربعة:</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/services/analytics_service.py (timeseries)</span><span class="ftag">python</span></div>
+<pre>def get_timeseries(db: Session, date_from, date_to) -&gt; list[dict]:
+    day = func.date(Incident.created_at).label("day")
+    rows = db.execute(
+        select(day, Incident.incident_type, func.count())
+        .where(Incident.created_at &gt;= date_from, Incident.created_at &lt; date_to)
+        .group_by(day, Incident.incident_type)
+    ).all()
+    buckets: dict[str, dict] = {}
+    for d, itype, count in rows:
+        point = buckets.setdefault(
+            str(d), {"date": str(d), "ppe_violation": 0, "fire_smoke": 0,
+                     "machine_proximity": 0, "total": 0}
+        )
+        point[itype] += int(count)
+        point["total"] += int(count)
+    return sorted(buckets.values(), key=lambda p: p["date"])</pre></div>
+
+  <h3>17.3 الملخص اليومي والمخالفات المتكررة</h3>
+  <p>الملخص اليومي هو تجميع بسيط على التاريخ والنوع والخطورة والحالة، ويُستخدم في صفحة التقارير وفي التصدير
+  معاً، فلا يوجد منطق مكرَّر. أما المخالفات المتكررة فتُكتشف بالعدّ حسب
+  <span class="mono">zone_name</span> أو <span class="mono">class_name</span>، أو بإعادة عدّ وقائع نفس
+  <span class="mono">video_id</span> خلال فترة.</p>
+  <table class="tbl">
+    <caption>جدول 17-1: المؤشرات ومصدر حسابها</caption>
+    <thead><tr><th class="w26">المؤشر</th><th class="w30">التجميع</th><th>الفلترة المدعومة</th></tr></thead>
+    <tbody>
+      <tr><td>عدد الوقائع حسب النوع</td><td class="mono">GROUP BY incident_type</td><td>تاريخ، فيديو، كاميرا</td></tr>
+      <tr><td>عدد الوقائع حسب الخطورة</td><td class="mono">GROUP BY severity</td><td>تاريخ، نوع، فيديو</td></tr>
+      <tr><td>حالة المراجعة</td><td class="mono">GROUP BY status</td><td>تاريخ، نوع</td></tr>
+      <tr><td>الاتجاه اليومي</td><td class="mono">GROUP BY date(created_at), incident_type</td><td>نطاق تاريخ</td></tr>
+      <tr><td>المخالفات المتكررة</td><td class="mono">GROUP BY zone_name / video_id</td><td>تاريخ، نوع</td></tr>
+    </tbody>
+  </table>
+  <p>المدخلات كلها معاملات استعلام (<span class="mono">date_from, date_to, video_id, incident_type</span>)
+  تُطبَّق في جملة <span class="mono">WHERE</span> نفسها، فلا نحسب مؤشراً بلا فلترة ثم نفلتر النتيجة في الواجهة.</p>
+
+  <h3>17.4 مسار تصدير CSV</h3>
+  <p>التصدير يعيد <span class="mono">text/csv</span> مباشرة، مع ترويسة <span class="mono">Content-Disposition</span>
+  التي تجعل المتصفح ينزّل الملف. نكتب الصفوف من نفس دالة الملخص اليومي، ونجبر الترميز على
+  <span class="mono">utf-8-sig</span> حتى تظهر العربية سليمة في Excel.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/reports.py</span><span class="ftag">python</span></div>
+<pre>import csv
+import io
+
+from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.services.analytics_service import get_daily_rows
+
+router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+@router.get("/daily")
+def daily(date_from: str | None = None, date_to: str | None = None,
+          incident_type: str | None = None, db: Session = Depends(get_db)):
+    return get_daily_rows(db, date_from, date_to, incident_type)
+
+
+@router.get("/export")
+def export_csv(date_from: str | None = None, date_to: str | None = None,
+               incident_type: str | None = None, db: Session = Depends(get_db)):
+    rows = get_daily_rows(db, date_from, date_to, incident_type)
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["date", "incident_type", "severity", "status", "count"])
+    for r in rows:
+        writer.writerow([r["date"], r["incident_type"], r["severity"], r["status"], r["count"]])
+    content = buffer.getvalue().encode("utf-8-sig")
+    return StreamingResponse(
+        iter([content]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=safevision-report.csv"},
+    )</pre></div>
+
+  <h3>17.5 تنزيل الملف في الواجهة</h3>
+  <p>نطلب الملف بـ <span class="mono">responseType: "blob"</span>، ثم ننشئ رابطاً مؤقتاً ونضغط عليه برمجياً،
+  ونحرّر الرابط بعد ذلك لتوفير الذاكرة. لا نحاول قراءة CSV كأنه JSON.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/api/reports.ts</span><span class="ftag">typescript</span></div>
+<pre>import { api } from "./client";
+
+export interface ReportParams {
+  date_from?: string;
+  date_to?: string;
+  incident_type?: string;
+  video_id?: string;
+}
+
+export async function downloadReportCsv(params: ReportParams) {
+  const res = await api.get("/api/v1/reports/export", {
+    params,
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(res.data as Blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "safevision-report.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}</pre></div>
+
+  <h3>17.6 البيانات الاصطناعية والوسم الواضح</h3>
+  <div class="callout warn"><span class="co-title">لا أرقام وهمية بلا وسم</span>
+    <p>قبل توفر بيانات حقيقية كافية، يجوز استخدام <strong>بيانات اصطناعية</strong>
+    (<span class="en">synthetic demo data</span>) لعرض الشكل فقط، بشرط أن تكون في جدول أو ملف منفصل بوضوح،
+    وأن يظهر على الشاشة وسم مثل <em>"بيانات تجريبية اصطناعية"</em>. يُمنع خلط الأرقام الاصطناعية ببيانات حقيقية
+    في نفس البطاقة، ويُمنع تقديمها كأنها نتائج قياس فعلية.</p></div>
+
+  <h3>17.7 PDF كخيار مستقبلي</h3>
+  <p>تصدير <span class="en">PDF</span> مفيد للإدارة لكنه يحتاج مكتبة إضافية وتحكّماً في التخطيط، لذا نتركه
+  <span class="badge future">Future</span>. الـ <span class="mono">CSV</span> يكفي الـ MVP: يُفتح في Excel،
+  ويمكن بناؤه من نفس صفوف الملخص دون منطق جديد.</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 17</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>حسبنا المؤشرات كلها من صفوف مخزَّنة عبر استعلامات تجميع، وبنينا الاتجاه الزمني بشكل
+        <span class="mono">TimeseriesPoint</span>، وصمّمنا مسار تصدير CSV، وكتبنا كود التنزيل، ووضعنا ضوابط
+        للبيانات الاصطناعية، وأجّلنا PDF.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة استعلامات التحليلات والتحقق من أسمائها مقابل SPEC.</li>
+          <li>ربط صفحة التقارير بمسار <span class="mono">/reports/daily</span> وزر التصدير.</li>
+          <li>إضافة وسم صريح لأي بيانات اصطناعية.</li>
+          <li>التحقق من ظهور العربية سليمة في ملف CSV.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>لوحة تعرض أرقاماً تتغيّر مع كل واقعة جديدة.</li>
+        <li>ملف CSV قابل للفتح في Excel بعربية سليمة.</li>
+        <li>فلترة بالنطاق الزمني والنوع والفيديو تعمل على الخادم.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>إضافة واقعة يدوياً تغيّر أرقام اللوحة.</li>
+        <li>لا يوجد رقم ثابت مكتوب في الـ service.</li>
+        <li>الملف المُنزَّل يطابق صفوف <span class="mono">/reports/daily</span>.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>حساب المؤشرات في الواجهة من صفحة واحدة بدل الخادم.</li>
+        <li>نسيان الفلترة فيرجع الرقم لكامل البيانات.</li>
+        <li>عرض أرقام اصطناعية دون وسم.</li>
+        <li>معالجة CSV كنص عادي فيتلف عند التنزيل.</li></ul></div>
+    </div>
+  </div>
+</section>

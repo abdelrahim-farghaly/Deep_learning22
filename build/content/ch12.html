@@ -1,0 +1,262 @@
+<section class="chapter" id="ch12">
+  <div class="opener">
+    <div class="op-num">12</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH12 &middot; SAFETY RULES</p>
+      <h2>قواعد السلامة وتوليد الوقائع</h2>
+      <p class="op-sub">كيف يتحوّل الكشف الخام إلى واقعة لها معنى وقرار</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>الكشف وحده ليس واقعة. كشف <span class="mono">no_helmet</span> في إطار واحد قد يكون خطأً في
+  الـ Model أو لحظة عابرة. دور <span class="mono">SafetyRuleEngine</span> أن يقرّر متى يصبح هذا الكشف واقعة
+  تستحق المراجعة، ومنع التكرار، وتحديد الخطورة والدليل.</p></div>
+
+  <h3>12.1 من الكشف الخام إلى الواقعة</h3>
+  <p>نتتبّع رحلة واحدة: الـ Model يُخرج كشفاً خاماً ← يُطبَّع إلى <span class="mono">Detection</span>
+  (الفصل 10) ← تُقيّمه القواعد مقابل عتبات وتأكيد زمني ← يُنتَج
+  <span class="mono">IncidentCandidate</span> ← يُحفظ كواقعة مع دليل. هذا التسلسل يفصل "ماذا رأى الـ Model"
+  عن "ما الذي يستحق أن يُسجَّل"، وهو قرار قواعد لا قرار شبكة عصبية.</p>
+
+  <h3>12.2 المصطلحات التي يجب ألا تختلط</h3>
+  <table class="tbl">
+    <caption>جدول 12-1: الفرق بين المصطلحات السبعة</caption>
+    <thead><tr><th class="w22">المصطلح</th><th>المعنى</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Detection</span></td><td>صندوق واحد بثقة واسم صنف في إطار واحد</td></tr>
+      <tr><td><span class="en">Track</span></td><td>سلسلة كشوفات لنفس الكائن عبر إطارات متتابعة بمعرّف ثابت <span class="mono">track_id</span></td></tr>
+      <tr><td><span class="en">Rule violation</span></td><td>تحقّق شرط القاعدة: كشف تجاوز العتبة واستمرّ بما يكفي</td></tr>
+      <tr><td><span class="en">Incident</span></td><td>سجل محفوظ في جدول <span class="mono">incidents</span> له نوع وخطورة وحالة</td></tr>
+      <tr><td><span class="en">Evidence</span></td><td>صورة أو مقطع مقتطع من الإطار يوثّق الواقعة</td></tr>
+      <tr><td><span class="en">Review</span></td><td>قرار بشري (تأكيد/رفض) يُسجَّل في <span class="mono">incident_reviews</span></td></tr>
+      <tr><td><span class="en">Notification</span></td><td>تنبيه خارجي مستقبلي، خارج الـ MVP</td></tr>
+    </tbody>
+  </table>
+
+  <h3>12.3 عتبات الثقة والتأكيد الزمني</h3>
+  <p>لكل نوع عتبته الخاصة (<span class="mono">PPE_CONF_THRESHOLD</span> و
+  <span class="mono">FIRE_CONF_THRESHOLD</span> و <span class="mono">SMOKE_CONF_THRESHOLD</span>). ولا يكفي
+  تجاوز العتبة مرة واحدة: يجب أن يتكرّر الكشف لعدد إطارات متتالية
+  (<span class="mono">INCIDENT_CONFIRM_FRAMES</span>) قبل توليد الواقعة. هذا "التأكيد الزمني" يقلّل الإنذارات
+  الكاذبة الناتجة عن إطار شاذ واحد.</p>
+
+  <h3>12.4 منع التكرار وفترات التهدئة</h3>
+  <p>بعد توليد واقعة لنفس المسار (<span class="mono">track_id</span>) والنوع، نمنع توليد واقعة مكرّرة خلال
+  فترة <span class="mono">INCIDENT_COOLDOWN_SECONDS</span>. المفتاح المستخدم في التتبّع الداخلي هو زوج
+  (النوع، <span class="mono">track_id</span>)، فيصبح لكل عامل مسار واحد بدل عشرات الوقائع المتطابقة.</p>
+
+  <h3>12.5 الربط بالـ Tracking ووقت البداية والنهاية</h3>
+  <p>نربط الواقعة بالمسار عبر <span class="mono">track_id</span>، فيكون لدينا بداية
+  (<span class="mono">started_at_seconds</span>) عند أول كشف مؤكَّد، ونهاية
+  (<span class="mono">ended_at_seconds</span>) عند آخر كشف مؤكَّد للمسار نفسه. هذا يعطي الواقعة مدة واضحة،
+  ويسمح بعرض المقطع الصحيح للمراجع.</p>
+
+  <h3>12.6 قواعد معدات الوقاية (PPE)</h3>
+  <p>إذا ظهر صنف <span class="mono">no_helmet</span> أو <span class="mono">no_vest</span> بثقة تتجاوز عتبة
+  الـ PPE واستمرّ لعدد كافٍ من الإطارات، نولّد واقعة من نوع <span class="mono">ppe_violation</span>. نربطها
+  بمسار الشخص إن وُجد، وإلا نكتفي بالصندوق والإطار.</p>
+
+  <h3>12.7 قواعد الحرائق والدخان</h3>
+  <p>صُنفا <span class="mono">fire</span> و <span class="mono">smoke</span> يُولّدان واقعة
+  <span class="mono">fire_smoke</span>. لأن هذه الأحداث أخطر وأسرع، نستخدم عتبة مستقلة لكل صنف، ونعتبر
+  ظهورهما بأعلى خطورة مقارنةً بمخالفات الـ PPE.</p>
+
+  <h3>12.8 قواعد الاقتراب من المعدات: تقريب بالبكسل لا مسافة حقيقية</h3>
+  <p>نقارن صندوق الشخص بصندوق المعدة أو بمنطقة خطر معرّفة
+  (<span class="mono">DANGER_ZONE_CONFIG</span>) ونحسب نسبة تداخل
+  (<span class="mono">PROXIMITY_MIN_OVERLAP</span>). إذا تجاوزت النسبة الحدّ، نولّد واقعة
+  <span class="mono">machine_proximity</span>.</p>
+  <div class="callout danger"><span class="co-title">لا نتحدّث بالأمتار</span>
+    <p>هذا القياس <strong>تقريبي بالبكسل</strong> وليس مسافة حقيقية. بدون معايرة كاميرا
+    (<span class="en">calibration</span>) وبدون معرفة ارتفاع الكاميرا وزاوية المنظور، لا يمكن تحويل البكسل
+    إلى متر. لذلك لا نكتب أبداً "المسافة 0.8 متر"، بل "تداخل بنسبة 18% من مساحة الصندوق". المعايرة تحسين
+    مستقبلي لا جزء من الـ MVP.</p></div>
+
+  <h3>12.9 تصنيف الخطورة واختيار الدليل</h3>
+  <table class="tbl">
+    <caption>جدول 12-2: اقتراح تصنيف الخطورة (قابل للضبط من الإعدادات)</caption>
+    <thead><tr><th class="w30">النوع</th><th class="w24">الخطورة المقترحة</th><th>ملاحظة</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">fire_smoke</td><td class="mono">high</td><td>يُرفع إلى <span class="mono">critical</span> عند استمرار الحدث</td></tr>
+      <tr><td class="mono">ppe_violation</td><td class="mono">medium</td><td>قد يُرفع عند تكراره لنفس المسار</td></tr>
+      <tr><td class="mono">machine_proximity</td><td class="mono">medium</td><td>يُرفع عند تداخل كبير جداً</td></tr>
+    </tbody>
+  </table>
+  <p>الدليل هو صورة الإطار الذي تأكّدت فيه الواقعة، وتُحفظ بنوع <span class="mono">image</span>. نختار الإطار
+  صاحب أعلى ثقة ضمن نافذة التأكيد، لا الإطار الأول فقط، ليكون الدليل أوضح للمراجع.</p>
+
+  <h3>12.10 مثال عملي: واقعة مُولَّدة من عدّة إطارات</h3>
+  <p>ليكن <span class="mono">INCIDENT_CONFIRM_FRAMES=3</span> و <span class="mono">INCIDENT_COOLDOWN_SECONDS=30</span>،
+  ولنتبع شخصاً بمسار <span class="mono">track_id=7</span> بلا خوذة. الجدول يوضّح قرار القاعدة في كل إطار.</p>
+  <table class="tbl">
+    <caption>جدول 12-3: تتبّع القرار عبر الإطارات</caption>
+    <thead><tr><th class="w14">الإطار</th><th class="w14">الزمن (ث)</th><th class="w20">الصنف</th><th class="w12">الثقة</th><th>قرار القاعدة</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">100</td><td class="mono">4.0</td><td class="mono">no_helmet</td><td class="mono">0.62</td><td>العدّاد 1 من 3 — لا واقعة بعد</td></tr>
+      <tr><td class="mono">105</td><td class="mono">4.2</td><td class="mono">no_helmet</td><td class="mono">0.71</td><td>العدّاد 2 من 3 — لا واقعة بعد</td></tr>
+      <tr><td class="mono">110</td><td class="mono">4.4</td><td class="mono">no_helmet</td><td class="mono">0.80</td><td>العدّاد 3 من 3 — توليد واقعة <span class="mono">ppe_violation</span>، بداية 4.0 ونهاية 4.4، الدليل إطار 110</td></tr>
+      <tr><td class="mono">115</td><td class="mono">4.6</td><td class="mono">no_helmet</td><td class="mono">0.83</td><td>داخل فترة التهدئة — لا واقعة جديدة</td></tr>
+      <tr><td class="mono">320</td><td class="mono">12.8</td><td class="mono">no_helmet</td><td class="mono">0.78</td><td>العدّاد أُعيد؛ إن استمرّ 3 إطارات بعد انتهاء التهدئة تُولَّد واقعة ثانية</td></tr>
+    </tbody>
+  </table>
+  <p>بهذا المنطق: الإطار الواحد لا يكفي، والواقعة لها بداية ونهاية ودليل واضح، والتكرار مُقيَّد بفترة تهدئة.</p>
+
+  <h3>12.11 لماذا لا يتحوّل إطار واحد غير مؤكَّد إلى مخالفة خطيرة مؤكَّدة</h3>
+  <p>لأن خطأ إطار واحد وارد في أي Model. لو اعتبرنا كل كشف واقعة مؤكَّدة، لغرق مسؤول السلامة في إنذارات كاذبة
+  وفقد الثقة في النظام. لذلك نفصل بين ثلاث درجات: كشف خام (قد يكون خطأً)، وواقعة <span class="mono">detected</span>
+  (تحتاج تأكيداً زمنياً)، وواقعة <span class="mono">confirmed</span> (بعد مراجعة بشرية فقط، الفصل 13). النظام
+  لا يعلن "مخالفة خطيرة مؤكَّدة" من تلقاء نفسه أبداً.</p>
+
+  <h3>12.12 التنفيذ: <span class="mono">SafetyRuleEngine</span></h3>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/rules.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/ai/rules.py</span>
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> app.ai.base <span class="kw">import</span> Detection
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+
+<span class="fn">@dataclass</span>
+<span class="kw">class</span> <span class="fn">IncidentCandidate</span>:
+    incident_type: str
+    severity: str
+    class_name: str
+    confidence: float
+    frame_number: int
+    started_at_seconds: float
+    ended_at_seconds: float | None
+    track_id: int | None
+    zone_name: str | None
+    detection_count: int
+    summary: str
+
+
+<span class="kw">def</span> <span class="fn">overlap_ratio</span>(a, b) -&gt; float:
+    <span class="str">"""Fraction of box b covered by box a (pixel-based, approximate)."""</span>
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    ix1, iy1 = <span class="fn">max</span>(ax1, bx1), <span class="fn">max</span>(ay1, by1)
+    ix2, iy2 = <span class="fn">min</span>(ax2, bx2), <span class="fn">min</span>(ay2, by2)
+    <span class="kw">if</span> ix2 &lt;= ix1 <span class="kw">or</span> iy2 &lt;= iy1:
+        <span class="kw">return</span> <span class="num">0.0</span>
+    inter = (ix2 - ix1) * (iy2 - iy1)
+    area_b = (bx2 - bx1) * (by2 - by1)
+    <span class="kw">return</span> inter / area_b <span class="kw">if</span> area_b <span class="kw">else</span> <span class="num">0.0</span>
+
+
+<span class="kw">class</span> <span class="fn">SafetyRuleEngine</span>:
+    <span class="str">"""Turns raw detections into incident candidates."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self) -&gt; None:
+        self._hits: dict[tuple, int] = {}
+        self._last: dict[tuple, float] = {}
+
+    <span class="kw">def</span> <span class="fn">evaluate</span>(self, detections: list[Detection]) -&gt; list[IncidentCandidate]:
+        out: list[IncidentCandidate] = []
+        <span class="kw">for</span> det <span class="kw">in</span> detections:
+            rule = self._classify(det.class_name)
+            <span class="kw">if</span> rule <span class="kw">is</span> <span class="kw">None</span> <span class="kw">or</span> det.confidence &lt; self._threshold(det.class_name):
+                <span class="kw">continue</span>
+            key = (rule, det.track_id)
+            self._hits[key] = self._hits.get(key, <span class="num">0</span>) + <span class="num">1</span>
+            <span class="kw">if</span> self._hits[key] &lt; settings.INCIDENT_CONFIRM_FRAMES:
+                <span class="kw">continue</span>  <span class="cmt"># not enough evidence yet</span>
+            <span class="kw">if</span> det.timestamp_seconds - self._last.get(key, -<span class="num">1e9</span>) &lt; settings.INCIDENT_COOLDOWN_SECONDS:
+                <span class="kw">continue</span>  <span class="cmt"># cooldown to avoid duplicates</span>
+            self._last[key] = det.timestamp_seconds
+            hits = self._hits[key]
+            self._hits[key] = <span class="num">0</span>
+            out.append(self._build(det, rule, hits))
+        <span class="kw">return</span> out
+
+    <span class="kw">def</span> <span class="fn">_classify</span>(self, name: str) -&gt; str | None:
+        <span class="kw">if</span> name <span class="kw">in</span> (<span class="str">"no_helmet"</span>, <span class="str">"no_vest"</span>):
+            <span class="kw">return</span> <span class="str">"ppe_violation"</span>
+        <span class="kw">if</span> name <span class="kw">in</span> (<span class="str">"fire"</span>, <span class="str">"smoke"</span>):
+            <span class="kw">return</span> <span class="str">"fire_smoke"</span>
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">_threshold</span>(self, name: str) -&gt; float:
+        <span class="kw">if</span> name <span class="kw">in</span> (<span class="str">"no_helmet"</span>, <span class="str">"no_vest"</span>):
+            <span class="kw">return</span> settings.PPE_CONF_THRESHOLD
+        <span class="kw">if</span> name == <span class="str">"fire"</span>:
+            <span class="kw">return</span> settings.FIRE_CONF_THRESHOLD
+        <span class="kw">if</span> name == <span class="str">"smoke"</span>:
+            <span class="kw">return</span> settings.SMOKE_CONF_THRESHOLD
+        <span class="kw">return</span> settings.DETECTION_CONF_THRESHOLD
+
+    <span class="kw">def</span> <span class="fn">_build</span>(self, det, rule, hits) -&gt; IncidentCandidate:
+        severity = <span class="str">"high"</span> <span class="kw">if</span> rule == <span class="str">"fire_smoke"</span> <span class="kw">else</span> <span class="str">"medium"</span>
+        <span class="kw">return</span> <span class="fn">IncidentCandidate</span>(
+            incident_type=rule, severity=severity, class_name=det.class_name,
+            confidence=det.confidence, frame_number=det.frame_number,
+            started_at_seconds=det.timestamp_seconds, ended_at_seconds=det.timestamp_seconds,
+            track_id=det.track_id, zone_name=<span class="kw">None</span>, detection_count=hits,
+            summary=<span class="str">f"{rule} detected as {det.class_name}"</span>)
+</pre></div>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/services/incident_service.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/services/incident_service.py (excerpt)</span>
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+<span class="kw">from</span> app.ai.rules <span class="kw">import</span> IncidentCandidate
+<span class="kw">from</span> app.models.enums <span class="kw">import</span> (
+    EvidenceKind, IncidentSeverity, IncidentStatus, IncidentType)
+<span class="kw">from</span> app.models.evidence <span class="kw">import</span> Evidence
+<span class="kw">from</span> app.models.incident <span class="kw">import</span> Incident
+<span class="kw">from</span> app.services.storage_service <span class="kw">import</span> save_evidence_image
+
+
+<span class="kw">class</span> <span class="fn">IncidentService</span>:
+    <span class="str">"""Persists incident candidates and their evidence."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, db: Session) -&gt; None:
+        self.db = db
+
+    <span class="kw">def</span> <span class="fn">persist</span>(self, job, candidate: IncidentCandidate, frame) -&gt; Incident:
+        incident = <span class="fn">Incident</span>(
+            video_id=job.video_id, job_id=job.id,
+            incident_type=<span class="fn">IncidentType</span>(candidate.incident_type),
+            severity=<span class="fn">IncidentSeverity</span>(candidate.severity),
+            status=IncidentStatus.detected,
+            started_at_seconds=candidate.started_at_seconds,
+            ended_at_seconds=candidate.ended_at_seconds,
+            frame_number=candidate.frame_number, track_id=candidate.track_id,
+            confidence=candidate.confidence, class_name=candidate.class_name,
+            zone_name=candidate.zone_name, summary=candidate.summary,
+            detection_count=candidate.detection_count)
+        self.db.add(incident)
+        self.db.flush()  <span class="cmt"># obtain incident.id for the evidence row</span>
+        key = <span class="fn">save_evidence_image</span>(frame, incident.id, candidate.frame_number)
+        self.db.add(<span class="fn">Evidence</span>(
+            incident_id=incident.id, kind=EvidenceKind.image, storage_key=key,
+            content_type=<span class="str">"image/jpeg"</span>, frame_number=candidate.frame_number,
+            timestamp_seconds=candidate.started_at_seconds))
+        self.db.commit()
+        <span class="kw">return</span> incident
+</pre></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 12</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>كيف تتحوّل الكشوفات الخام إلى وقائع عبر عتبات وتأكيد زمني ومنع تكرار، وكيف نصنّف الخطورة ونختار
+        الدليل، ولماذا الاقتراب تقريب بالبكسل لا مسافة بالأمتار.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">app/ai/rules.py</span> بقواعد PPE والحرائق والاقتراب.</li>
+          <li>كتابة <span class="mono">incident_service.py</span> لحفظ الواقعة والدليل.</li>
+          <li>ضبط <span class="mono">INCIDENT_CONFIRM_FRAMES</span> و <span class="mono">INCIDENT_COOLDOWN_SECONDS</span> و <span class="mono">PROXIMITY_MIN_OVERLAP</span>.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>واقعة بحالة <span class="mono">detected</span> لها بداية ونهاية ودليل صورة.</li>
+        <li>لا وقائع مكرّرة لنفس المسار داخل فترة التهدئة.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كشف واحد في إطار واحد لا يُولّد واقعة.</li>
+        <li>ثلاثة كشوفات متتالية تُولّد واقعة واحدة.</li>
+        <li>لا يوجد أي نصّ يذكر مسافة بالأمتار.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>توليد واقعة من كل كشف فيُغرق النظام بالتكرار.</li>
+        <li>إعلان حالة <span class="mono">confirmed</span> آلياً بدل تركها للمراجعة.</li>
+        <li>تحويل نسبة التداخل إلى مسافة بالأمتار دون معايرة.</li>
+        <li>استخدام عتبة عامة واحدة لكل الأنواع.</li></ul></div>
+    </div>
+  </div>
+</section>

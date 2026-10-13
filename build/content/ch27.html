@@ -1,0 +1,126 @@
+<section class="chapter" id="ch27">
+  <div class="opener">
+    <div class="op-num">27</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH27 &middot; MVP DEFINITION</p>
+      <h2>تعريف الـ MVP ومعايير القبول</h2>
+      <p class="op-sub">أصغر نظام مكتمل يمكن عرضه بنجاح</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p><strong>MVP (Minimum Viable Product):</strong> أصغر نسخة مكتملة من النظام تعمل من أول رفع الفيديو حتى
+    تصدير التقرير. الـ MVP ليس "نسخة ناقصة"، بل نسخة <em>مكتملة الدورة</em> وإن كانت محدودة القدرات. هذا الفصل
+    يثبّت قائمة الـ MVP، ويذكر صراحةً ما لا يدخل فيه، ويضع تعريف "منجز" لكل وحدة ومصفوفة قبول بحالة تُملأ
+    بعد التجربة.</p>
+  </div>
+
+  <h3>27.1 قائمة الـ MVP</h3>
+  <p>هذه الميزات هي الحد الأدنى المتفق عليه، وأي ميزة خارجها تُصنَّف <span class="badge future">Future</span>.
+  الهدف أن يعمل النظام كدورة كاملة، لا أن يعمل كل مكوّن بمفرده.</p>
+  <table class="tbl">
+    <caption>جدول 27-1: ميزات الـ MVP</caption>
+    <thead><tr><th>#</th><th>الميزة</th><th>الوصف المختصر</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td>واجهة أمامية تعمل</td><td>React + TypeScript + Vite مع صفحات أساسية مترابطة</td></tr>
+      <tr><td class="c">2</td><td>Backend يعمل</td><td>FastAPI مع طبقات Route/Schema/Model/Repository/Service</td></tr>
+      <tr><td class="c">3</td><td>PostgreSQL</td><td>قاعدة بيانات مهاجَرة عبر <span class="mono">Alembic</span></td></tr>
+      <tr><td class="c">4</td><td>رفع وتحقق</td><td>رفع فيديو مع التحقق من النوع والحجم وتخزين الملف</td></tr>
+      <tr><td class="c">5</td><td>خط الـ jobs</td><td>job غير متزامن مع تقدّم وحالات من <span class="mono">queued</span> إلى <span class="mono">completed</span></td></tr>
+      <tr><td class="c">6</td><td>دمج الـ checkpoints</td><td>تحميل الأوزان وتشغيل الاستدلال عبر واجهة موحّدة</td></tr>
+      <tr><td class="c">7</td><td>كشف وقواعد</td><td>كشف PPE والحرائق والدخان وتحويله إلى وقائع بقواعد واضحة</td></tr>
+      <tr><td class="c">8</td><td>توليد وقائع</td><td>سجل <span class="mono">incidents</span> بنوع وخطورة وحالة</td></tr>
+      <tr><td class="c">9</td><td>تخزين الدليل</td><td>حفظ صور الدليل وربطها بالواقعة عبر <span class="mono">evidence</span></td></tr>
+      <tr><td class="c">10</td><td>سجل وفلترة</td><td>قائمة وقائع مع ترقيم صفحات وفلترة وترتيب</td></tr>
+      <tr><td class="c">11</td><td>إجراءات مراجعة</td><td>تأكيد/رفض/إغلاق مع إضافة ملاحظة في <span class="mono">incident_reviews</span></td></tr>
+      <tr><td class="c">12</td><td>تحليلات من سجلات حقيقية</td><td>مؤشرات ولوحة <span class="mono">/api/v1/analytics/overview</span> من بيانات فعلية</td></tr>
+      <tr><td class="c">13</td><td>تصدير <span class="mono">CSV</span></td><td>تقرير قابل للتنزيل عبر <span class="mono">/api/v1/reports/export</span></td></tr>
+      <tr><td class="c">14</td><td>أمان وتحقق أساسي</td><td>تحقق المدخلات وضبط CORS وخيار <span class="mono">AUTH_ENABLED</span></td></tr>
+      <tr><td class="c">15</td><td>تعليمات تشغيل محلي</td><td>خطوات واضحة و<span class="mono">docker-compose</span> للتشغيل</td></tr>
+      <tr><td class="c">16</td><td>فيديو عرض مُختبر</td><td>مقطع قصير يعمل عليه السيناريو كاملاً</td></tr>
+    </tbody>
+  </table>
+
+  <h3>27.2 ما لا يدخل الـ MVP</h3>
+  <p>نذكر هذه العناصر صراحةً كـ Pending حتى لا تُفهَم خطأً كإنجاز. بعضها مُخطَّط وبعضها مستقبلي تماماً.</p>
+  <table class="tbl">
+    <caption>جدول 27-2: عناصر مؤجّلة خارج الـ MVP</caption>
+    <thead><tr><th>العنصر</th><th>السبب</th><th>التصنيف</th></tr></thead>
+    <tbody>
+      <tr><td>بث مباشر <span class="mono">RTSP</span></td><td>يحتاج معالجة لحظية وبنية مختلفة</td><td><span class="badge future">Future</span></td></tr>
+      <tr><td>إشعارات بريد/رسائل</td><td>لا يلزم لإكمال الدورة</td><td><span class="badge future">Future</span></td></tr>
+      <tr><td>معايرة الكاميرا للمسافات الحقيقية</td><td>المناطق تقريبية في الـ MVP</td><td><span class="badge future">Future</span></td></tr>
+      <tr><td>تسجيل دخول كامل و<span class="mono">JWT</span></td><td>خارج الـ MVP، يعمل خلف <span class="mono">AUTH_ENABLED</span></td><td><span class="badge opt">اختياري</span></td></tr>
+      <tr><td>تقارير <span class="mono">PDF</span></td><td>التصدير الأساسي <span class="mono">CSV</span></td><td><span class="badge future">Future</span></td></tr>
+      <tr><td><span class="mono">Kubernetes</span> / <span class="mono">Kafka</span> / <span class="mono">Redis</span> / <span class="mono">Celery</span></td><td>تعقيد غير مبرَّر لفريق طلابي</td><td><span class="badge future">Future</span></td></tr>
+      <tr><td>تدريب نموذج جديد من الصفر</td><td>نستخدم أوزاناً متاحة ومتفقاً عليها</td><td><span class="badge future">Future</span></td></tr>
+      <tr><td>لوحة إدارة مستخدمين كاملة</td><td>دور واحد افتراضي في وضع العرض</td><td><span class="badge opt">اختياري</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>27.3 تعريف "منجز" لكل وحدة</h3>
+  <p><strong>Definition of Done (تعريف الإنجاز):</strong> الشروط التي إن تحققت تُعدّ الوحدة منتهية. لا نقبل
+  وصفاً مثل "الكود جاهز"، بل دليلاً قابلاً للتشغيل.</p>
+  <table class="tbl">
+    <caption>جدول 27-3: تعريف الإنجاز لكل وحدة</caption>
+    <thead><tr><th>الوحدة</th><th>تعريف الإنجاز</th></tr></thead>
+    <tbody>
+      <tr><td>Backend</td><td>كل مسارات <span class="mono">/api/v1</span> المطلوبة تُجيب بالهياكل المتفق عليها وترد بأخطاء واضحة عند الفشل</td></tr>
+      <tr><td>Database</td><td>ترحيل نظيف ينشئ كل الجداول والعلاقات والقيود على قاعدة فارغة</td></tr>
+      <tr><td>AI</td><td>تحميل الأوزان وتشغيل الاستدلال على فيديو وينتج المخرج الموحّد دون أخطاء حاجبة</td></tr>
+      <tr><td>Pipeline</td><td>job يكتمل من الرفع إلى توليد الوقائع مع تحديث التقدّم</td></tr>
+      <tr><td>Frontend</td><td>دورة كاملة من الرفع إلى المراجعة من المتصفح دون تدخّل يدوي في قاعدة البيانات</td></tr>
+      <tr><td>Reports</td><td>تصدير <span class="mono">CSV</span> من سجلات حقيقية وحساب المؤشرات من نفس البيانات</td></tr>
+      <tr><td>Deployment</td><td>تشغيل النظام بأمر واحد على جهاز نظيف مع تعليمات مكتوبة</td></tr>
+    </tbody>
+  </table>
+
+  <h3>27.4 مصفوفة القبول</h3>
+  <p>عمود الحالة يُترك فارغاً ويُملأ بعد التجربة الفعلية، ولا نكتب أي نتيجة قبل قياسها.</p>
+  <table class="tbl">
+    <caption>جدول 27-4: مصفوفة القبول &mdash; الحالة (يُملأ بعد التجربة)</caption>
+    <thead><tr><th>الميزة</th><th>معيار القبول</th><th>كيف نقيسه</th><th class="c">الحالة</th></tr></thead>
+    <tbody>
+      <tr><td>رفع فيديو</td><td>ملف صالح يُقبل وملف غير صالح يُرفض</td><td>رفع ملفين (صالح/تالف) ومراقبة الرد</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>خط الـ jobs</td><td>job يصل إلى <span class="mono">completed</span> مع تقدّم متزايد</td><td>مراقبة <span class="mono">GET /api/v1/jobs/{job_id}</span></td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>الكشف</td><td>مخرج موحّد صالح لكل إطار معالج</td><td>تشغيل على فيديو قصير ومراجعة السجل</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>توليد الوقائع</td><td>واقعة واحدة على الأقل لكل نوع</td><td>فلترة قائمة الوقائع حسب النوع</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>الدليل</td><td>صورة دليل مرتبطة بكل واقعة وتُعرض</td><td>فتح <span class="mono">/api/v1/evidence/{evidence_id}/file</span></td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>المراجعة</td><td>تغيير الحالة مع تسجيل صف في <span class="mono">incident_reviews</span></td><td><span class="mono">PATCH /api/v1/incidents/{incident_id}</span> ثم فحص السجل</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>التحليلات</td><td>المؤشرات مطابقة لعدد السجلات الفعلي</td><td>مقارنة <span class="mono">overview</span> بعدد الصفوف في قاعدة البيانات</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>تصدير <span class="mono">CSV</span></td><td>ملف ينزل بأعمدة صحيحة وقيم مطابقة</td><td>تنزيل الملف وفتحه ومقارنة القيم</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+      <tr><td>التشغيل الموحّد</td><td>النظام يعمل بأمر واحد على جهاز نظيف</td><td>تشغيل <span class="mono">docker compose up</span> ومتابعة الخدمات</td><td class="c">(يُملأ بعد التجربة)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">لا أرقام بلا قياس</span>
+    <p>لا نكتب أي دقة أو سرعة أو معدّل نجاح في هذه المصفوفة. الخلية تُملأ فقط بعد تنفيذ القياس وتسجيل الظروف
+    (الفيديو، الجهاز، الإعدادات).</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 27</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>عرّفنا الـ MVP كدورة كاملة لا كنسخة ناقصة، وثبّتنا قائمة الميزات الست عشرة، وأعلنّا العناصر المؤجّلة
+        صراحةً، ووضعنا تعريف "منجز" لكل وحدة ومصفوفة قبول بحالة تُملأ بعد التجربة.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تثبيت قائمة الـ MVP في <span class="mono">docs/MVP.md</span>.</li>
+          <li>ربط كل ميزة بمالك من <span class="mono">M1</span> إلى <span class="mono">M5</span>.</li>
+          <li>تعبئة عمود الحالة بعد كل تجربة مع تاريخها.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>مصفوفة قبول معتمدة وقابلة للتحديث.</li>
+        <li>قائمة Pending واضحة تُعرض في المناقشة.</li>
+        <li>تعريف إنجاز موحّد يستخدم في كل Pull Request.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل خلية "الحالة" لها دليل تشغيل لا وصف شفهي.</li>
+        <li>لا ميزة مصنّفة <span class="badge mvp">MVP</span> بلا معيار قبول مكتوب.</li>
+        <li>لا عنصر Pending يُعرض كأنه منفَّذ.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>توسيع الـ MVP تدريجياً حتى يصبح غير قابل للتسليم.</li>
+        <li>كتابة نتائج مبدئية في مصفوفة القبول قبل قياسها.</li>
+        <li>اعتبار أن عمل الـ Model وحده يعني اكتمال الـ MVP.</li>
+        <li>إغفال تعريف "منجز" فيعتمد القبول على الرأي الشخصي.</li></ul></div>
+    </div>
+  </div>
+</section>

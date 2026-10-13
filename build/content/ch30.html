@@ -1,0 +1,271 @@
+<section class="chapter" id="ch30">
+  <div class="opener">
+    <div class="op-num">30</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH30 &middot; REFERENCES</p>
+      <h2>المراجع والمواد المرجعية</h2>
+      <p class="op-sub">كل ما يحتاجه الفريق في مكان واحد</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الفصل مرجع ختامي يجمع كل ما يحتاجه الفريق بعد قراءة الدليل: روابط التوثيق الرسمي، وقاموس مصطلحات،
+    وقائمة كاملة بمتغيرات البيئة، وملخص هيكل المستودع وعقد الـ API، وخريطة الاعتماديات النهائية. نستخدم فقط
+    جذور الروابط الرسمية الموثوقة، ونكتب ملاحظة أن أي رابط لم يُتحقق منه يدوياً يجب فحصه قبل الاعتماد عليه.</p>
+  </div>
+
+  <h3>30.1 روابط التوثيق الرسمي</h3>
+  <p>هذه روابط جذور رسمية عامة، لا روابط لصفحات قد تتغيّر. عمود "يحتاج تحققاً يدوياً" يعني أن الفريق لم يفتح
+  الرابط ويؤكد أنه ما زال صالحاً وقت كتابة الدليل.</p>
+  <table class="tbl">
+    <caption>جدول 30-1: روابط التوثيق الرسمي</caption>
+    <thead><tr><th>الأداة</th><th>الرابط الرسمي</th><th class="c">يحتاج تحققاً يدوياً</th></tr></thead>
+    <tbody>
+      <tr><td>Python</td><td class="mono">docs.python.org</td><td class="c">نعم</td></tr>
+      <tr><td>FastAPI</td><td class="mono">fastapi.tiangolo.com</td><td class="c">نعم</td></tr>
+      <tr><td>Pydantic</td><td class="mono">docs.pydantic.dev</td><td class="c">نعم</td></tr>
+      <tr><td>SQLAlchemy</td><td class="mono">docs.sqlalchemy.org</td><td class="c">نعم</td></tr>
+      <tr><td>Alembic</td><td class="mono">alembic.sqlalchemy.org</td><td class="c">نعم</td></tr>
+      <tr><td>PostgreSQL</td><td class="mono">postgresql.org/docs</td><td class="c">نعم</td></tr>
+      <tr><td>Docker</td><td class="mono">docs.docker.com</td><td class="c">نعم</td></tr>
+      <tr><td>OpenCV</td><td class="mono">docs.opencv.org</td><td class="c">نعم</td></tr>
+      <tr><td>PyTorch</td><td class="mono">pytorch.org/docs</td><td class="c">نعم</td></tr>
+      <tr><td>Ultralytics YOLO</td><td class="mono">docs.ultralytics.com</td><td class="c">نعم</td></tr>
+      <tr><td>NumPy</td><td class="mono">numpy.org/doc</td><td class="c">نعم</td></tr>
+      <tr><td>Pandas</td><td class="mono">pandas.pydata.org/docs</td><td class="c">نعم</td></tr>
+      <tr><td>Node.js</td><td class="mono">nodejs.org/docs</td><td class="c">نعم</td></tr>
+      <tr><td>React</td><td class="mono">react.dev</td><td class="c">نعم</td></tr>
+      <tr><td>TypeScript</td><td class="mono">www.typescriptlang.org/docs</td><td class="c">نعم</td></tr>
+      <tr><td>Vite</td><td class="mono">vitejs.dev</td><td class="c">نعم</td></tr>
+      <tr><td>Tailwind CSS</td><td class="mono">tailwindcss.com/docs</td><td class="c">نعم</td></tr>
+      <tr><td>Recharts</td><td class="mono">recharts.org</td><td class="c">نعم</td></tr>
+      <tr><td>Axios</td><td class="mono">axios-http.com/docs</td><td class="c">نعم</td></tr>
+      <tr><td>GitHub Actions</td><td class="mono">docs.github.com/actions</td><td class="c">نعم</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">تحقق يدوي إلزامي</span>
+    <p>لم يُفتح كل رابط أعلاه وتم التأكد منه في لحظة كتابة هذا الدليل. المطلوب من الفريق: فتح كل رابط، وتأكيد
+    صحته، ثم تغيير "نعم" إلى "تم التحقق" مع التاريخ. أي رابط لا يعمل يُستبدل بجذر رسمي آخر.</p></div>
+
+  <h3>30.2 قاموس المصطلحات</h3>
+  <table class="tbl">
+    <caption>جدول 30-2: مصطلحات المشروع (إنجليزي + شرح عربي)</caption>
+    <thead><tr><th>المصطلح</th><th>النطق/الاختصار</th><th>الشرح بالعربية</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Backend</td><td>باك-إند</td><td>الجزء الخلفي الذي يستقبل الطلبات ويدير البيانات والمنطق.</td></tr>
+      <tr><td class="mono">Frontend</td><td>فرونت-إند</td><td>الواجهة التي يراها المستخدم في المتصفح.</td></tr>
+      <tr><td class="mono">API</td><td>إيه-بي-آي</td><td>واجهة برمجية يتبادل بها الـ Frontend البيانات مع الـ Backend.</td></tr>
+      <tr><td class="mono">Endpoint</td><td>إند-بوينت</td><td>مسار محدد في الـ API ينفّذ عملية واحدة.</td></tr>
+      <tr><td class="mono">REST</td><td>رست</td><td>نمط تصميم يعتمد على الموارد وأفعال HTTP.</td></tr>
+      <tr><td class="mono">Schema</td><td>سكيما</td><td>تعريف شكل البيانات وحقولها وأنواعها.</td></tr>
+      <tr><td class="mono">Migration</td><td>مايقريشن</td><td>تغيير منظّم في بنية قاعدة البيانات يمكن تطبيقه والتراجع عنه.</td></tr>
+      <tr><td class="mono">ORM</td><td>أو-آر-إم</td><td>وسيط يحوّل الجداول إلى كائنات برمجية والعكس.</td></tr>
+      <tr><td class="mono">Repository</td><td>ريبوزيتوري</td><td>طبقة مسؤولة عن الوصول لقاعدة البيانات.</td></tr>
+      <tr><td class="mono">Service</td><td>سيرفس</td><td>طبقة تحمل منطق العمل وتستخدم الـ Repository.</td></tr>
+      <tr><td class="mono">Job</td><td>جوب</td><td>مهمة طويلة تُنفَّذ في الخلفية خارج دورة الطلب.</td></tr>
+      <tr><td class="mono">Worker</td><td>ووركر</td><td>عملية مستقلة تسحب المهام من الطابور وتنفّذها.</td></tr>
+      <tr><td class="mono">Polling</td><td>بولينج</td><td>تكرار سؤال الـ Frontend عن حالة الـ job كل فترة.</td></tr>
+      <tr><td class="mono">Inference</td><td>إنفيرنس</td><td>تشغيل النموذج المدرب لإنتاج تنبؤات على بيانات جديدة.</td></tr>
+      <tr><td class="mono">Checkpoint</td><td>تشيك-بوينت</td><td>ملف أوزان النموذج المحفوظ بعد التدريب.</td></tr>
+      <tr><td class="mono">Detection</td><td>ديتكشن</td><td>كشف عنصر في إطار: فئة وثقة وصندوق.</td></tr>
+      <tr><td class="mono">Bounding Box</td><td>باوندينج بوكس</td><td>مستطيل يحيط بالعنصر المكتشف في الإطار.</td></tr>
+      <tr><td class="mono">Confidence</td><td>كونفيدنس</td><td>درجة ثقة النموذج في كشف معيّن.</td></tr>
+      <tr><td class="mono">Tracking</td><td>تراكينج</td><td>متابعة العنصر نفسه عبر الإطارات برقم ثابت.</td></tr>
+      <tr><td class="mono">ByteTrack</td><td>بايت-تراك</td><td>خوارزمية تتبّع تربط الكشوفات بين الإطارات.</td></tr>
+      <tr><td class="mono">Frame</td><td>فريم</td><td>صورة واحدة داخل الفيديو.</td></tr>
+      <tr><td class="mono">FPS</td><td>إف-بي-إس</td><td>عدد الإطارات في الثانية.</td></tr>
+      <tr><td class="mono">PPE</td><td>بي-بي-إي</td><td>معدات الوقاية الشخصية مثل الخوذة والسترة.</td></tr>
+      <tr><td class="mono">Incident</td><td>إنسيدنت</td><td>واقعة سلامة مسجَّلة لها نوع وخطورة وحالة.</td></tr>
+      <tr><td class="mono">Evidence</td><td>إفيدنس</td><td>الدليل المحفوظ من الإطار الذي وقعت فيه الواقعة.</td></tr>
+      <tr><td class="mono">Severity</td><td>سيفيريتي</td><td>درجة خطورة الواقعة.</td></tr>
+      <tr><td class="mono">Rule</td><td>رول</td><td>شرط منطقي يحوّل الكشوفات إلى واقعة.</td></tr>
+      <tr><td class="mono">Zone</td><td>زون</td><td>منطقة داخل الإطار تُعرَّف لمنطق السلامة.</td></tr>
+      <tr><td class="mono">Analytics</td><td>أناليتكس</td><td>مؤشرات ورسوم مبنية على الوقائع.</td></tr>
+      <tr><td class="mono">CSV</td><td>سي-إس-في</td><td>صيغة ملف نصي جدولي للتصدير.</td></tr>
+      <tr><td class="mono">JWT</td><td>جوت</td><td>رمز مصادقة موقّع يُستخدم عند تفعيل الدخول.</td></tr>
+      <tr><td class="mono">CORS</td><td>كورس</td><td>سياسة تسمح للمتصفح بالاتصال بالـ API من أصل آخر.</td></tr>
+      <tr><td class="mono">Docker Compose</td><td>دوكر كومبوز</td><td>أداة تشغّل عدة حاويات معاً بأمر واحد.</td></tr>
+      <tr><td class="mono">Volume</td><td>فوليوم</td><td>تخزين دائم يبقى بعد إعادة تشغيل الحاوية.</td></tr>
+      <tr><td class="mono">Environment Variable</td><td>إنفايرونمنت فاريابل</td><td>قيمة إعداد تُقرأ من البيئة لا من الكود.</td></tr>
+      <tr><td class="mono">Placeholder</td><td>بليس-هولدر</td><td>قيمة مؤقتة تُكتب بصيغة &lt;...&gt; حتى تُعرف القيمة الحقيقية.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>30.3 قائمة متغيرات البيئة</h3>
+  <p>هذه القائمة كاملة من <span class="mono">SPEC.md</span>. القيم هنا Placeholder فقط، والقيمة الحقيقية تُوضع
+  في ملف <span class="mono">.env</span> غير المرفوع إلى Git.</p>
+  <table class="tbl">
+    <caption>جدول 30-3: متغيرات البيئة كاملة (الاسم، الوصف، قيمة Placeholder، الإلزامية)</caption>
+    <thead><tr><th>الاسم</th><th>الوصف</th><th>قيمة Placeholder</th><th class="c">إلزامي/اختياري</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">APP_NAME</td><td>اسم التطبيق الظاهر في التوثيق والسجلات</td><td class="mono">SafeVision AI</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">APP_ENV</td><td>بيئة التشغيل</td><td class="mono">development</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">APP_DEBUG</td><td>تشغيل وضع التطوير</td><td class="mono">true</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">API_V1_PREFIX</td><td>بادئة مسارات الـ API</td><td class="mono">/api/v1</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">AUTH_ENABLED</td><td>تفعيل المصادقة</td><td class="mono">false</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">SECRET_KEY</td><td>مفتاح توقيع الرموز</td><td class="mono">&lt;SECRET_KEY&gt;</td><td class="c">إلزامي عند تفعيل المصادقة</td></tr>
+      <tr><td class="mono">JWT_ALGORITHM</td><td>خوارزمية توقيع الـ JWT</td><td class="mono">HS256</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">ACCESS_TOKEN_EXPIRE_MINUTES</td><td>مدة صلاحية الرمز بالدقائق</td><td class="mono">60</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">CORS_ORIGINS</td><td>الأصول المسموح لها بالاتصال</td><td class="mono">http://localhost:5173</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_USER</td><td>مستخدم قاعدة البيانات</td><td class="mono">&lt;POSTGRES_USER&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_PASSWORD</td><td>كلمة مرور قاعدة البيانات</td><td class="mono">&lt;POSTGRES_PASSWORD&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_DB</td><td>اسم قاعدة البيانات</td><td class="mono">safevision</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_HOST</td><td>مضيف قاعدة البيانات</td><td class="mono">localhost</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_PORT</td><td>منفذ قاعدة البيانات</td><td class="mono">5432</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DATABASE_URL</td><td>عنوان الاتصال الكامل بقاعدة البيانات</td><td class="mono">postgresql+psycopg://&hellip;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">STORAGE_BACKEND</td><td>نوع التخزين</td><td class="mono">local</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">LOCAL_STORAGE_ROOT</td><td>الجذر المحلي للتخزين</td><td class="mono">./storage</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">UPLOAD_DIR</td><td>مجلد الفيديوهات المرفوعة</td><td class="mono">storage/uploads</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">EVIDENCE_DIR</td><td>مجلد صور الدليل</td><td class="mono">storage/evidence</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">REPORT_DIR</td><td>مجلد التقارير المولَّدة</td><td class="mono">storage/reports</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">S3_ENDPOINT_URL</td><td>عنوان خدمة التخزين الكائني</td><td class="mono">&lt;S3_ENDPOINT_URL&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_BUCKET</td><td>اسم الحاوية الكائنية</td><td class="mono">&lt;S3_BUCKET&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_ACCESS_KEY_ID</td><td>معرّف مفتاح الوصول</td><td class="mono">&lt;S3_ACCESS_KEY_ID&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_SECRET_ACCESS_KEY</td><td>المفتاح السري</td><td class="mono">&lt;S3_SECRET_ACCESS_KEY&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_REGION</td><td>منطقة الخدمة</td><td class="mono">&lt;S3_REGION&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">MAX_UPLOAD_MB</td><td>أقصى حجم للفيديو بالميغابايت</td><td class="mono">500</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">ALLOWED_VIDEO_EXTENSIONS</td><td>الامتدادات المسموح رفعها</td><td class="mono">mp4,mov,avi</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">UPLOAD_CHUNK_MB</td><td>حجم قطعة الرفع بالميغابايت</td><td class="mono">8</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">MODEL_DIR</td><td>مجلد ملفات الأوزان</td><td class="mono">./models</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PPE_MODEL_PATH</td><td>مسار أوزان كشف معدات الوقاية</td><td class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">FIRE_SMOKE_MODEL_PATH</td><td>مسار أوزان كشف الحريق والدخان</td><td class="mono">&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PERSON_TRACKER_PATH</td><td>مسار أوزان تتبّع الأشخاص</td><td class="mono">&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">MODEL_DEVICE</td><td>جهاز تشغيل النموذج</td><td class="mono">cpu</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DETECTION_CONF_THRESHOLD</td><td>عتبة ثقة الكشف العامة</td><td class="mono">0.25</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">NMS_IOU_THRESHOLD</td><td>عتبة دمج الصناديق المتراكبة</td><td class="mono">0.45</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">INFERENCE_IMG_SIZE</td><td>حجم الصورة عند الاستدلال</td><td class="mono">640</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PERSIST_ALL_DETECTIONS</td><td>حفظ كل الكشوفات لكل إطار</td><td class="mono">false</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">FRAME_SAMPLE_EVERY_N</td><td>تحليل إطار كل N إطار</td><td class="mono">5</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">MAX_FRAMES_PER_JOB</td><td>أقصى عدد إطارات للمهمة</td><td class="mono">20000</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">INCIDENT_CONFIRM_FRAMES</td><td>عدد الإطارات لتأكيد الواقعة</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">INCIDENT_COOLDOWN_SECONDS</td><td>مدة منع تكرار الواقعة</td><td class="mono">10</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PPE_CONF_THRESHOLD</td><td>عتبة ثقة كشف معدات الوقاية</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">FIRE_CONF_THRESHOLD</td><td>عتبة ثقة كشف الحريق</td><td class="mono">0.40</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">SMOKE_CONF_THRESHOLD</td><td>عتبة ثقة كشف الدخان</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PROXIMITY_MIN_OVERLAP</td><td>أدنى تداخل لاعتبار التقارب خطراً</td><td class="mono">0.15</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DANGER_ZONE_CONFIG</td><td>إعداد مناطق الخطر</td><td class="mono">&lt;DANGER_ZONE_CONFIG&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">WORKER_POLL_INTERVAL_SECONDS</td><td>فترة سؤال الـ worker للطابور</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">WORKER_ID</td><td>معرّف نسخة الـ worker</td><td class="mono">worker-1</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">WORKER_CONCURRENCY</td><td>عدد المهام المتزامنة للـ worker</td><td class="mono">1</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">JOB_MAX_RETRIES</td><td>أقصى عدد محاولات إعادة المهمة</td><td class="mono">2</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">VITE_API_BASE_URL</td><td>عنوان الـ API للواجهة</td><td class="mono">http://localhost:8000/api/v1</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">VITE_ENABLE_AUTH</td><td>تفعيل المصادقة في الواجهة</td><td class="mono">false</td><td class="c">اختياري</td></tr>
+    </tbody>
+  </table>
+  <p class="small">القيم الرقمية أعلاه أمثلة بداية فقط، ويجب معايرتها بعد التجربة. الـ Placeholders مثل
+  <span class="mono">&lt;SECRET_KEY&gt;</span> و<span class="mono">&lt;S3_*&gt;</span> تُملأ بقيم حقيقية لا تُرفع إلى Git.</p>
+
+  <h3>30.4 ملخص هيكل المستودع</h3>
+  <table class="tbl">
+    <caption>جدول 30-4: أهم مجلدات المستودع ووظائفها</caption>
+    <thead><tr><th>المسار</th><th>الوظيفة</th><th class="c">داخل Git؟</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">backend/</td><td>تطبيق FastAPI (الحزمة <span class="mono">app</span>، الترحيلات، الاختبارات)</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">frontend/</td><td>تطبيق React + TypeScript + Vite</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">models/</td><td>ملفات أوزان النماذج</td><td class="c">لا</td></tr>
+      <tr><td class="mono">data/</td><td>بيانات خام ومعالجة وعيّنات</td><td class="c">جزئياً</td></tr>
+      <tr><td class="mono">storage/</td><td>الفيديوهات والدليل والتقارير</td><td class="c">لا</td></tr>
+      <tr><td class="mono">docs/</td><td>التوثيق والقرارات</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">scripts/</td><td>سكربتات التشغيل والصيانة</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">docker-compose.yml</td><td>تعريف الخدمات للتشغيل الموحّد</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">.env.example</td><td>قالب المتغيرات بقيم Placeholder</td><td class="c">نعم</td></tr>
+    </tbody>
+  </table>
+
+  <h3>30.5 ملخص عقد الـ API</h3>
+  <p>البادئة الموحّدة <span class="mono">/api/v1</span>. عمود المصادقة يعني أنها تُفرض فقط عند
+  <span class="mono">AUTH_ENABLED=true</span>، وفي وضع العرض تكون كأن مستخدماً افتراضياً
+  <span class="mono">safety_officer</span> مسجَّل.</p>
+  <table class="tbl">
+    <caption>جدول 30-5: مسارات الـ API الأساسية</caption>
+    <thead><tr><th class="c">Method</th><th>Endpoint</th><th>الغرض</th><th class="c">Auth</th></tr></thead>
+    <tbody>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/health</td><td>فحص صحة الخدمة والمكوّنات</td><td class="c">لا</td></tr>
+      <tr><td class="c mono">POST</td><td class="mono">/api/v1/videos</td><td>رفع فيديو</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos</td><td>قائمة الفيديوهات مع ترقيم</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos/{video_id}</td><td>فيديو واحد مع آخر مهمة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">DELETE</td><td class="mono">/api/v1/videos/{video_id}</td><td>حذف آمن للفيديو وملفاته</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">POST</td><td class="mono">/api/v1/videos/{video_id}/process</td><td>إنشاء مهمة معالجة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/jobs/{job_id}</td><td>حالة المهمة وتقدّمها</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/jobs</td><td>قائمة المهام مع فلترة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents</td><td>قائمة الوقائع مع فلترة وترقيم</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents/{incident_id}</td><td>تفاصيل واقعة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">PATCH</td><td class="mono">/api/v1/incidents/{incident_id}</td><td>مراجعة أو تغيير حالة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents/{incident_id}/evidence</td><td>قائمة أدلة الواقعة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/evidence/{evidence_id}/file</td><td>بثّ صورة/مقطع الدليل</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/analytics/overview</td><td>مؤشرات لوحة التحكم</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/analytics/timeseries</td><td>الوقائع لكل يوم</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/reports/daily</td><td>ملخص يومي</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/reports/export</td><td>تصدير <span class="mono">CSV</span></td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">POST</td><td class="mono">/api/v1/auth/login</td><td>الحصول على <span class="mono">JWT</span></td><td class="c">لا</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/auth/me</td><td>المستخدم الحالي</td><td class="c">نعم</td></tr>
+    </tbody>
+  </table>
+  <p class="small">* تُفرض المصادقة فقط عند <span class="mono">AUTH_ENABLED=true</span>.</p>
+
+  <h3>30.6 خريطة الاعتماديات النهائية بين المكوّنات</h3>
+  <div class="fig">
+    <div class="dg">
+      <div class="dgroup">
+        <div class="dg-title">الواجهة</div>
+        <div class="drow"><div class="dbox teal">Frontend<span class="dsub">React + Vite</span><span class="dtag">UI</span></div></div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">الخدمة</div>
+        <div class="drow">
+          <div class="dbox navy">FastAPI<span class="dsub">/api/v1</span><span class="dtag">API</span></div>
+          <div class="dbox gray">Worker<span class="dsub">job queue</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">المعالجة والذكاء</div>
+        <div class="drow">
+          <div class="dbox green">Video Processing<span class="dsub">OpenCV</span></div>
+          <div class="dbox violet">AI Inference<span class="dsub">YOLO + ByteTrack</span></div>
+          <div class="dbox orange">Rules Engine<span class="dsub">safety rules</span></div>
+        </div>
+      </div>
+      <div class="darrow"></div>
+      <div class="dgroup">
+        <div class="dg-title">التخزين</div>
+        <div class="drow">
+          <div class="dbox navy">PostgreSQL<span class="dsub">metadata</span></div>
+          <div class="dbox violet">File Storage<span class="dsub">videos + evidence</span></div>
+        </div>
+      </div>
+      <div class="dline"></div>
+      <div class="dlabel">الاعتماد في اتجاه واحد: الواجهة &rarr; الخدمة &rarr; المعالجة &rarr; التخزين</div>
+    </div>
+    <div class="fig-cap"><b>شكل 30-1:</b> خريطة الاعتماديات النهائية بين مكوّنات النظام</div>
+  </div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 30</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>جمعنا كل المراجع في مكان واحد: روابط التوثيق الرسمي مع عمود التحقق اليدوي، وقاموس مصطلحات، وقائمة
+        متغيرات البيئة كاملة، وملخص الهيكل وعقد الـ API، وخريطة الاعتماديات النهائية.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>فتح كل رابط رسمي وتغيير "يحتاج تحققاً يدوياً" إلى "تم التحقق" مع التاريخ.</li>
+          <li>تعبئة قيم الـ Placeholders في <span class="mono">.env</span> غير المرفوع.</li>
+          <li>تحديث هذا الفصل عند أي تغيير في عقد الـ API أو المتغيرات.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>مرجع مركزي يستخدمه الفريق واللجنة.</li>
+        <li>قائمة متغيرات بيئة مطابقة تماماً لـ <span class="mono">SPEC.md</span>.</li>
+        <li>خريطة اعتماديات مطابقة للمعمارية في الفصل 2.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل اسم متغير أو مسار في هذا الفصل مطابق حرفياً لـ <span class="mono">SPEC.md</span>.</li>
+        <li>لا رابط مكتوب بصيغة غير رسمية أو غير مؤكد.</li>
+        <li>كل Placeholder مذكور هنا معرَّف في مكان استخدامه.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>نسخ روابط لصفحات داخلية قد تتغيّر بدل جذور التوثيق الرسمية.</li>
+        <li>إضافة متغير بيئة غير موجود في <span class="mono">SPEC.md</span>.</li>
+        <li>وضع قيم حقيقية بدل الـ Placeholders داخل الدليل.</li>
+        <li>الاعتماد على رابط دون فتحه والتأكد منه.</li></ul></div>
+    </div>
+  </div>
+</section>

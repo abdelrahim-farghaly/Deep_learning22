@@ -1,0 +1,242 @@
+<section class="chapter" id="ch23">
+  <div class="opener">
+    <div class="op-num">23</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH23 &middot; EVALUATION</p>
+      <h2>تقييم الـ AI وأداء النظام</h2>
+      <p class="op-sub">تقييم الـ Models منفصلة عن تقييم التطبيق، وبأرقام حقيقية فقط</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الفصل يحدّد كيف نقيس الجودة، وما هي المقاييس التي تُقنع لجنة المناقشة. القاعدة الأولى: نفصل
+    تقييم الـ <strong>Model</strong> (هل الكشف نفسه دقيق؟) عن تقييم <strong>التطبيق</strong> (هل النظام
+    يُنتج وقائع مفيدة؟). القاعدة الثانية والأهم: <strong>لا نكتب أي رقم لم نقِسه فعلاً</strong>؛ كل الجداول
+    هنا فارغة وموسومة (يُملأ بعد التجربة).</p>
+  </div>
+
+  <h3>23.1 لماذا نفصل تقييم الـ Model عن تقييم النظام</h3>
+  <p>الـ Model يرى إطارات ويعيد صناديق وفئات. لكن المستخدم لا يرى الصناديق، بل يرى <strong>واقعة</strong>
+  لها وقت ودرجة خطورة وحالة مراجعة. بينهما قواعد السلامة (عدد الإطارات المتتالية، فترة التهدئة، منطقة
+  الخطر) والتتبّع واقتطاع الدليل. لذلك قد يكون الـ Model ممتازاً على مستوى الكشف، ومع ذلك ينتج نظاماً
+  مزعجاً لكثرة الوقائع المكرّرة أو المفقودة.</p>
+
+  <h3>23.2 مقاييس الكشف: Precision و Recall و F1</h3>
+  <p><strong>Precision (الدقة):</strong> من بين كل ما كشفه الـ Model، ما نسبة ما كان صحيحاً فعلاً؟
+  <strong>Recall (الاستدعاء):</strong> من بين كل الأهداف الحقيقية، ما نسبة ما نجح في كشفها؟ و
+  <strong>F1</strong> هو المتوسط التوافقي بينهما ويعطي رقماً واحداً متوازناً. وفي سياق السلامة، الـ Recall
+  غالباً أهم، لأن تفويت حادث أخطر من إنذار زائد.</p>
+  <table class="tbl">
+    <caption>جدول 23-1: المقاييس ومعناها وما يمثّله الخطأ فيها</caption>
+    <thead><tr><th>المقياس</th><th>المعنى</th><th>الخطأ المقابل</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Precision</td><td>نسبة الكشوفات الصحيحة من كل الكشوفات</td><td>False Positive: إنذار كاذب يُتعب المراجع</td></tr>
+      <tr><td class="mono">Recall</td><td>نسبة الأهداف المكتشفة من كل الأهداف</td><td>False Negative: حادث مفوّت</td></tr>
+      <tr><td class="mono">F1</td><td>توازن بين الدقة والاستدعاء</td><td>رقم مضلّل إن اختلّ أحد الطرفين</td></tr>
+      <tr><td class="mono">mAP</td><td>متوسط الدقة عبر عتبات الثقة وباقي الأصناف</td><td>لا يعكس سلوك النظام في الإنتاج</td></tr>
+    </tbody>
+  </table>
+
+  <h3>23.3 Confusion Matrix و mAP</h3>
+  <p><strong>Confusion Matrix (مصفوفة الالتباس):</strong> جدول يقارن التنبؤ بالحقيقة، ويُظهر أين يخطئ الـ Model:
+  هل يخلط بين "خوذة" و"بدون خوذة"؟ أم يفشل في كشف الدخان؟ هذا الجدول أنفع من رقم واحد لأن كل خطأ له وزن
+  مختلف في السلامة. أمّا <strong>mAP</strong> فهو مقياس قياسي للكشف يجمع الدقة عبر عتبات الثقة، ويُستخدم
+  لمقارنة نسختين من الـ Model على نفس مجموعة الاختبار.</p>
+
+  <h3>23.4 مقاييس التتبّع (Tracking)</h3>
+  <ul>
+    <li><strong>ID switches:</strong> عدد المرات التي "قفز" فيها معرّف التتبّع من شخص إلى آخر.</li>
+    <li><strong>Track fragmentation:</strong> انقطاع مسار شخص ثم بدؤه من جديد بنفس المعرّف أو بمعرّف آخر.</li>
+    <li><strong>Track continuity:</strong> نسبة الإطارات التي بقي فيها المسار متصلاً.</li>
+  </ul>
+  <p>هذه المقاييس مهمة لأن خطأ التتبّع يفسد قواعد "عدد الإطارات المتتالية"، فقد تُدمج واقعتان أو تتكرّر
+  واقعة واحدة عدة مرات بسبب انقطاع المسار.</p>
+
+  <h3>23.5 التقييم على مستوى الواقعة</h3>
+  <p>هنا نقيس ما يراه المستخدم فعلاً: هل أنشأ النظام واقعة عند حدوث المخالفة؟ هل فقد واقعة؟ هل كرّرها؟ نُعطي
+  كل واقعة حقيقية في الفيديو صفة مرجعية يدوياً، ثم نقارنها بمخرجات النظام بعد قواعد السلامة. النتيجة
+  ثلاث فئات: واقعة صحيحة (<span class="en">true incident</span>)، واقعة زائفة (<span class="en">false incident</span>)،
+  وواقعة مفقودة (<span class="en">missed incident</span>). هذا هو المقياس الذي يهم مسؤول السلامة، وليس mAP.</p>
+
+  <h3>23.6 مقاييس أداء النظام</h3>
+  <table class="tbl">
+    <caption>جدول 23-2: مقاييس الأداء التشغيلي وكيف تُقاس</caption>
+    <thead><tr><th>المقياس</th><th>التعريف</th><th>كيف يُقاس</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">FPS</td><td>عدد الإطارات المعالجة في الثانية</td><td>frames_processed / زمن المعالجة</td></tr>
+      <tr><td>زمن معالجة الفيديو</td><td>من بدء الـ job حتى اكتماله</td><td>finished_at &minus; started_at</td></tr>
+      <tr><td>زمن استجابة الـ API</td><td>زمن رد نقاط القراءة</td><td>قياس الطلبات على <span class="mono">/api/v1/incidents</span></td></tr>
+      <tr><td>نسبة فشل الـ Jobs</td><td>jobs بحالة failed من الإجمالي</td><td>استعلام على <span class="mono">processing_jobs</span></td></tr>
+      <tr><td>نسبة نجاح توليد الدليل</td><td>وقائع لها صورة دليل من الإجمالي</td><td>مقارنة <span class="mono">incidents</span> بـ <span class="mono">evidence</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>23.7 لماذا لا تضمن mAP العالية نظام إدارة وقائع مفيداً</h3>
+  <p>هذا سؤال تتوقّعه اللجنة، والإجابة يجب أن تكون واضحة. الـ mAP يقيس الكشف على مجموعة اختبار ثابتة
+  بإعدادات مثالية، لكن النظام الحقيقي يختلف في عدة أمور:</p>
+  <ul>
+    <li><strong>العتبات:</strong> عتبة ثقة منخفضة ترفع الـ Recall وتغرق المراجع في إنذارات كاذبة، والعكس صحيح.</li>
+    <li><strong>القواعد الزمنية:</strong> عدد الإطارات المتتالية وفترة التهدئة يحدّدان إن كانت الواقعة تُنشأ أم تُدمج أو تُكرّر.</li>
+    <li><strong>التتبّع:</strong> انقطاع المسار أو قفز المعرّف يفسد ربط الإطارات في واقعة واحدة.</li>
+    <li><strong>التوزيع الحقيقي:</strong> بيانات المصنع الحقيقية قد تختلف كثيراً عن بيانات الاختبار (إضاءة، زوايا، ازدحام).</li>
+    <li><strong>جودة الدليل:</strong> واقعة صحيحة بلا صورة دليل واضحة أقل فائدة للمراجع من واقعة مع دليل واضح.</li>
+  </ul>
+  <p>لذلك نعرض دائماً مقياسين معاً: mAP للـ Model، وتقييم على مستوى الواقعة للنظام ككل.</p>
+
+  <h3>23.8 خطة تقييم خط الأنابيب الكامل</h3>
+  <p>نقيّم النظام على مقاطع مصنّفة حسب الظرف: إضاءة عادية وضعيفة، حجب جزئي (<span class="en">occlusion</span>)،
+  زوايا كاميرا مختلفة، مشاهد مزدحمة بعدة عمال، وحالات صعبة (خوذة قريبة من نفس لون الخلفية). لكل ظرف
+  نُسجّل نفس المقاييس، لأن ضعف الأداء غالباً يظهر في ظرف واحد فقط.</p>
+  <table class="tbl">
+    <caption>جدول 23-3: نتائج تقييم الـ Model (يُملأ بعد التجربة)</caption>
+    <thead><tr><th>الـ Model / الصنف</th><th>Precision</th><th>Recall</th><th>F1</th><th>mAP</th><th>ملاحظات</th></tr></thead>
+    <tbody>
+      <tr><td>PPE detector</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>Fire / Smoke detector</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>Person tracker</td><td></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <table class="tbl">
+    <caption>جدول 23-4: تقييم على مستوى الواقعة (يُملأ بعد التجربة)</caption>
+    <thead><tr><th>الظرف</th><th>وقائع صحيحة</th><th>وقائع زائفة</th><th>وقائع مفقودة</th><th>ملاحظات</th></tr></thead>
+    <tbody>
+      <tr><td>إضاءة عادية</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>إضاءة ضعيفة</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>حجب جزئي</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>مشهد مزدحم</td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <table class="tbl">
+    <caption>جدول 23-5: مقاييس أداء النظام (يُملأ بعد التجربة)</caption>
+    <thead><tr><th>المقياس</th><th>القيمة المقاسة</th><th>جهاز / إعداد القياس</th></tr></thead>
+    <tbody>
+      <tr><td>FPS على CPU</td><td></td><td></td></tr>
+      <tr><td>FPS على GPU إن توفّر</td><td></td><td></td></tr>
+      <tr><td>زمن معالجة فيديو العرض</td><td></td><td></td></tr>
+      <tr><td>زمن استجابة API (متوسط)</td><td></td><td></td></tr>
+      <tr><td>نسبة فشل الـ Jobs</td><td></td><td></td></tr>
+      <tr><td>نسبة نجاح توليد الدليل</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>23.9 سكربت التقييم</h3>
+  <p>هذا السكربت يقرأ ملف الحقيقة المرجعية (<span class="mono">ground_truth.json</span>) وملف تنبؤات
+  النظام، ثم يحسب المقاييس ويطبعها. مخرجاته <strong>شكلية فقط</strong> كما يظهر في التعليقات: لا يحتوي على
+  أي رقم حقيقي لأن الأرقام تأتي من التشغيل الفعلي.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">scripts/evaluate_model.py</span><span class="ftag">python</span></div>
+<pre>"""Compute detection metrics from ground truth and system predictions.
+
+Usage:
+    python scripts/evaluate_model.py --truth data/gt.json --pred data/pred.json
+
+Expected output shape (numbers are produced only by a real run):
+    class: ppe_violation
+      precision: 0.0000
+      recall:    0.0000
+      f1:        0.0000
+      tp: 0  fp: 0  fn: 0
+"""
+import argparse
+import json
+
+
+def load_pairs(path):
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle)["items"]
+
+
+def iou(box_a, box_b):
+    ax1, ay1, ax2, ay2 = box_a
+    bx1, by1, bx2, by2 = box_b
+    ix1, iy1 = max(ax1, bx1), max(ay1, by1)
+    ix2, iy2 = min(ax2, bx2), min(ay2, by2)
+    inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+    area_a = (ax2 - ax1) * (ay2 - ay1)
+    area_b = (bx2 - bx1) * (by2 - by1)
+    union = area_a + area_b - inter
+    return inter / union if union else 0.0
+
+
+def match_frame(truth_items, pred_items, iou_threshold=0.5):
+    """Greedy one-to-one matching per frame; returns tp, fp, fn counts."""
+    used = set()
+    tp = 0
+    for t in truth_items:
+        best_idx, best_iou = -1, iou_threshold
+        for idx, p in enumerate(pred_items):
+            if idx in used or p["class_name"] != t["class_name"]:
+                continue
+            score = iou(t["bbox"], p["bbox"])
+            if score &gt;= best_iou:
+                best_idx, best_iou = idx, score
+        if best_idx &gt;= 0:
+            used.add(best_idx)
+            tp += 1
+    return tp, len(pred_items) - len(used), len(truth_items) - tp
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--truth", required=True)
+    parser.add_argument("--pred", required=True)
+    parser.add_argument("--iou", type=float, default=0.5)
+    args = parser.parse_args()
+
+    truth = load_pairs(args.truth)
+    pred = load_pairs(args.pred)
+
+    tp = fp = fn = 0
+    for frame_number in {t["frame_number"] for t in truth}:
+        t_items = [t for t in truth if t["frame_number"] == frame_number]
+        p_items = [p for p in pred if p["frame_number"] == frame_number]
+        a, b, c = match_frame(t_items, p_items, args.iou)
+        tp, fp, fn = tp + a, fp + b, fn + c
+
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+
+    # These are format examples; real values appear only after a real run.
+    print(f"precision: {precision:.4f}")
+    print(f"recall:    {recall:.4f}")
+    print(f"f1:        {f1:.4f}")
+    print(f"tp: {tp}  fp: {fp}  fn: {fn}")
+
+
+if __name__ == "__main__":
+    main()
+</pre></div>
+  <div class="callout warn"><span class="co-title">قاعدة صارمة</span>
+    <p>لا تُنسخ أي قيمة من مخرجات هذا السكربت إلى التقارير أو العرض إلا إذا جاءت من تشغيل فعلي موثّق
+    (الفيديو، التاريخ، الجهاز، الإعدادات). أي رقم بلا مصدر قياس يُحذف.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 23</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>فرّقنا بين مقاييس الـ Model (Precision, Recall, F1, mAP, Confusion Matrix) ومقاييس التتبّع
+        ومقاييس النظام، وثبّتنا أن التقييم الحقيقي يحدث على مستوى الواقعة. وشرحنا لماذا لا تضمن mAP عالية
+        نظام إدارة وقائع مفيداً.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>تجهيز ملف الحقيقة المرجعية لفيديو التقييم.</li>
+          <li>تشغيل <span class="mono">scripts/evaluate_model.py</span> وتسجيل مخرجاته.</li>
+          <li>تعبئة جداول 23-3 و23-4 و23-5 بعد التشغيل الفعلي فقط.</li>
+          <li>قياس زمن المعالجة وFPS على الجهاز المستخدم فعلاً.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>تقرير تقييم يحتوي مقاييس الـ Model ومقاييس الواقعة معاً.</li>
+        <li>جدول أداء تشغيلي يوضّح زمن المعالجة ونسبة فشل الـ Jobs.</li>
+        <li>ملاحظات صريحة عن الظروف التي ضعف فيها الأداء.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل رقم في التقرير له مصدر قياس مكتوب.</li>
+        <li>لا يوجد جدول نتيجة ممتلئ قبل تنفيذ التجربة.</li>
+        <li>التمييز واضح بين mAP وبين مقياس الواقعة.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>عرض mAP فقط وإغفال تقييم الواقعة.</li>
+        <li>قياس الأداء على جهاز GPU وإعلانه كنتيجة عامة.</li>
+        <li>مقارنة نتائج من مجموعات اختبار مختلفة.</li>
+        <li>كتابة أرقام متوقّعة قبل التشغيل.</li></ul></div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,311 @@
+<section class="chapter" id="ch10">
+  <div class="opener">
+    <div class="op-num">10</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH10 &middot; AI MODEL INTEGRATION</p>
+      <h2>دمج الـ AI Models المتفق عليها</h2>
+      <p class="op-sub">تحميل الـ checkpoints وتحويل مخرجاتها إلى صيغة داخلية موحّدة</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>في هذا الفصل لا نصمّم Models جديدة ولا نعيد التدريب. المهمة هي <strong>الدمج</strong>: كيف يُحمَّل
+  كل <span class="en">checkpoint</span> متفق عليه، وكيف تُترجم مخرجاته المختلفة إلى صيغة كشف واحدة يفهمها
+  باقي النظام. الصيغة الموحّدة هي العقد الذي يربط الفصل 11 و 12 و 13 ببعضها.</p></div>
+
+  <h3>10.1 مبدأ أساسي: لا نعيد تصميم الـ Models</h3>
+  <p>الـ Models المتفق عليها (كشف معدات الوقاية، وكشف الحرائق والدخان، وتتبّع الأشخاص) تمّ اختيارها في مرحلة
+  سابقة. دورنا هنا أن نغلّفها بمحوّل (<span class="en">adapter</span>) يوحّد شكل مخرجاتها. أي محاولة لتغيير
+  المعمارية أو إعادة التدريب أثناء التكامل هي خارج النطاق وتؤجّل المشروع.</p>
+  <div class="callout danger"><span class="co-title">قاعدة صارمة</span>
+    <p>لا نغيّر أوزاناً ولا نعيد تدريباً. إن لم يعمل الـ Model، نسجّل الخطأ ونعالجه، ولا نستبدله بـ Model آخر
+    في منتصف المشروع.</p></div>
+
+  <h3>10.2 مسارات الـ checkpoints وكيف نستبدل الـ Placeholders</h3>
+  <p>كل مسار يُقرأ من متغيّر بيئة، وقيمته الافتراضية الآن <span class="en">placeholder</span>. القاعدة:
+  نستبدل كل <span class="en">placeholder</span> بمسار حقيقي بمجرد أن يسلّم مسؤول الـ Models الملف، دون تعديل
+  أي سطر كود.</p>
+  <table class="tbl">
+    <caption>جدول 10-1: الـ Placeholders وكيف تُستبدل</caption>
+    <thead><tr><th class="w33">الـ Placeholder</th><th class="w24">المتغيّر</th><th>كيف نستبدله</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</td><td class="mono">PPE_MODEL_PATH</td><td>نضع مسار ملف أوزان الـ PPE داخل <span class="mono">MODEL_DIR</span></td></tr>
+      <tr><td class="mono">&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;</td><td class="mono">FIRE_SMOKE_MODEL_PATH</td><td>مسار أوزان الحرائق والدخان</td></tr>
+      <tr><td class="mono">&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;</td><td class="mono">PERSON_TRACKER_PATH</td><td>مسار أوزان تتبّع الأشخاص</td></tr>
+      <tr><td class="mono">&lt;MODEL_VERSION&gt;</td><td>ثابت داخل المحوّل</td><td>يُستبدل برقم إصدار الـ Model بعد التدريب، ويُسجَّل في كل كشف</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.3 اختيار الجهاز: CPU أم GPU</h3>
+  <p>يتحكّم المتغيّر <span class="mono">MODEL_DEVICE</span> في الجهاز: <span class="mono">cpu</span> أو
+  <span class="mono">cuda</span>. القاعدة العملية: نطوّر ونجرّب على <span class="mono">cpu</span> لأنه متاح
+  للجميع، ونستخدم <span class="mono">cuda</span> عند توفّر كرت رسومي لتقليل زمن المعالجة. الكود نفسه لا يتغيّر
+  بين الحالتين.</p>
+  <div class="callout warn"><span class="co-title">ذاكرة الـ GPU</span>
+    <p>إذا نفدت ذاكرة كرت الرسوم، نُصغّر <span class="mono">INFERENCE_IMG_SIZE</span> أو نعود إلى
+    <span class="mono">cpu</span>. لا نُشغّل عدّة عمليات inference ثقيلة في نفس الوقت على نفس الجهاز.</p></div>
+
+  <h3>10.4 إعدادات الـ Inference</h3>
+  <p>كل إعدادات التشغيل تأتي من <span class="mono">core/config.py</span>، فلا توجد أرقام مكتوبة داخل الكود.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/core/config.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/core/config.py (model settings excerpt)</span>
+<span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings
+
+
+<span class="kw">class</span> <span class="fn">Settings</span>(BaseSettings):
+    MODEL_DIR: str = <span class="str">"models"</span>
+    PPE_MODEL_PATH: str = <span class="str">"&lt;PPE_MODEL_CHECKPOINT_PATH&gt;"</span>
+    FIRE_SMOKE_MODEL_PATH: str = <span class="str">"&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;"</span>
+    PERSON_TRACKER_PATH: str = <span class="str">"&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;"</span>
+    MODEL_DEVICE: str = <span class="str">"cpu"</span>
+    DETECTION_CONF_THRESHOLD: float = <span class="num">0.25</span>
+    NMS_IOU_THRESHOLD: float = <span class="num">0.45</span>
+    INFERENCE_IMG_SIZE: int = <span class="num">640</span>
+    PERSIST_ALL_DETECTIONS: bool = <span class="kw">False</span>
+    PPE_CONF_THRESHOLD: float = <span class="num">0.40</span>
+    FIRE_CONF_THRESHOLD: float = <span class="num">0.40</span>
+    SMOKE_CONF_THRESHOLD: float = <span class="num">0.40</span>
+
+
+settings = <span class="fn">Settings</span>()
+</pre></div>
+  <p>المعنى: <span class="mono">INFERENCE_IMG_SIZE</span> هو الحجم الذي يُصغَّر إليه الإطار قبل الـ Model،
+  و<span class="mono">NMS_IOU_THRESHOLD</span> يحذف الصناديق المتداخلة (<span class="en">Non-Maximum
+  Suppression</span>)، و<span class="mono">DETECTION_CONF_THRESHOLD</span> هو الحد العام للثقة. توجد أيضاً عتبات
+  أدق لكل نوع (<span class="mono">PPE_CONF_THRESHOLD</span> و <span class="mono">FIRE_CONF_THRESHOLD</span>
+  و <span class="mono">SMOKE_CONF_THRESHOLD</span>) لأن كل Model له سلوك مختلف.</p>
+
+  <h3>10.5 خريطة أسماء الأصناف</h3>
+  <p>كل <span class="en">checkpoint</span> يعيد أسماء أصناف خاصة به (قد تكون إنجليزية أو مختصرة). نخريطها
+  (<span class="en">class map</span>) إلى أسماء داخلية واحدة، فيتعامل الفصل 12 مع أسماء ثابتة. إذا وُجد صنف
+  غير معروف في الخريطة نُبقيه باسمه الأصلي ولا نخترع له معنى.</p>
+
+  <h3>10.6 الصيغة الموحّدة للكشف</h3>
+  <p>هذا هو العقد الداخلي: كل محوّل يعيد قائمة من كائنات <span class="mono">Detection</span> بنفس الحقول تماماً
+  المذكورة في المواصفة (الفصل 4). الواجهة <span class="mono">DetectionModel</span> تفرض على كل الـ Models نفس
+  الدوال: <span class="mono">load</span> و <span class="mono">predict</span>.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/base.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/ai/base.py</span>
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> Protocol
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+
+<span class="fn">@dataclass</span>
+<span class="kw">class</span> <span class="fn">Detection</span>:
+    <span class="str">"""Normalized detection shared by every model adapter."""</span>
+    class_name: str
+    confidence: float
+    bbox: tuple[int, int, int, int]  <span class="cmt"># x1, y1, x2, y2</span>
+    frame_number: int
+    timestamp_seconds: float
+    model_name: str
+    model_version: str
+    track_id: int | None = <span class="kw">None</span>
+
+
+<span class="kw">class</span> <span class="fn">DetectionModel</span>(Protocol):
+    name: str
+    version: str
+
+    <span class="kw">def</span> <span class="fn">load</span>(self) -&gt; None: ...
+
+    <span class="kw">def</span> <span class="fn">predict</span>(self, frame: np.ndarray, frame_number: int,
+                timestamp_seconds: float) -&gt; list[Detection]: ...
+</pre></div>
+
+  <h3>10.7 الخدمات الأربع</h3>
+  <p>نبني أربع خدمات لكل منها مسؤولية واحدة واضحة:</p>
+  <ul>
+    <li><span class="mono">PPEDetectionService</span> — كشف معدات الوقاية (ملف <span class="mono">app/ai/ppe_detector.py</span>).</li>
+    <li><span class="mono">FireSmokeDetectionService</span> — كشف الحرائق والدخان (<span class="mono">app/ai/fire_smoke_detector.py</span>).</li>
+    <li><span class="mono">PersonTrackingService</span> — تتبّع الأشخاص بـ <span class="en">ByteTrack</span> عبر <span class="mono">model.track</span> (<span class="mono">app/ai/person_tracker.py</span>).</li>
+    <li><span class="mono">SafetyRuleEngine</span> — طبقة القواعد التي تُستخدم مخرجات الخدمات الثلاث (الفصل 12، ملف <span class="mono">app/ai/rules.py</span>).</li>
+  </ul>
+
+  <h3>10.8 محوّل الـ PPE كنموذج للتطبيق</h3>
+  <p>هذا الملف يوضّح النمط الذي تتبعه بقية الخدمات: تحميل الـ checkpoint مرة واحدة، ثم ترجمة كل صندوق إلى
+  <span class="mono">Detection</span> بأسماء موحّدة.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/ppe_detector.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/ai/ppe_detector.py</span>
+<span class="kw">from</span> ultralytics <span class="kw">import</span> YOLO
+<span class="kw">from</span> app.ai.base <span class="kw">import</span> Detection, DetectionModel
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+<span class="cmt"># Map raw checkpoint labels to agreed internal class names.</span>
+PPE_CLASS_MAP = {
+    <span class="str">"helmet"</span>: <span class="str">"helmet"</span>,
+    <span class="str">"no_helmet"</span>: <span class="str">"no_helmet"</span>,
+    <span class="str">"vest"</span>: <span class="str">"vest"</span>,
+    <span class="str">"no_vest"</span>: <span class="str">"no_vest"</span>,
+    <span class="str">"person"</span>: <span class="str">"person"</span>,
+}
+
+
+<span class="kw">class</span> <span class="fn">PPEDetectionService</span>(DetectionModel):
+    <span class="str">"""Adapter for the agreed PPE checkpoint (loaded, not redesigned)."""</span>
+
+    name = <span class="str">"ppe_detector"</span>
+    version = <span class="str">"&lt;MODEL_VERSION&gt;"</span>  <span class="cmt"># replace with the real trained version</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self) -&gt; None:
+        self._model: YOLO | None = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">load</span>(self) -&gt; None:
+        self._model = <span class="fn">YOLO</span>(settings.PPE_MODEL_PATH)
+        self._model.to(settings.MODEL_DEVICE)
+
+    <span class="kw">def</span> <span class="fn">predict</span>(self, frame, frame_number, timestamp_seconds) -&gt; list[Detection]:
+        <span class="kw">if</span> self._model <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="str">"PPEDetectionService.load() was not called"</span>)
+        results = self._model.predict(
+            frame, imgsz=settings.INFERENCE_IMG_SIZE,
+            conf=settings.PPE_CONF_THRESHOLD, iou=settings.NMS_IOU_THRESHOLD,
+            device=settings.MODEL_DEVICE, verbose=<span class="kw">False</span>)
+        detections: list[Detection] = []
+        <span class="kw">for</span> box <span class="kw">in</span> results[<span class="num">0</span>].boxes:
+            raw = self._model.names[<span class="fn">int</span>(box.cls.item())]
+            detections.append(<span class="fn">Detection</span>(
+                class_name=PPE_CLASS_MAP.get(raw, raw),
+                confidence=<span class="fn">float</span>(box.conf.item()),
+                bbox=<span class="fn">tuple</span>(<span class="fn">int</span>(v) <span class="kw">for</span> v <span class="kw">in</span> box.xyxy[<span class="num">0</span>].tolist()),
+                frame_number=frame_number, timestamp_seconds=timestamp_seconds,
+                model_name=self.name, model_version=self.version))
+        <span class="kw">return</span> detections
+</pre></div>
+
+  <h3>10.9 سجل الـ Models <span class="mono">model_registry</span></h3>
+  <p>لتفادي تحميل الـ checkpoint أكثر من مرة (وهو عملية بطيئة وثقيلة على الذاكرة)، نبني سجلاً يضمن نسخة واحدة
+  من كل خدمة عبر <span class="mono">lru_cache</span>.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/ai/model_registry.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/ai/model_registry.py</span>
+<span class="kw">from</span> functools <span class="kw">import</span> lru_cache
+<span class="kw">from</span> app.ai.base <span class="kw">import</span> DetectionModel
+<span class="kw">from</span> app.ai.ppe_detector <span class="kw">import</span> PPEDetectionService
+<span class="kw">from</span> app.ai.fire_smoke_detector <span class="kw">import</span> FireSmokeDetectionService
+<span class="kw">from</span> app.ai.person_tracker <span class="kw">import</span> PersonTrackingService
+
+
+<span class="fn">@lru_cache</span>(maxsize=<span class="num">1</span>)
+<span class="kw">def</span> <span class="fn">get_ppe_detector</span>() -&gt; DetectionModel:
+    model = <span class="fn">PPEDetectionService</span>()
+    model.load()
+    <span class="kw">return</span> model
+
+
+<span class="fn">@lru_cache</span>(maxsize=<span class="num">1</span>)
+<span class="kw">def</span> <span class="fn">get_fire_smoke_detector</span>() -&gt; DetectionModel:
+    model = <span class="fn">FireSmokeDetectionService</span>()
+    model.load()
+    <span class="kw">return</span> model
+
+
+<span class="fn">@lru_cache</span>(maxsize=<span class="num">1</span>)
+<span class="kw">def</span> <span class="fn">get_person_tracker</span>() -&gt; DetectionModel:
+    model = <span class="fn">PersonTrackingService</span>()
+    model.load()
+    <span class="kw">return</span> model
+</pre></div>
+
+  <h3>10.10 المحوّل التجريبي <span class="mono">demo_adapter</span> <span class="badge opt">للاختبار فقط</span></h3>
+  <p>أحياناً نريد اختبار خط المعالجة كاملاً قبل توفّر الـ checkpoints. لهذا نكتب محوّلاً وهمياً يعيد صناديق
+  ثابتة دون تشغيل أي Model. هذا المحوّل <strong>وهمي صراحةً</strong> ولا يمثّل مخرجات Model حقيقي، ولا يجوز
+  استخدامه في العرض النهائي ولا في أي قياس دقة.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/demo_adapter.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/ai/demo_adapter.py</span>
+<span class="cmt"># WARNING: this adapter is FAKE. It runs no model and returns fixed boxes.</span>
+<span class="cmt"># Use it ONLY to test the pipeline when real checkpoints are missing.</span>
+<span class="kw">from</span> app.ai.base <span class="kw">import</span> Detection, DetectionModel
+
+
+<span class="kw">class</span> <span class="fn">DemoDetectionService</span>(DetectionModel):
+    <span class="str">"""Deterministic fake detections for pipeline testing only."""</span>
+
+    name = <span class="str">"demo_adapter"</span>
+    version = <span class="str">"demo"</span>
+
+    <span class="kw">def</span> <span class="fn">load</span>(self) -&gt; None:
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">predict</span>(self, frame, frame_number, timestamp_seconds) -&gt; list[Detection]:
+        height, width = frame.shape[:<span class="num">2</span>]
+        <span class="cmt"># One fixed person box in the centre of the frame.</span>
+        <span class="kw">return</span> [<span class="fn">Detection</span>(
+            class_name=<span class="str">"person"</span>, confidence=<span class="num">0.50</span>,
+            bbox=(width // <span class="num">4</span>, height // <span class="num">4</span>, width // <span class="num">2</span>, height // <span class="num">2</span>),
+            frame_number=frame_number, timestamp_seconds=timestamp_seconds,
+            model_name=self.name, model_version=self.version, track_id=<span class="num">1</span>)]
+</pre></div>
+  <div class="callout danger"><span class="co-title">خطر الخلط</span>
+    <p>لا تُبِت أبداً بترك <span class="mono">demo_adapter</span> يعمل في وضع غير الاختبار. يجب أن يكون تبديله
+    صريحاً عبر الإعدادات، ويجب أن يظهر في سجلّ التشغيل أن الـ Model المستخدم وهمي.</p></div>
+
+  <h3>10.11 الأداء والموارد ومعالجة الأخطاء</h3>
+  <ul>
+    <li><strong>المعالجة بالإطار مقابل الدفعات:</strong> فيديو CCTV يُقرأ إطاراً بإطار؛ نجمع عدّة إطارات في
+    دفعة (<span class="en">batch</span>) عند الإمكان لتسريع الـ inference، ونعود إلى الإطار المفرد عند ضيق الذاكرة.</li>
+    <li><strong>التسخين <span class="en">warm-up</span>:</strong> نُشغّل الـ Model مرة على إطار وهمي عند التحميل
+    لتفادي بطء أول إطار حقيقي.</li>
+    <li><strong>إدارة الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة عبر السجل، ويُعاد استخدامه لكل الوظائف.</li>
+    <li><strong>معالجة الأخطاء:</strong> كل استدعاء <span class="mono">predict</span> داخل
+    <span class="mono">try/except</span>؛ خطأ إطار واحد لا يُسقط الوظيفة كلها، بل يُسجَّل ويُكمَل.</li>
+  </ul>
+
+  <h3>10.12 حالات الفشل الشائعة وكيف نعالجها</h3>
+  <table class="tbl">
+    <caption>جدول 10-2: حالات الفشل وعلاجها</caption>
+    <thead><tr><th class="w30">الحالة</th><th>التشخيص والعلاج</th></tr></thead>
+    <tbody>
+      <tr><td>أوزان مفقودة</td><td>الملف في <span class="mono">PPE_MODEL_PATH</span> غير موجود؛ نتحقّق من <span class="mono">MODEL_DIR</span> ونمنع بدء الـ worker برسالة واضحة</td></tr>
+      <tr><td>صيغة checkpoint غير متوافقة</td><td>الـ checkpoint ليس من نفس إصدار مكتبة التشغيل؛ نعيد التصدير من الملف الأصلي ولا نعيد التدريب</td></tr>
+      <tr><td>لا يوجد GPU</td><td>نضبط <span class="mono">MODEL_DEVICE=cpu</span> ويستمر النظام بزمن أطول</td></tr>
+      <tr><td>نفاد ذاكرة GPU</td><td>نُصغّر <span class="mono">INFERENCE_IMG_SIZE</span> أو نقلّل حجم الدفعة أو نعود إلى <span class="mono">cpu</span></td></tr>
+      <tr><td>صنف غير معروف</td><td>نُبقيه باسمه الأصلي في السجل ونراجعه يدوياً قبل إضافته للخريطة</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.13 تسجيل الإصدار وإعادة الإنتاج، والدقة</h3>
+  <p>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>، ويُسجَّل
+  إصدار الحزمة في <span class="mono">processing_jobs.model_bundle_version</span>. هذا يجعل نتائج أي وظيفة قابلة
+  للتفسير لاحقاً: نعرف بأي Model وبأي إصدار صدرت. الدقة لا تُفترض ولا تُكتب في التوثيق قبل قياسها على مجموعة
+  اختبار مستقلة؛ الجدول التالي يبقى فارغاً حتى تنتهي التجربة.</p>
+  <table class="tbl">
+    <caption>جدول 10-3: نتائج تقييم الـ Models (يُملأ بعد التجربة)</caption>
+    <thead><tr><th class="w30">الـ Model</th><th class="w22">مجموعة الاختبار</th><th>النتيجة</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">ppe_detector</td><td class="mono">&lt;DATASET_NAME&gt;</td><td>(يُملأ بعد التجربة)</td></tr>
+      <tr><td class="mono">fire_smoke</td><td class="mono">&lt;DATASET_NAME&gt;</td><td>(يُملأ بعد التجربة)</td></tr>
+      <tr><td class="mono">person_tracker</td><td class="mono">&lt;DATASET_NAME&gt;</td><td>(يُملأ بعد التجربة)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="co-title">لا ندمج بيانات تدريب مختلفة بلا تحقّق</span>
+    <p>إذا جاءت أوزان من مصادر مختلفة، يجب التحقق من خريطة الأصناف وتنسيق الـ annotation وطريقة تقسيم
+    (<span class="en">splits</span>) البيانات قبل أي دمج، وإلا كانت النتائج مضلّلة.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 10</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>كيف نغلّف الـ Models المتفق عليها بمحوّلات موحّدة، وكيف نحوّل مخرجاتها إلى كائن
+        <span class="mono">Detection</span> واحد، وكيف نُدير التحميل والإعدادات والأخطاء.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>كتابة <span class="mono">app/ai/base.py</span> بالـ <span class="mono">Detection</span> و <span class="mono">DetectionModel</span>.</li>
+          <li>كتابة المحوّلات الثلاثة وسجل الـ Models.</li>
+          <li>استبدال كل <span class="en">placeholder</span> بمسار حقيقي عند توفّر الـ checkpoints.</li>
+          <li>إبقاء <span class="mono">demo_adapter</span> للاختبار فقط.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>خدمة تُعيد قائمة <span class="mono">Detection</span> موحّدة من أي Model.</li>
+        <li>الـ checkpoint يُحمَّل مرة واحدة لكل عملية.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>تشغيل <span class="mono">demo_adapter</span> يُنتج كشوفات ويُكمل خط المعالجة دون Models حقيقية.</li>
+        <li>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>.</li>
+        <li>لا يوجد رقم دقة في التوثيق بلا قياس.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>إعادة تدريب أو استبدال Model في منتصف التكامل.</li>
+        <li>تحميل الـ checkpoint في كل استدعاء بدل مرة واحدة.</li>
+        <li>استخدام <span class="mono">demo_adapter</span> في العرض النهائي.</li>
+        <li>كتابة مسارات الأوزان داخل الكود بدل متغيّرات البيئة.</li></ul></div>
+    </div>
+  </div>
+</section>

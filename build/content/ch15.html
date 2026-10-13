@@ -1,0 +1,378 @@
+<section class="chapter" id="ch15">
+  <div class="opener">
+    <div class="op-num">15</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH15 &middot; DASHBOARD &amp; API WIRING</p>
+      <h2>بناء لوحة التحكم وربطها بالـ API</h2>
+      <p class="op-sub">من أول نداء Axios إلى رسم بياني يعتمد على بيانات حقيقية</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>هذا الفصل يحوّل التصميم إلى شاشات تعمل فعلاً. نبني طبقة النداءات مرة واحدة، ثم نربط بها الرفع
+  والجداول والرسوم وتنزيل التقارير. القاعدة الحاكمة: <strong>كل رقم يظهر للمستخدم يجب أن يكون قد جاء من استجابة
+  API حقيقية</strong>، ولا يوجد رقم مكتوب في الكود.</p></div>
+
+  <h3>15.1 عميل الـ API وإعداد الـ Base URL</h3>
+  <p>عميل واحد (<span class="mono">api/client.ts</span>) يعرف العنوان الأساسي ويضيف التوكن تلقائياً. العنوان يُقرأ
+  من <span class="mono">VITE_API_BASE_URL</span>، فلا نكتب عنواناً داخل أي مكوّن. مصادقة الطلبات تُفعَّل فقط
+  عند <span class="mono">VITE_ENABLE_AUTH=true</span>، وهي القيمة المقابلة لـ <span class="mono">AUTH_ENABLED</span>
+  في الـ Backend.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/api/client.ts</span><span class="ftag">typescript</span></div>
+<pre>import axios from "axios";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+export const AUTH_ENABLED = import.meta.env.VITE_ENABLE_AUTH === "true";
+
+export const api = axios.create({ baseURL, timeout: 30000 });
+
+api.interceptors.request.use((config) =&gt; {
+  if (AUTH_ENABLED) {
+    const token = localStorage.getItem("safevision_token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});</pre></div>
+  <div class="callout warn"><span class="co-title">CORS</span>
+    <p>المتصفح يمنع الـ Frontend من الاتصال بـ Backend على منفذ مختلف إلا إذا أذن الخادم. لذلك نضع عنوان
+    الواجهة في <span class="mono">CORS_ORIGINS</span> على الـ Backend (مثلاً
+    <span class="mono">http://localhost:5173</span>). إذا ظهر خطأ CORS فالمشكلة في قائمة الأصول المسموح بها،
+    وليست في كود React.</p></div>
+
+  <h3>15.2 طبقة نداءات الفيديو</h3>
+  <p>كل نداءات مورد الفيديو في ملف واحد تعيد الأنواع المطابقة للـ API. هذا يعني أن الصفحات لا تلمس Axios مباشرة،
+  بل تستدعي دوالّ واضحة الأسماء.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/api/videos.ts</span><span class="ftag">typescript</span></div>
+<pre>import { api } from "./client";
+import type { JobOut, Paginated, VideoOut } from "../types/api";
+
+export interface VideoListParams {
+  page?: number;
+  page_size?: number;
+  status?: string;
+  sort?: string;
+}
+
+export async function listVideos(params: VideoListParams = {}) {
+  const { data } = await api.get&lt;Paginated&lt;VideoOut&gt;&gt;("/api/v1/videos", { params });
+  return data;
+}
+
+export async function getVideo(id: string) {
+  const { data } = await api.get&lt;VideoOut&gt;(`/api/v1/videos/${id}`);
+  return data;
+}
+
+export async function uploadVideo(file: File, onProgress?: (p: number) =&gt; void) {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post&lt;VideoOut&gt;("/api/v1/videos", form, {
+    onUploadProgress: (e) =&gt; {
+      if (onProgress &amp;&amp; e.total) onProgress(Math.round((e.loaded / e.total) * 100));
+    },
+  });
+  return data;
+}
+
+export async function processVideo(id: string) {
+  const { data } = await api.post&lt;JobOut&gt;(`/api/v1/videos/${id}/process`);
+  return data;
+}
+
+export async function deleteVideo(id: string) {
+  await api.delete(`/api/v1/videos/${id}`);
+}</pre></div>
+
+  <h3>15.3 الرفع مع FormData وشريط التقدّم</h3>
+  <p>الرفع يستخدم <span class="en">FormData</span> لأن الـ endpoint يستقبل <span class="mono">multipart/form-data</span>.
+  نتحقّق من الامتداد والحجم قبل الإرسال، ونعطّل الزر أثناء الرفع، ونعرض نسبة التقدّم من حدث
+  <span class="mono">onUploadProgress</span>. عند النجاح نعيد الفيديو الجديد للصفحة لتحديث الجدول.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/features/videos/UploadVideoForm.tsx</span><span class="ftag">tsx</span></div>
+<pre>import { useState } from "react";
+import { uploadVideo } from "../../api/videos";
+import type { VideoOut } from "../../types/api";
+
+const ALLOWED = ["mp4", "mov", "avi", "mkv"];
+
+export function UploadVideoForm({ onUploaded }: { onUploaded: (v: VideoOut) =&gt; void }) {
+  const [progress, setProgress] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState&lt;string | null&gt;(null);
+
+  async function handleFile(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!ALLOWED.includes(ext)) {
+      setError("Unsupported video format");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const video = await uploadVideo(file, setProgress);
+      onUploaded(video);
+      setProgress(0);
+    } catch {
+      setError("Upload failed, please retry");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input
+        type="file"
+        accept=".mp4,.mov,.avi,.mkv"
+        disabled={busy}
+        onChange={(e) =&gt; e.target.files?.[0] &amp;&amp; handleFile(e.target.files[0])}
+      /&gt;
+      {busy &amp;&amp; &lt;progress value={progress} max={100} /&gt;}
+      {error &amp;&amp; &lt;p role="alert"&gt;{error}&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+}</pre></div>
+
+  <h3>15.4 نداءات الوقائع والاستطلاع</h3>
+  <p>نداءات الوقائع تعيد غلاف الصفحات نفسه، فتُبنى الفلترة والترقيم مرة واحدة. الملف التالي يجمع القائمة
+  والتفاصيل والمراجعة والدليل:</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/api/incidents.ts</span><span class="ftag">typescript</span></div>
+<pre>import { api } from "./client";
+import type { EvidenceOut, IncidentOut, IncidentPatch, Paginated } from "../types/api";
+
+export interface IncidentListParams {
+  page?: number;
+  page_size?: number;
+  incident_type?: string;
+  severity?: string;
+  status?: string;
+  video_id?: string;
+  date_from?: string;
+  date_to?: string;
+  sort?: string;
+}
+
+export async function listIncidents(params: IncidentListParams = {}) {
+  const { data } = await api.get&lt;Paginated&lt;IncidentOut&gt;&gt;("/api/v1/incidents", { params });
+  return data;
+}
+
+export async function getIncident(id: string) {
+  const { data } = await api.get&lt;IncidentOut&gt;(`/api/v1/incidents/${id}`);
+  return data;
+}
+
+export async function patchIncident(id: string, patch: IncidentPatch) {
+  const { data } = await api.patch&lt;IncidentOut&gt;(`/api/v1/incidents/${id}`, patch);
+  return data;
+}
+
+export async function listEvidence(id: string) {
+  const { data } = await api.get&lt;EvidenceOut[]&gt;(`/api/v1/incidents/${id}/evidence`);
+  return data;
+}</pre></div>
+  <p>الاستطلاع (polling) يُدار عبر خطّاف عام يوقف نفسه عند انتهاء العمل، ويطبّق تراجعاً بسيطاً عند الخطأ.
+  نستخدمه لمتابعة حالة الـ job بعد بدء المعالجة (تفاصيل أكثر في الفصل 16).</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/hooks/usePolling.ts</span><span class="ftag">typescript</span></div>
+<pre>import { useEffect, useRef, useState } from "react";
+
+export function usePolling&lt;T&gt;(
+  fetcher: () =&gt; Promise&lt;T&gt;,
+  options: { intervalMs?: number; enabled?: boolean; shouldStop?: (d: T) =&gt; boolean } = {},
+) {
+  const { intervalMs = 3000, enabled = true, shouldStop } = options;
+  const [data, setData] = useState&lt;T | null&gt;(null);
+  const [error, setError] = useState&lt;Error | null&gt;(null);
+  const [loading, setLoading] = useState(false);
+  const timer = useRef&lt;number | null&gt;(null);
+  const stopRef = useRef(shouldStop);
+  stopRef.current = shouldStop;
+
+  useEffect(() =&gt; {
+    if (!enabled) return;
+    let cancelled = false;
+    const tick = async () =&gt; {
+      try {
+        setLoading(true);
+        const result = await fetcher();
+        if (cancelled) return;
+        setData(result);
+        setError(null);
+        if (!stopRef.current?.(result)) timer.current = window.setTimeout(tick, intervalMs);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e as Error);
+        timer.current = window.setTimeout(tick, intervalMs * 2); // simple backoff
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    tick();
+    return () =&gt; {
+      cancelled = true;
+      if (timer.current) window.clearTimeout(timer.current);
+    };
+  }, [enabled, intervalMs, fetcher]);
+
+  return { data, error, loading };
+}</pre></div>
+
+  <h3>15.5 جدول الوقائع</h3>
+  <p>الجدول يعرض الأعمدة المهمة فقط: النوع، الخطورة، الحالة، وقت البداية، وعدد الكشوفات. كل صف يقود إلى
+  صفحة التفاصيل، ولون الشارة يتبع الـ enum مباشرةً، فلا يوجد لون مخترع.</p>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/features/incidents/IncidentTable.tsx</span><span class="ftag">tsx</span></div>
+<pre>import { Link } from "react-router-dom";
+import type { IncidentOut } from "../../types/api";
+
+const severityClass: Record&lt;string, string&gt; = {
+  low: "bg-slate-100 text-slate-700",
+  medium: "bg-amber-100 text-amber-800",
+  high: "bg-orange-100 text-orange-800",
+  critical: "bg-red-100 text-red-800",
+};
+
+export function IncidentTable({ items }: { items: IncidentOut[] }) {
+  if (items.length === 0) return &lt;p&gt;No incidents found for these filters.&lt;/p&gt;;
+  return (
+    &lt;table className="w-full text-sm"&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Severity&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Start (s)&lt;/th&gt;&lt;th&gt;Detections&lt;/th&gt;&lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        {items.map((it) =&gt; (
+          &lt;tr key={it.id}&gt;
+            &lt;td&gt;&lt;Link to={`/incidents/${it.id}`}&gt;{it.incident_type}&lt;/Link&gt;&lt;/td&gt;
+            &lt;td&gt;&lt;span className={severityClass[it.severity]}&gt;{it.severity}&lt;/span&gt;&lt;/td&gt;
+            &lt;td&gt;{it.status}&lt;/td&gt;
+            &lt;td&gt;{it.started_at_seconds}&lt;/td&gt;
+            &lt;td&gt;{it.detection_count}&lt;/td&gt;
+          &lt;/tr&gt;
+        ))}
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  );
+}</pre></div>
+
+  <h3>15.6 بطاقات التحليلات ورسم بياني بـ Recharts</h3>
+  <p>البطاقات تقرأ مباشرة من <span class="mono">AnalyticsOverview</span>؛ لا تحسب شيئاً محلياً ولا تستخدم أرقاماً
+  ثابتة. الرسوم الزمنية تقرأ من <span class="mono">TimeseriesPoint[]</span> حيث كل نقطة يوم واحد.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/features/analytics/OverviewCards.tsx</span><span class="ftag">tsx</span></div>
+<pre>import type { AnalyticsOverview } from "../../types/api";
+
+function Card({ label, value }: { label: string; value: number }) {
+  return (
+    &lt;div className="rounded border p-4"&gt;
+      &lt;div className="text-xs text-slate-500"&gt;{label}&lt;/div&gt;
+      &lt;div className="text-2xl font-bold"&gt;{value}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export function OverviewCards({ data }: { data: AnalyticsOverview }) {
+  return (
+    &lt;div className="grid grid-cols-4 gap-3"&gt;
+      &lt;Card label="Videos" value={data.total_videos} /&gt;
+      &lt;Card label="Processed" value={data.processed_videos} /&gt;
+      &lt;Card label="Incidents" value={data.total_incidents} /&gt;
+      &lt;Card label="Pending review" value={data.pending_review} /&gt;
+      &lt;Card label="Jobs running" value={data.jobs_running} /&gt;
+      &lt;Card label="Jobs failed" value={data.jobs_failed} /&gt;
+    &lt;/div&gt;
+  );
+}</pre></div>
+  <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/features/analytics/IncidentsTimeseries.tsx</span><span class="ftag">tsx</span></div>
+<pre>import {
+  CartesianGrid, Legend, Line, LineChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
+import type { TimeseriesPoint } from "../../types/api";
+
+export function IncidentsTimeseries({ points }: { points: TimeseriesPoint[] }) {
+  return (
+    &lt;ResponsiveContainer width="100%" height={280}&gt;
+      &lt;LineChart data={points}&gt;
+        &lt;CartesianGrid strokeDasharray="3 3" /&gt;
+        &lt;XAxis dataKey="date" /&gt;
+        &lt;YAxis allowDecimals={false} /&gt;
+        &lt;Tooltip /&gt;
+        &lt;Legend /&gt;
+        &lt;Line type="monotone" dataKey="ppe_violation" stroke="#0f766e" /&gt;
+        &lt;Line type="monotone" dataKey="fire_smoke" stroke="#c2410c" /&gt;
+        &lt;Line type="monotone" dataKey="machine_proximity" stroke="#1d4ed8" /&gt;
+      &lt;/LineChart&gt;
+    &lt;/ResponsiveContainer&gt;
+  );
+}</pre></div>
+
+  <h3>15.7 تنزيل تقرير CSV</h3>
+  <p>ملف CSV ليس JSON، لذلك لا نمرّره عبر عميل الـ Axios العادي بالطريقة نفسها؛ نطلب الملف كـ
+  <span class="en">blob</span> ثم ننشئ رابطاً مؤقتاً ونضغط عليه برمجياً. اسم الملف يأتي من الـ header إن وُجد.</p>
+  <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/features/reports/ExportCsvButton.tsx</span><span class="ftag">tsx</span></div>
+<pre>import { useState } from "react";
+import { api } from "../../api/client";
+
+export function ExportCsvButton({ query }: { query: Record&lt;string, string&gt; }) {
+  const [busy, setBusy] = useState(false);
+
+  async function download() {
+    setBusy(true);
+    try {
+      const res = await api.get("/api/v1/reports/export", { params: query, responseType: "blob" });
+      const url = URL.createObjectURL(res.data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "safevision-report.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return &lt;button onClick={download} disabled={busy}&gt;{busy ? "..." : "Export CSV"}&lt;/button&gt;;
+}</pre></div>
+
+  <h3>15.8 ربط كل صفحة ببياناتها</h3>
+  <p>الجدول يلخّص ما يجلبه كل قسم فعلاً، حتى لا نكتب رقماً بلا مصدر:</p>
+  <table class="tbl">
+    <caption>جدول 15-1: الصفحات ومصادر بياناتها</caption>
+    <thead><tr><th class="w22">الصفحة</th><th class="w30">البيانات</th><th>النداء</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard Overview</td><td>Videos, Incidents, Pending, Jobs running/failed</td><td class="mono">GET /analytics/overview</td></tr>
+      <tr><td>Video Library</td><td>قائمة الفيديوهات وحالتها وأحدث job</td><td class="mono">GET /videos</td></tr>
+      <tr><td>Incident Management</td><td>وقائع مفلترة بترقيم ونطاق تاريخ</td><td class="mono">GET /incidents</td></tr>
+      <tr><td>Analytics</td><td>اتجاهات زمنية وتوزيعات</td><td class="mono">GET /analytics/timeseries</td></tr>
+      <tr><td>Reports</td><td>ملخص يومي وتصدير CSV</td><td class="mono">GET /reports/daily, /reports/export</td></tr>
+    </tbody>
+  </table>
+  <p>عند <span class="mono">AUTH_ENABLED=false</span> (وضع العرض) لا تحتاج هذه الصفحات توكن، ويعمل النظام
+  بمستخدم افتراضي دوره <span class="mono">safety_officer</span>. عند <span class="mono">true</span> يُرسل عميل
+  الـ API التوكن تلقائياً، وتُحوَّل الصفحات المحمية إلى <span class="mono">/login</span> عند فقدانه.</p>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 15</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>بنينا عميل Axios واحداً يقرأ عنوانه من متغيّر البيئة، وطبقات نداءات لكل مورد، ورفعاً بـ FormData
+        مع تقدّم، وخطّاف استطلاع يوقف نفسه، وجدول وقائع، وبطاقات تحليلات، ورسم Recharts، وتنزيل CSV.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>ضبط <span class="mono">VITE_API_BASE_URL</span> و<span class="mono">VITE_ENABLE_AUTH</span> في ملف <span class="mono">.env</span>.</li>
+          <li>إضافة عنوان الواجهة إلى <span class="mono">CORS_ORIGINS</span> على الـ Backend.</li>
+          <li>ربط كل صفحة بندائها الموحّد بدل استدعاء Axios مباشرة.</li>
+          <li>بناء حالات Loading/Error/Empty لكل قائمة.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>صفحات تعرض بيانات حقيقية من الـ API.</li>
+        <li>رفع يعمل مع شريط تقدّم ورسائل خطأ عربية.</li>
+        <li>زر تصدير ينزّل ملف CSV فعلياً.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>لا يوجد رقم مكتوب في الكود، وكل قيمة تأتي من استجابة.</li>
+        <li>لا يوجد عنوان API داخل أي مكوّن.</li>
+        <li>الاستطلاع يتوقف عند الحالة النهائية ولا يترك مؤقتات تعمل.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>كتابة <span class="mono">localhost:8000</span> داخل المكوّن بدل متغيّر البيئة.</li>
+        <li>إرسال JSON بدل FormData في الرفع فيفشل التحقق.</li>
+        <li>نسيان إلغاء المؤقت عند مغادرة الصفحة فيستمر الاستطلاع.</li>
+        <li>معالجة CSV كأنه JSON فيتلف الملف.</li></ul></div>
+    </div>
+  </div>
+</section>

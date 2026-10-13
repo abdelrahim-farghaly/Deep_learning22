@@ -46,11 +46,8 @@ def build_toc(metas, pages=None):
         rows.append('<li><span class="t-num">%s</span><span class="t-txt">%s'
                     '<span class="xmk">TOC%02d</span></span><span class="t-pg">%s</span></li>'
                     % (m['opnum'], m['title'] or m['kicker'], m['num'], pg))
-        for s in m['sections']:
-            mt = re.match(r'^\s*([0-9]+\.[0-9]+)\s+(.*)$', s)
-            snum, stxt = (mt.group(1), mt.group(2)) if mt else ('', s)
-            rows.append('<li class="lvl2"><span class="t-num">%s</span><span class="t-txt">%s</span>'
-                        '<span class="t-pg"></span></li>' % (snum, stxt))
+        # Section-level entries are intentionally omitted from the printed TOC to keep it
+        # compact; navigation to sections is available through the PDF outline/bookmarks.
     rows.append('</ul></div>')
     return '\n'.join(rows)
 
@@ -261,7 +258,7 @@ def finish(pdf_in, pdf_out, metas, page_map):
         for m in metas:
             pg = page_map.get(m['num'])
             if pg is not None and pg < len(reader.pages):
-                lbl = ('مقدمة - %s' % m['title']) if m['num'] == 0 else ('الفصل %s - %s' % (m['opnum'], m['title']))
+                lbl = (m['title']) if m['num'] == 0 else ('الفصل %s - %s' % (m['opnum'], m['title']))
                 writer.add_outline_item(lbl, pg)
     except Exception as exc:
         print('  [outline] failed:', exc)
@@ -297,7 +294,7 @@ def finish(pdf_in, pdf_out, metas, page_map):
 
 
 def main():
-    out_final = os.path.join(BUILD, 'SafeVision-AI-Implementation-Handbook-AR.pdf')
+    out_final = '/workspace/SafeVision-AI-Implementation-Handbook-AR.pdf'
     write(os.path.join(BUILD, 'cover.html'), COVER)
     render('cover.html', os.path.join(BUILD, 'cover.pdf'))
     frags, metas = collect()
