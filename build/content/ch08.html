@@ -1,0 +1,293 @@
+<section class="chapter" id="ch08">
+  <div class="opener">
+    <div class="op-num">08</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH08 &middot; DATABASE DESIGN</p>
+      <h2>تصميم قاعدة البيانات مع PostgreSQL</h2>
+      <p class="op-sub">الجداول والعلاقات والفهارس والمهاجرات: مخطط واحد يوافق عليه الفريق كله</p>
+    </div>
+  </div>
+
+  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام. كل فيديو مرفوع، وكل واقعة أخرجها خط المعالجة،
+  وكل صورة دليل، وكل قرار مراجعة بشري يجب أن يُحفظ في صف واضح يمكن الاستعلام عنه لاحقاً. في هذا الفصل
+  نُثبّت مخططاً واحداً (<span class="en">schema</span>) يتفق عليه الخمسة أعضاء، ونكتب أول
+  <span class="en">migration</span> تنشئه فعلياً في <span class="en">PostgreSQL</span>. الهدف العملي: بعد
+  هذا الفصل يستطيع أي عضو تشغيل أمر واحد فيُنشئ قاعدة بيانات مطابقة تماماً للفصل 7 والفصول التالية.</p></div>
+
+  <h3>8.1 مبادئ التصميم التي نلتزم بها</h3>
+  <p>قبل الجداول نفسها، نتفق على ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
+  <table class="tbl">
+    <caption>جدول 8-1: مبادئ تصميم قاعدة البيانات</caption>
+    <thead><tr><th class="w25">المبدأ</th><th>المعنى العملي</th></tr></thead>
+    <tbody>
+      <tr><td>المفتاح الأساسي <span class="mono">Primary Key</span></td>
+        <td>لكل جدول عمود <span class="mono">id</span> فريد لا يتغيّر. الجداول "الكبيرة" (مثل
+        <span class="mono">videos</span> و <span class="mono">incidents</span>) تستخدم
+        <span class="mono">UUID</span> لأنها تظهر في مسارات الـ API، وجداول الأحداث الكثيفة
+        (<span class="mono">detections</span>، <span class="mono">tracks</span>) تستخدم
+        <span class="mono">BIGSERIAL</span> لأن كتابتها سريعة وترقيمها المتزايد لا يُعرض للمستخدم.</td></tr>
+      <tr><td>المفتاح الأجنبي <span class="mono">Foreign Key</span></td>
+        <td>كل علاقة بين جدولين تُعبَّر عنها بمفتاح أجنبي صريح مع قاعدة حذف واضحة، حتى يمنع
+        <span class="en">PostgreSQL</span> البيانات المعلّقة (<span class="en">orphan rows</span>).</td></tr>
+      <tr><td>الفهرس <span class="mono">Index</span></td>
+        <td>لا نضيف فهرساً "للتأمين"، بل لكل استعلام نعرف أننا سنستخدمه فعلاً في الفلترة أو الترتيب.</td></tr>
+      <tr><td>الطوابع الزمنية <span class="mono">Timestamps</span></td>
+        <td>كل جدول مهم يحمل <span class="mono">created_at</span>، والجداول القابلة للتعديل تحمل أيضاً
+        <span class="mono">updated_at</span>. النوع دائماً <span class="mono">TIMESTAMPTZ</span> مع المنطقة الزمنية.</td></tr>
+      <tr><td>القيد <span class="en">Constraint</span></td>
+        <td>القيم المحدودة (الحالات، الأنواع، الأدوار) تُخزَّن كـ <span class="mono">enum</span> أصلي، فلا يمكن
+        إدخال حالة غير معروفة حتى لو أخطأ الكود.</td></tr>
+      <tr><td>لا تخزين باينري</td>
+        <td>الفيديو والصور لا تُخزَّن داخل <span class="en">PostgreSQL</span>؛ نخزّن البيانات الوصفية
+        (<span class="en">metadata</span>) والمفتاح <span class="mono">storage_key</span> فقط.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 الـ Enums: القيم المسموح بها فقط</h3>
+  <p>نُعرّف ثمانية أنواع تعدادية (<span class="en">enum</span>) ونستخدمها في كل مكان بدل النصوص الحرة. هذا
+  القرار يمنع أشهر خطأ في المشاريع الطلابية: كتابة <span class="mono">"Done"</span> في مكان
+  <span class="mono">"processed"</span>. القيم التالية حرفية ومطابقة لعقد الـ API في الفصل 7.</p>
+  <table class="tbl">
+    <caption>جدول 8-2: أنواع الـ Enums وقيمها</caption>
+    <thead><tr><th class="w28">الـ Enum</th><th>القيم المسموح بها</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">video_status</td><td><span class="mono">uploaded</span> | <span class="mono">processing</span> | <span class="mono">processed</span> | <span class="mono">failed</span></td></tr>
+      <tr><td class="mono">job_status</td><td><span class="mono">queued</span> | <span class="mono">running</span> | <span class="mono">completed</span> | <span class="mono">failed</span> | <span class="mono">cancelled</span></td></tr>
+      <tr><td class="mono">incident_type</td><td><span class="mono">ppe_violation</span> | <span class="mono">fire_smoke</span> | <span class="mono">machine_proximity</span></td></tr>
+      <tr><td class="mono">incident_severity</td><td><span class="mono">low</span> | <span class="mono">medium</span> | <span class="mono">high</span> | <span class="mono">critical</span></td></tr>
+      <tr><td class="mono">incident_status</td><td><span class="mono">detected</span> | <span class="mono">pending_review</span> | <span class="mono">confirmed</span> | <span class="mono">rejected</span> | <span class="mono">closed</span></td></tr>
+      <tr><td class="mono">evidence_kind</td><td><span class="mono">image</span> | <span class="mono">clip</span> | <span class="mono">metadata</span></td></tr>
+      <tr><td class="mono">review_action</td><td><span class="mono">confirm</span> | <span class="mono">reject</span> | <span class="mono">close</span> | <span class="mono">comment</span></td></tr>
+      <tr><td class="mono">user_role</td><td><span class="mono">admin</span> | <span class="mono">safety_officer</span> | <span class="mono">viewer</span></td></tr>
+    </tbody>
+  </table>
+  <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/models/enums.py</span><span class="ftag">python</span></div>
+<pre><span class="cmt"># backend/app/models/enums.py</span>
+<span class="kw">import</span> enum
+
+
+<span class="kw">class</span> <span class="fn">VideoStatus</span>(<span class="fn">str</span>, enum.Enum):
+    uploaded = <span class="str">"uploaded"</span>
+    processing = <span class="str">"processing"</span>
+    processed = <span class="str">"processed"</span>
+    failed = <span class="str">"failed"</span>
+
+
+<span class="kw">class</span> <span class="fn">JobStatus</span>(<span class="fn">str</span>, enum.Enum):
+    queued = <span class="str">"queued"</span>
+    running = <span class="str">"running"</span>
+    completed = <span class="str">"completed"</span>
+    failed = <span class="str">"failed"</span>
+    cancelled = <span class="str">"cancelled"</span>
+
+
+<span class="kw">class</span> <span class="fn">IncidentType</span>(<span class="fn">str</span>, enum.Enum):
+    ppe_violation = <span class="str">"ppe_violation"</span>
+    fire_smoke = <span class="str">"fire_smoke"</span>
+    machine_proximity = <span class="str">"machine_proximity"</span>
+
+
+<span class="kw">class</span> <span class="fn">IncidentSeverity</span>(<span class="fn">str</span>, enum.Enum):
+    low = <span class="str">"low"</span>
+    medium = <span class="str">"medium"</span>
+    high = <span class="str">"high"</span>
+    critical = <span class="str">"critical"</span>
+
+
+<span class="kw">class</span> <span class="fn">IncidentStatus</span>(<span class="fn">str</span>, enum.Enum):
+    detected = <span class="str">"detected"</span>
+    pending_review = <span class="str">"pending_review"</span>
+    confirmed = <span class="str">"confirmed"</span>
+    rejected = <span class="str">"rejected"</span>
+    closed = <span class="str">"closed"</span>
+
+
+<span class="kw">class</span> <span class="fn">EvidenceKind</span>(<span class="fn">str</span>, enum.Enum):
+    image = <span class="str">"image"</span>
+    clip = <span class="str">"clip"</span>
+    metadata = <span class="str">"metadata"</span>
+
+
+<span class="kw">class</span> <span class="fn">ReviewAction</span>(<span class="fn">str</span>, enum.Enum):
+    confirm = <span class="str">"confirm"</span>
+    reject = <span class="str">"reject"</span>
+    close = <span class="str">"close"</span>
+    comment = <span class="str">"comment"</span>
+
+
+<span class="kw">class</span> <span class="fn">UserRole</span>(<span class="fn">str</span>, enum.Enum):
+    admin = <span class="str">"admin"</span>
+    safety_officer = <span class="str">"safety_officer"</span>
+    viewer = <span class="str">"viewer"</span>
+</pre></div>
+
+  <h3>8.3 الجداول الأساسية في الـ MVP</h3>
+  <p>هذه هي الجداول التي نبنيها فعلاً في المرحلة الأولى. كل جدول مذكور بعمدته وأنواعه ومفاتيحه وقابليته
+  لأن يكون <span class="mono">NULL</span>، والغرض من كل عمود. الأسماء هنا حرفية ويجب ألا تتغيّر.</p>
+
+  <h4>جدول <span class="mono">users</span> <span class="badge opt">اختياري</span></h4>
+  <p>يُنشأ فقط عند تفعيل المصادقة (<span class="mono">AUTH_ENABLED=true</span>). في وضع العرض التوضيحي
+  (<span class="mono">AUTH_ENABLED=false</span>) يتصرّف النظام كأن مستخدم <span class="mono">safety_officer</span>
+  افتراضياً هو المسجَّل دخوله. لا نخزّن كلمة المرور أبداً كنص صريح، بل كتجزئة <span class="en">bcrypt</span>.</p>
+  <table class="tbl">
+    <caption>جدول 8-3: أعمدة <span class="mono">users</span></caption>
+    <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w14">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID</td><td class="mono">PK</td><td class="c">لا</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">email</td><td class="mono">VARCHAR(255)</td><td class="mono">unique</td><td class="c">لا</td><td>اسم الدخول</td></tr>
+      <tr><td class="mono">full_name</td><td class="mono">VARCHAR(150)</td><td></td><td class="c">لا</td><td>الاسم المعروض</td></tr>
+      <tr><td class="mono">hashed_password</td><td class="mono">VARCHAR(255)</td><td></td><td class="c">لا</td><td>تجزئة <span class="mono">bcrypt</span></td></tr>
+      <tr><td class="mono">role</td><td class="mono">user_role</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">safety_officer</span></td></tr>
+      <tr><td class="mono">is_active</td><td class="mono">BOOLEAN</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">true</span></td></tr>
+      <tr><td class="mono">created_at / updated_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td class="c">لا</td><td>طوابع التدقيق</td></tr>
+    </tbody>
+  </table>
+
+  <h4>جدول <span class="mono">videos</span> <span class="badge mvp">MVP</span></h4>
+  <p>الجدول المركزي: صف واحد لكل فيديو مرفوع. لاحظ أن الملف نفسه لا يُخزَّن هنا؛ العمود
+  <span class="mono">storage_key</span> هو مفتاح الوصول إليه في طبقة التخزين (الفصل 9). الأعمدة
+  <span class="mono">duration_seconds</span> و <span class="mono">fps</span> و <span class="mono">frame_count</span>
+  تُملأ بعد التحقق من الفيديو، لذلك تُقبل قيمتها <span class="mono">NULL</span> في لحظة الرفع.</p>
+  <table class="tbl">
+    <caption>جدول 8-4: أعمدة <span class="mono">videos</span></caption>
+    <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID</td><td class="mono">PK</td><td class="c">لا</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">camera_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; cameras.id</td><td class="c">نعم</td><td>كاميرا المصدر (اختياري في الـ MVP)</td></tr>
+      <tr><td class="mono">original_filename</td><td class="mono">VARCHAR(255)</td><td></td><td class="c">لا</td><td>الاسم كما رفعه المستخدم</td></tr>
+      <tr><td class="mono">stored_filename</td><td class="mono">VARCHAR(255)</td><td></td><td class="c">لا</td><td>اسم آمن وفريد على القرص</td></tr>
+      <tr><td class="mono">storage_key</td><td class="mono">VARCHAR(512)</td><td class="mono">unique</td><td class="c">لا</td><td>المسار النسبي / مفتاح الكائن</td></tr>
+      <tr><td class="mono">content_type</td><td class="mono">VARCHAR(100)</td><td></td><td class="c">لا</td><td>مثل <span class="mono">video/mp4</span></td></tr>
+      <tr><td class="mono">size_bytes</td><td class="mono">BIGINT</td><td></td><td class="c">لا</td><td>حجم الملف</td></tr>
+      <tr><td class="mono">duration_seconds</td><td class="mono">NUMERIC(10,3)</td><td></td><td class="c">نعم</td><td>يُملأ بعد التحقق</td></tr>
+      <tr><td class="mono">fps</td><td class="mono">NUMERIC(8,3)</td><td></td><td class="c">نعم</td><td>معدل الإطارات</td></tr>
+      <tr><td class="mono">width / height</td><td class="mono">INTEGER</td><td></td><td class="c">نعم</td><td>أبعاد الإطار</td></tr>
+      <tr><td class="mono">frame_count</td><td class="mono">INTEGER</td><td></td><td class="c">نعم</td><td>عدد الإطارات</td></tr>
+      <tr><td class="mono">checksum_sha256</td><td class="mono">CHAR(64)</td><td class="mono">index</td><td class="c">نعم</td><td>كشف الملفات المكرّرة</td></tr>
+      <tr><td class="mono">status</td><td class="mono">video_status</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">uploaded</span></td></tr>
+      <tr><td class="mono">uploaded_by</td><td class="mono">UUID</td><td class="mono">FK &rarr; users.id</td><td class="c">نعم</td><td>رافع الملف</td></tr>
+      <tr><td class="mono">created_at / updated_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td class="c">لا</td><td>طوابع زمنية</td></tr>
+    </tbody>
+  </table>
+
+  <h4>جدول <span class="mono">processing_jobs</span> <span class="badge mvp">MVP</span></h4>
+  <p>صف واحد لكل تشغيل لخط المعالجة على فيديو. هنا تُتابَع حالة الـ job ونسبة التقدّم. القيد الحرج هنا هو
+  الفهرس الفريد الجزئي الذي يمنع وجود وظيفتين نشطتين لنفس الفيديو في نفس الوقت.</p>
+  <table class="tbl">
+    <caption>جدول 8-5: أعمدة <span class="mono">processing_jobs</span></caption>
+    <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID</td><td class="mono">PK</td><td class="c">لا</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">video_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; videos.id</td><td class="c">لا</td><td><span class="mono">ON DELETE CASCADE</span></td></tr>
+      <tr><td class="mono">status</td><td class="mono">job_status</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">queued</span></td></tr>
+      <tr><td class="mono">progress</td><td class="mono">NUMERIC(5,2)</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">0</span></td></tr>
+      <tr><td class="mono">frames_total</td><td class="mono">INTEGER</td><td></td><td class="c">نعم</td><td>إجمالي الإطارات</td></tr>
+      <tr><td class="mono">frames_processed</td><td class="mono">INTEGER</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">0</span></td></tr>
+      <tr><td class="mono">sample_every_n_frames</td><td class="mono">INTEGER</td><td></td><td class="c">لا</td><td>الافتراضي <span class="mono">5</span></td></tr>
+      <tr><td class="mono">model_bundle_version</td><td class="mono">VARCHAR(80)</td><td></td><td class="c">نعم</td><td>إصدار حزمة الـ Models المستخدمة</td></tr>
+      <tr><td class="mono">error_message</td><td class="mono">TEXT</td><td></td><td class="c">نعم</td><td>سبب الفشل عند الحاجة</td></tr>
+      <tr><td class="mono">worker_id</td><td class="mono">VARCHAR(80)</td><td></td><td class="c">نعم</td><td>العامل الذي نفّذ الوظيفة</td></tr>
+      <tr><td class="mono">started_at / finished_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td class="c">نعم</td><td>زمن البداية والنهاية</td></tr>
+      <tr><td class="mono">created_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td class="c">لا</td><td>زمن الإنشاء</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info"><span class="co-title">الفهرس الفريد الجزئي</span>
+    <p>القيد <span class="mono">UNIQUE (video_id) WHERE status IN ('queued','running')</span> يمنع إنشاء وظيفتين
+    فعّالتين لنفس الفيديو. هذا هو خط الدفاع الأول ضد المعالجة المزدوجة الذي نشرحه تفصيلاً في الفصل 11.</p></div>
+
+  <h4>جدول <span class="mono">detections</span> <span class="badge mvp">MVP</span></h4>
+  <p>كل كشف خام يُخرجه الـ Model يمكن أن يُكتب هنا: الصندوق المحيط، درجة الثقة، الإطار، والزمن، واسم
+  الـ Model وإصداره. هذا الجدول هو الأسرع نمواً في النظام بأكمله، لذلك نتعامل معه بحذر (انظر القسم 8.7).</p>
+  <table class="tbl">
+    <caption>جدول 8-6: أعمدة <span class="mono">detections</span></caption>
+    <thead><tr><th class="w24">العمود</th><th class="w20">النوع</th><th class="w18">المفتاح</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">BIGSERIAL</td><td class="mono">PK</td><td>معرّف متزايد سريع الكتابة</td></tr>
+      <tr><td class="mono">job_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; processing_jobs.id</td><td><span class="mono">ON DELETE CASCADE</span></td></tr>
+      <tr><td class="mono">video_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; videos.id</td><td>الرجوع السريع للفيديو</td></tr>
+      <tr><td class="mono">frame_number</td><td class="mono">INTEGER</td><td></td><td>رقم الإطار (لا يقبل NULL)</td></tr>
+      <tr><td class="mono">timestamp_seconds</td><td class="mono">NUMERIC(10,3)</td><td></td><td>الزمن داخل الفيديو بالثواني</td></tr>
+      <tr><td class="mono">class_name</td><td class="mono">VARCHAR(80)</td><td></td><td>اسم الصنف بعد التوحيد</td></tr>
+      <tr><td class="mono">confidence</td><td class="mono">NUMERIC(5,4)</td><td></td><td>درجة الثقة بين 0 و 1</td></tr>
+      <tr><td class="mono">bbox_x1 / bbox_y1 / bbox_x2 / bbox_y2</td><td class="mono">INTEGER</td><td></td><td>إحداثيات الصندوق بالبكسل</td></tr>
+      <tr><td class="mono">track_id</td><td class="mono">INTEGER</td><td></td><td>معرّف التتبّع إن وُجد</td></tr>
+      <tr><td class="mono">model_name / model_version</td><td class="mono">VARCHAR</td><td></td><td>مصدر الكشف وإصداره</td></tr>
+      <tr><td class="mono">created_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td>زمن الكتابة</td></tr>
+    </tbody>
+  </table>
+  <p class="small">الفهارس: <span class="mono">(job_id, frame_number)</span> و <span class="mono">(class_name)</span>
+  و <span class="mono">(video_id)</span>. الفهرس المركّب مهم لأن أكثر استعلام نتوقعه هو "أعطني الكشوفات
+  مرتبةً حسب الإطار داخل وظيفة معيّنة".</p>
+
+  <h4>جدول <span class="mono">tracks</span> <span class="badge opt">موصى به</span></h4>
+  <p>ملخّص لكل مسار تتبّع (<span class="en">track</span>) بدل تخزين كل إطار. عمود واحد لكل مسار مع أول وآخر
+  إطار وعدد مرات الظهور. القيد <span class="mono">UNIQUE (job_id, track_id)</span> يضمن عدم تكرار نفس المسار
+  داخل الوظيفة. التتبّع نفسه مسؤولية الـ <span class="en">ByteTrack</span> عبر
+  <span class="mono">model.track</span> (الفصل 10).</p>
+
+  <h4>جدول <span class="mono">incidents</span> <span class="badge mvp">MVP</span></h4>
+  <p>هذا هو الجدول الذي يقرأه مسؤول السلامة في الواجهة. كل صف يمثّل واقعة لها نوع ودرجة خطورة وحالة
+  مراجعة، وزمن بداية وزمن نهاية. الحالة الافتراضية <span class="mono">detected</span>، والخطورة الافتراضية
+  <span class="mono">medium</span>، ويُحدَّثان لاحقاً حسب قواعد الفصل 12 ودورة الحياة في الفصل 13.</p>
+  <table class="tbl">
+    <caption>جدول 8-7: أعمدة <span class="mono">incidents</span></caption>
+    <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID</td><td class="mono">PK</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">video_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; videos.id</td><td>لا يقبل NULL</td></tr>
+      <tr><td class="mono">job_id</td><td class="mono">UUID</td><td class="mono">FK &rarr; processing_jobs.id</td><td>الوظيفة المولِّدة</td></tr>
+      <tr><td class="mono">incident_type</td><td class="mono">incident_type</td><td></td><td>لا يقبل NULL</td></tr>
+      <tr><td class="mono">severity</td><td class="mono">incident_severity</td><td></td><td>الافتراضي <span class="mono">medium</span></td></tr>
+      <tr><td class="mono">status</td><td class="mono">incident_status</td><td></td><td>الافتراضي <span class="mono">detected</span></td></tr>
+      <tr><td class="mono">started_at_seconds</td><td class="mono">NUMERIC(10,3)</td><td></td><td>بداية الواقعة</td></tr>
+      <tr><td class="mono">ended_at_seconds</td><td class="mono">NUMERIC(10,3)</td><td></td><td>نهاية الواقعة</td></tr>
+      <tr><td class="mono">frame_number</td><td class="mono">INTEGER</td><td></td><td>الإطار المرجعي</td></tr>
+      <tr><td class="mono">track_id</td><td class="mono">INTEGER</td><td></td><td>الشخص أو الكائن المعني</td></tr>
+      <tr><td class="mono">confidence</td><td class="mono">NUMERIC(5,4)</td><td></td><td>أعلى ثقة مسجَّلة</td></tr>
+      <tr><td class="mono">class_name</td><td class="mono">VARCHAR(80)</td><td></td><td>الصنف المرتبط</td></tr>
+      <tr><td class="mono">zone_name</td><td class="mono">VARCHAR(120)</td><td></td><td>اسم منطقة الخطر</td></tr>
+      <tr><td class="mono">summary</td><td class="mono">TEXT</td><td></td><td>وصف نصي مختصر</td></tr>
+      <tr><td class="mono">detection_count</td><td class="mono">INTEGER</td><td></td><td>عدد الكشوفات، الافتراضي <span class="mono">1</span></td></tr>
+      <tr><td class="mono">created_at / updated_at</td><td class="mono">TIMESTAMPTZ</td><td></td><td>طوابع زمنية</td></tr>
+    </tbody>
+  </table>
+  <p class="small">الفهارس: <span class="mono">(video_id)</span> و <span class="mono">(incident_type)</span>
+  و <span class="mono">(severity)</span> و <span class="mono">(status)</span> و <span class="mono">(created_at)</span>.
+  هذه الفهارس تخدم مباشرةً شاشة الـ Incidents التي تفلتر بالنوع والخطورة والحالة وتُرتّب بالتاريخ.</p>
+
+  <h4>جدول <span class="mono">evidence</span> <span class="badge mvp">MVP</span></h4>
+  <p>كل واقعة قد يكون لها أكثر من دليل: صورة مقتطعة من الإطار، أو مقطع قصير، أو ملف بيانات وصفية. الملف
+  نفسه محفوظ في طبقة التخزين، وهنا نحفظ فقط <span class="mono">storage_key</span> ونوع المحتوى والحجم.</p>
+  <table class="tbl">
+    <caption>جدول 8-8: أعمدة <span class="mono">evidence</span></caption>
+    <thead><tr><th class="w28">العمود</th><th class="w22">النوع</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID PK</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">incident_id</td><td class="mono">UUID FK &rarr; incidents.id</td><td><span class="mono">ON DELETE CASCADE</span></td></tr>
+      <tr><td class="mono">kind</td><td class="mono">evidence_kind</td><td><span class="mono">image</span> / <span class="mono">clip</span> / <span class="mono">metadata</span></td></tr>
+      <tr><td class="mono">storage_key</td><td class="mono">VARCHAR(512)</td><td>مفتاح الوصول للملف</td></tr>
+      <tr><td class="mono">content_type</td><td class="mono">VARCHAR(100)</td><td>مثل <span class="mono">image/jpeg</span></td></tr>
+      <tr><td class="mono">size_bytes</td><td class="mono">BIGINT</td><td>حجم الملف</td></tr>
+      <tr><td class="mono">frame_number</td><td class="mono">INTEGER</td><td>إطار الاقتطاع</td></tr>
+      <tr><td class="mono">timestamp_seconds</td><td class="mono">NUMERIC(10,3)</td><td>زمن الاقتطاع</td></tr>
+      <tr><td class="mono">created_at</td><td class="mono">TIMESTAMPTZ</td><td>زمن الإنشاء</td></tr>
+    </tbody>
+  </table>
+
+  <h4>جدول <span class="mono">incident_reviews</span> <span class="badge mvp">MVP</span></h4>
+  <p>سجل تدقيق (<span class="en">audit log</span>) لا يُعدَّل ولا يُحذَف. كل إجراء مراجعة يُلحق صفاً جديداً
+  يحمل الحالة السابقة والحالة الجديدة والملاحظة. هذا هو أساس <span class="en">Auditability</span> الذي
+  نشرحه في الفصل 13.</p>
+  <table class="tbl">
+    <caption>جدول 8-9: أعمدة <span class="mono">incident_reviews</span></caption>
+    <thead><tr><th class="w30">العمود</th><th class="w24">النوع</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">id</td><td class="mono">UUID PK</td><td>المعرّف الأساسي</td></tr>
+      <tr><td class="mono">incident_id</td><td class="mono">UUID FK &rarr; incidents.id</td><td><span class="mono">ON DELETE CASCADE</span></td></tr>
+      <tr><td class="mono">reviewer_id</td><td class="mono">UUID FK &rarr; users.id</td><td>قابل لأن يكون NULL في وضع العرض</td></tr>
+      <tr><td class="mono">action</td><td class="mono">review_action</td><td><span class="mono">confirm</span> / <span class="mono">reject</span> / <span class="mono">close</span> / <span class="mono">comment</span></td></tr>
+      <tr><td class="mono">previous_status / new_status</td><td class="mono">incident_status</td><td>قبل وبعد الإجراء</td></tr>
+      <tr><td class="mono">note</td><td class="mono">TEXT</td><td>ملاحظة المراجع</td></tr>
+      <tr><td class="mono">created_at</td><td class="mono">TIMESTAMPTZ</td><td>زمن الإجراء</td></tr>
+    </tbody>
+  </table>

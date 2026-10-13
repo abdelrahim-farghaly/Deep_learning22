@@ -1,0 +1,121 @@
+<section class="chapter" id="ch03">
+  <div class="opener">
+    <div class="op-num">03</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH03 &middot; TECHNOLOGY STACK</p>
+      <h2>حزمة التقنيات واختيار الأدوات</h2>
+      <p class="op-sub">لماذا اخترنا كل أداة، وما البدائل، وما هو مطلوب في الـ MVP</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>اختيار التقنية ليس "أيّ شيء يعمل"، بل قرار يجب أن نستطيع تبريره. في هذا الفصل نعرض كل أداة استخدمناها،
+    وما وظيفتها، ولماذا اخترناها بدلاً من بديل آخر، وهل هي مطلوبة في الـ <span class="badge mvp">MVP</span>
+    أم اختيارية. الهدف أن يكون كل عضو قادراً على الدفاع عن كل اختيار أمام لجنة المناقشة.</p>
+  </div>
+
+  <h3>3.1 معايير اختيار التقنية</h3>
+  <p>لم نختر أي أداة بشكل عشوائي. طبّقنا خمسة معايير على كل خيار، والجدول التالي يشرحها:</p>
+  <table class="tbl">
+    <caption>جدول 3-1: معايير اختيار أي أداة</caption>
+    <thead><tr><th class="w24">المعيار</th><th>المعنى</th></tr></thead>
+    <tbody>
+      <tr><td>الملاءمة للمهمة</td><td>هل الأداة مصمَّمة أصلاً لهذا النوع من العمل؟</td></tr>
+      <tr><td>التوفّر والتوثيق</td><td>هل لها توثيق رسمي جيد ومجتمع نشط؟</td></tr>
+      <tr><td>سهولة التعلّم</td><td>هل يستطيع عضو مبتدئ إتقانها في وقت معقول؟</td></tr>
+      <tr><td>التكامل</td><td>هل تندمج بسلاسة مع بقية حزمة التقنيات؟</td></tr>
+      <tr><td>التشغيل المحلي</td><td>هل تعمل على جهاز الطالب دون تعقيد أو تكلفة؟</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 جدول حزمة التقنيات الكامل</h3>
+  <p>الجدول التالي هو المرجع السريع لكل الأدوات. عمود <span class="en">MVP</span> يعني هل الأداة مطلوبة
+  فعلاً في النسخة الأولى أم اختيارية مؤجَّلة.</p>
+  <table class="tbl">
+    <caption>جدول 3-2: حزمة تقنيات SafeVision AI</caption>
+    <thead><tr><th class="w18">المجال</th><th class="w20">الأداة</th><th class="w34">وظيفتها ولماذا</th><th class="w14">الحالة</th><th class="w14">البديل</th></tr></thead>
+    <tbody>
+      <tr><td>لغة</td><td class="mono">Python 3.11</td><td>لغة الـ Backend والذكاء الاصطناعي معاً</td><td><span class="badge req">مطلوب</span></td><td>Node.js / Java</td></tr>
+      <tr><td>تعلم عميق</td><td class="mono">PyTorch</td><td>محرّك تشغيل شبكات الكشف</td><td><span class="badge req">مطلوب</span></td><td>TensorFlow</td></tr>
+      <tr><td>كشف</td><td class="mono">Ultralytics YOLO</td><td>كشف الأجسام والفئات المدربة</td><td><span class="badge req">مطلوب</span></td><td>Detectron2</td></tr>
+      <tr><td>رؤية حاسوبية</td><td class="mono">OpenCV</td><td>قراءة الفيديو والإطارات والكتابة على الصور</td><td><span class="badge req">مطلوب</span></td><td>imageio / ffmpeg</td></tr>
+      <tr><td>تتبّع</td><td class="mono">ByteTrack</td><td>تتبّع الأشخاص بين الإطارات (track_id)</td><td><span class="badge req">مطلوب</span></td><td>DeepSORT</td></tr>
+      <tr><td>حساب عددي</td><td class="mono">NumPy</td><td>عمليات المصفوفات والإحداثيات</td><td><span class="badge req">مطلوب</span></td><td>—</td></tr>
+      <tr><td>تحليل بيانات</td><td class="mono">Pandas</td><td>تجميع الوقائع للتقارير والتصدير</td><td><span class="badge req">مطلوب</span></td><td>SQL مباشر</td></tr>
+      <tr><td>إطار ويب</td><td class="mono">FastAPI + Uvicorn</td><td>بناء الـ REST API وتشغيله</td><td><span class="badge req">مطلوب</span></td><td>Flask / Django</td></tr>
+      <tr><td>تحقق</td><td class="mono">Pydantic v2 + pydantic-settings</td><td>التحقق من المدخلات وإدارة الإعدادات</td><td><span class="badge req">مطلوب</span></td><td>marshmallow</td></tr>
+      <tr><td>ORM</td><td class="mono">SQLAlchemy 2.0</td><td>تعريف الجداول والتعامل معها بأمان</td><td><span class="badge req">مطلوب</span></td><td>Django ORM</td></tr>
+      <tr><td>migrations</td><td class="mono">Alembic</td><td>تتبّع تغييرات مخطط قاعدة البيانات</td><td><span class="badge req">مطلوب</span></td><td>SQL يدوي</td></tr>
+      <tr><td>قاعدة بيانات</td><td class="mono">PostgreSQL 16</td><td>حفظ كل البيانات الوصفية والعلاقات</td><td><span class="badge req">مطلوب</span></td><td>MySQL / SQLite</td></tr>
+      <tr><td>مشغّل DB</td><td class="mono">psycopg (v3)</td><td>الاتصال بـ PostgreSQL من Python</td><td><span class="badge req">مطلوب</span></td><td>asyncpg</td></tr>
+      <tr><td>مصادقة</td><td class="mono">JWT (PyJWT) + bcrypt</td><td>تسجيل الدخول وتجزئة كلمات المرور</td><td><span class="badge opt">اختياري</span></td><td>OAuth / Session</td></tr>
+      <tr><td>مهام خلفية</td><td class="mono">DB-backed queue + worker</td><td>تنفيذ المعالجة الطويلة خارج الطلب</td><td><span class="badge req">مطلوب</span></td><td>Celery + Redis</td></tr>
+      <tr><td>تحديث الحالة</td><td class="mono">Polling</td><td>الواجهة تسأل عن حالة الـ job دورياً</td><td><span class="badge req">مطلوب</span></td><td>WebSocket</td></tr>
+      <tr><td>واجهة</td><td class="mono">React 18 + TypeScript 5 + Vite 5</td><td>بناء واجهة المستخدم بسرعة وأمان الأنواع</td><td><span class="badge req">مطلوب</span></td><td>Vue / Svelte</td></tr>
+      <tr><td>تصميم</td><td class="mono">Tailwind CSS 3</td><td>تنسيق الواجهة بفئات جاهزة</td><td><span class="badge req">مطلوب</span></td><td>Bootstrap</td></tr>
+      <tr><td>رسوم بيانية</td><td class="mono">Recharts</td><td>رسم مؤشرات الـ Analytics</td><td><span class="badge req">مطلوب</span></td><td>Chart.js</td></tr>
+      <tr><td>HTTP client</td><td class="mono">Axios</td><td>إرسال الطلبات للـ Backend</td><td><span class="badge req">مطلوب</span></td><td>fetch</td></tr>
+      <tr><td>توجيه</td><td class="mono">react-router-dom v6</td><td>التنقل بين صفحات الواجهة</td><td><span class="badge req">مطلوب</span></td><td>TanStack Router</td></tr>
+      <tr><td>حاويات</td><td class="mono">Docker + Docker Compose</td><td>تشغيل موحّد للتسليم</td><td><span class="badge req">مطلوب</span></td><td>تشغيل يدوي</td></tr>
+      <tr><td>CI</td><td class="mono">GitHub Actions</td><td>فحص آلي للكود عند الدفع</td><td><span class="badge future">Future</span></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 لماذا Python للـ Backend وللذكاء الاصطناعي معاً</h3>
+  <p><strong>Python:</strong> لغة برمجة عالية المستوى تُقرأ مثل الإنجليزية تقريباً. اخترناها لأن عالم الذكاء
+  الاصطناعي كله مبني حولها: PyTorch وUltralytics وOpenCV كلها مكتبات Python في المقام الأول. لو اخترنا لغة
+  أخرى للـ Backend لكنا مضطرين لتشغيل عمليتين بلغتين مختلفتين والتنسيق بينهما، وهذا تعقيد لا حاجة له.</p>
+  <p>النسخة المستهدفة <span class="mono">Python 3.11</span> لأنها توازن بين حداثة الميزات واستقرار المكتبات.
+  نستخدم <span class="mono">venv</span> (بيئة افتراضية) لعزل مكتبات المشروع عن مكتبات النظام، وهذا موضوع
+  الفصل الخامس بالتفصيل.</p>
+
+  <h3>3.4 حزمة الذكاء الاصطناعي والرؤية الحاسوبية</h3>
+  <ul>
+    <li><strong>PyTorch:</strong> المحرّك الذي يشغّل أوزان الشبكات العصبية. اخترناه لأنه الأكثر استخداماً في
+    الأبحاث والمراجع، ولأن Ultralytics مبنية عليه.</li>
+    <li><strong>Ultralytics YOLO:</strong> مكتبة جاهزة للكشف عن الأجسام. توفّر لنا دالة واحدة للتشغيل ودالة
+    تتبّع <span class="mono">model.track</span>، فلا نكتب منطق الشبكة بأنفسنا.</li>
+    <li><strong>ByteTrack:</strong> خوارزمية تتبّع تُعطي كل شخص معرّفاً ثابتاً عبر الإطارات. مهمّة لأن
+    "شخص بدون خوذة" يجب أن يبقى نفس الشخص عبر الإطارات لنحسب مدة المخالفة.</li>
+    <li><strong>OpenCV:</strong> قراءة الفيديو، استخراج الإطارات، تغيير الحجم، وكتابة الإطارات كصور دليل.</li>
+    <li><strong>NumPy:</strong> العمليات العددية على المصفوفات، وتُستخدم داخلياً في حساب التداخل والمسافات.</li>
+    <li><strong>Pandas:</strong> تجميع الوقائع في جداول للتقارير اليومية والتصدير بصيغة CSV.</li>
+  </ul>
+  <div class="callout note"><span class="co-title">أين تُشغَّل هذه المكتبات؟</span>
+    <p>داخل عملية الـ <span class="mono">worker</span> لا داخل عملية الـ API. تشغيل PyTorch في عملية الـ API
+    يستهلك الذاكرة ويجمّد الطلبات، لذلك الفصل إلزامي.</p></div>
+
+  <h3>3.5 حزمة الـ Backend وقاعدة البيانات</h3>
+  <ul>
+    <li><strong>FastAPI:</strong> إطار ويب حديث يبني الـ API بسرعة، ويولّد توثيق <span class="mono">Swagger</span>
+    تلقائياً من أنواع البيانات. يوفّر تحققاً تلقائياً من المدخلات وأداءً عالياً.</li>
+    <li><strong>Uvicorn:</strong> الخادم الذي يشغّل تطبيق FastAPI فعلاً. الأمر المعتاد
+    <span class="mono">uvicorn app.main:app --reload</span>.</li>
+    <li><strong>Pydantic v2:</strong> يتحقق من شكل البيانات الداخلة والخارجة عبر نماذج مكتوبة بأنواع صريحة،
+    ويُعيد رسائل خطأ دقيقة. و<span class="mono">pydantic-settings</span> يقرأ متغيّرات البيئة ويحوّلها إلى كائن
+    إعدادات واحد.</li>
+    <li><strong>SQLAlchemy 2.0:</strong> يربط كود Python بجداول PostgreSQL دون كتابة SQL يدوي لكل استعلام،
+    ويسمح بتعريف الجداول كأصناف (classes).</li>
+    <li><strong>Alembic:</strong> يتتبّع كل تغيير في مخطط قاعدة البيانات كملف <span class="mono">migration</span>
+    يمكن تطبيقه أو التراجع عنه، فيتزامن الفريق دون حذف البيانات.</li>
+    <li><strong>PostgreSQL 16:</strong> قاعدة بيانات علائقية قوية تدعم UUID والأنواع والعناصر الجزئية الفريدة
+    (partial unique index) التي نحتاجها لمنع تشغيل مهمّتين على نفس الفيديو. اخترناها على SQLite لأن SQLite
+    لا تكفي لبيئة متعددة العمليات، وعلى MySQL لتقاربها مع متطلبات المشروع.</li>
+    <li><strong>psycopg (v3):</strong> المشغّل الذي يربط SQLAlchemy بـ PostgreSQL. نسخة v3 هي الحديثة والمستقرة.</li>
+    <li><strong>JWT + bcrypt:</strong> للمصادقة. الـ JWT رمز دخول موقَّع، وbcrypt تجزئة كلمات المرور بحيث لا
+    تُخزَّن أبداً كنص صريح. هذه الحزمة اختيارية خلف علم <span class="mono">AUTH_ENABLED</span>.</li>
+  </ul>
+
+  <h3>3.6 حزمة الـ Frontend</h3>
+  <ul>
+    <li><strong>React 18:</strong> مكتبة بناء واجهات تعتمد على المكوّنات، فنبني كل صفحة من قطع صغيرة قابلة
+    لإعادة الاستخدام.</li>
+    <li><strong>TypeScript 5:</strong> نسخة من JavaScript بأنواع صريحة، تكتشف أخطاء الوصول لحقول غير موجودة
+    قبل التشغيل. مهمّة جداً لأن عقد الـ API كبير.</li>
+    <li><strong>Vite 5:</strong> أداة تشغيل وبناء سريعة تُحدّث الصفحة فوراً عند تعديل الكود.</li>
+    <li><strong>Tailwind CSS 3:</strong> تنسيق الواجهة بفئات جاهزة مكتوبة داخل الـ HTML مباشرة، بلا ملفات CSS
+    ضخمة.</li>
+    <li><strong>Recharts:</strong> رسم المخططات البيانية لمؤشرات الـ Analytics بأسلوب مكوّنات React.</li>
+    <li><strong>Axios:</strong> إرسال طلبات HTTP إلى الـ Backend مع تعامل مريح مع الأخطاء والرؤوس.</li>
+    <li><strong>react-router-dom v6:</strong> التنقل بين صفحات التطبيق دون إعادة تحميل الصفحة.</li>
+  </ul>

@@ -19,7 +19,7 @@ def write(p, t):
 
 def collect():
     frags, metas = [], []
-    for n in range(1, TOTAL_CH + 1):
+    for n in range(0, TOTAL_CH + 1):
         p = os.path.join(CONTENT, 'ch%02d.html' % n)
         if not os.path.exists(p):
             print('  [missing] ch%02d.html' % n)
@@ -82,7 +82,7 @@ def chapter_pages(pdf_path):
             txt = page.extract_text() or ''
         except Exception:
             txt = ''
-        for n in range(1, TOTAL_CH + 1):
+        for n in range(0, TOTAL_CH + 1):
             if n in out:
                 continue
             if 'CH%02d' % n in txt.replace(' ', ''):
@@ -225,7 +225,7 @@ def add_footers(pdf_in, pdf_out, metas, page_map):
         if cur is not None:
             meta = next((m for m in metas if m['num'] == cur), None)
             if meta:
-                label = 'الفصل %s \u2014 %s' % (meta['opnum'], meta['title'])
+                label = (meta['title'] if meta['num'] == 0 else 'الفصل %s \u2014 %s' % (meta['opnum'], meta['title']))
         elif printed >= 1:
             label = 'فهرس المحتويات'
         if label and have_ar:
@@ -261,7 +261,8 @@ def finish(pdf_in, pdf_out, metas, page_map):
         for m in metas:
             pg = page_map.get(m['num'])
             if pg is not None and pg < len(reader.pages):
-                writer.add_outline_item('الفصل %s - %s' % (m['opnum'], m['title']), pg)
+                lbl = ('مقدمة - %s' % m['title']) if m['num'] == 0 else ('الفصل %s - %s' % (m['opnum'], m['title']))
+                writer.add_outline_item(lbl, pg)
     except Exception as exc:
         print('  [outline] failed:', exc)
 

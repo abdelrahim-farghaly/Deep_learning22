@@ -1,0 +1,149 @@
+<section class="chapter" id="ch00">
+  <div class="opener">
+    <div class="op-num">00</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH00 &middot; HOW TO USE THIS HANDBOOK</p>
+      <h2>مقدمة: كيف تستخدم هذا الدليل</h2>
+      <p class="op-sub">اتفاقيات التوثيق، ودلالات الصناديق والوسوم، وكيف تحوّل كل فصل إلى مهام قابلة للتنفيذ</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الدليل ليس عرضاً تقديمياً للمشروع، بل <strong>دليل تنفيذ</strong>. كل فصل يشرح <em>ماذا</em> نبني، و<em>لماذا</em>
+    نبني بهذه الطريقة، و<em>كيف</em> ننفّذه خطوة بخطوة، وينتهي بقائمة تحقق تجعل تقدّم الفريق قابلاً للقياس.</p>
+  </div>
+
+  <h3>0.1 لمن هذا الدليل وكيف تقرأه</h3>
+  <p>الدليل موجَّه لفريق من خمسة طلاب يعرفون أساسيات <span class="en">Python</span> وتعلّم الآلة، لكنهم لم يبنوا
+  قبل ذلك نظاماً كاملاً بـ <span class="en">Backend</span> و<span class="en">Frontend</span> وقاعدة بيانات
+  وخط معالجة فيديو. لذلك نفترض أن القارئ <strong>لا</strong> يعرف مسبقاً كيف يعمل الـ Terminal، ولا معنى
+  الـ Port، ولا كيف تُدار الـ Environment Variables — ونشرح كل ذلك عند أول استخدام.</p>
+  <div class="callout info"><span class="co-title">ترتيب القراءة المقترح</span>
+    <p>اقرأ الفصول 1 و2 و3 و4 و7 <strong>معاً قبل كتابة أي كود</strong>، لأنها تحدّد النطاق والمعمارية وعقد الـ API
+    وهيكل المستودع. بعدها يمكن لكل عضو أن ينتقل مباشرة إلى فصول دوره، مع الرجوع إلى الفصل 7 كلما احتاج
+    التأكد من شكل الطلب أو الرد.</p></div>
+
+  <h3>0.2 بنية كل فصل</h3>
+  <p>كل فصل يبدأ بصندوق تمهيدي، ثم أقسام مرقّمة، وينتهي بخمسة أجزاء ثابتة. هذه البنية ليست شكلاً، بل طريقة
+  لإجبارنا على التحقق من الإنجاز بدلاً من الافتراض.</p>
+  <table class="tbl">
+    <caption>جدول 0-1: الأجزاء الخمسة الثابتة في نهاية كل فصل</caption>
+    <thead><tr><th class="w25">الجزء</th><th class="w75">الغرض منه</th></tr></thead>
+    <tbody>
+      <tr><td>ما تعلّمناه</td><td>ملخّص قصير للمفاهيم والقرارات التي ثبّتها الفصل.</td></tr>
+      <tr><td>ما يجب تنفيذه</td><td>قائمة مهام عملية على شكل Checklist لكل عضو معني.</td></tr>
+      <tr><td>المخرجات المتوقعة</td><td>الملفات والجداول والـ Endpoints والصفحات التي يجب أن تكون موجودة فعلاً.</td></tr>
+      <tr><td>كيف نتحقق من الإنجاز</td><td>معايير قبول يمكن اختبارها، وليست عبارات عامة.</td></tr>
+      <tr><td>أخطاء شائعة</td><td>الأخطاء التي يقع فيها الفريق عادةً في هذا الجزء وكيف نتجنبها.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>0.3 دلالات الصناديق والوسوم</h3>
+  <p>نستخدم ألواناً ثابتة عبر الدليل كله، بحيث تعرف نوع المعلومة من لونها قبل قراءتها.</p>
+  <table class="tbl">
+    <caption>جدول 0-2: دلالات الصناديق الملوّنة</caption>
+    <thead><tr><th class="w25">الصندوق</th><th class="w75">المعنى</th></tr></thead>
+    <tbody>
+      <tr><td>صندوق أزرق مخضرّ (Info)</td><td>معلومة تقنية مهمة أو توضيح لمصطلح.</td></tr>
+      <tr><td>صندوق برتقالي (Warning)</td><td>تحذير: خطأ شائع أو قرار يجب الحذر فيه.</td></tr>
+      <tr><td>صندوق أحمر (Danger)</td><td>خطر حقيقي: قد يسبب فشل النظام أو ادّعاءً غير صحيح.</td></tr>
+      <tr><td>صندوق أخضر (Tip)</td><td>نصيحة عملية توفّر وقتاً.</td></tr>
+      <tr><td>صندوق بنفسجي (Example)</td><td>مثال عملي يربط المفاهيم ببعضها.</td></tr>
+      <tr><td>صندوق رمادي (Note)</td><td>ملاحظة جانبية أو تعليق على المنهجية.</td></tr>
+    </tbody>
+  </table>
+  <table class="tbl">
+    <caption>جدول 0-3: الوسوم المستخدمة في جداول النطاق</caption>
+    <thead><tr><th class="w25">الوسم</th><th class="w75">المعنى</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge mvp">MVP</span></td><td>مطلوب داخل النسخة الأولى القابلة للعرض.</td></tr>
+      <tr><td><span class="badge future">Future</span></td><td>مؤجَّل إلى ما بعد الـ MVP، ويُذكر كاقتراح لا كوعد.</td></tr>
+      <tr><td><span class="badge req">Required</span></td><td>تقنية أو خطوة لا يعمل النظام بدونها.</td></tr>
+      <tr><td><span class="badge opt">Optional</span></td><td>مفيدة لكن يمكن تأجيلها دون كسر النظام.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>0.4 اتفاقية القيم المؤقتة (Placeholders)</h3>
+  <p>في بعض المواضع لا نعرف القيمة النهائية: مسار ملف أوزان الـ Model، أو اسم الجامعة، أو اسم عضو الفريق.
+  في هذه الحالات نكتب القيمة على شكل وسم واضح بين علامتي أصغر وأكبر، وليس رقماً أو اسماً مُخترعاً.</p>
+  <table class="tbl">
+    <caption>جدول 0-4: أمثلة على القيم المؤقتة وأين تُستبدل</caption>
+    <thead><tr><th class="w45">الشكل المستخدم</th><th class="w55">أين تُستبدل</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</td><td>ملف <span class="mono">.env</span> ثم <span class="mono">core/config.py</span></td></tr>
+      <tr><td class="mono">&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;</td><td>نفس المكان، متغير مستقل لكل Model</td></tr>
+      <tr><td class="mono">&lt;MODEL_VERSION&gt;</td><td>يُسجَّل مع كل كشف في جدول <span class="mono">detections</span></td></tr>
+      <tr><td class="mono">&lt;DATASET_NAME&gt;</td><td>فصول البيانات والتقييم عند توثيق مصدر التدريب</td></tr>
+      <tr><td class="mono">&lt;UNIVERSITY_NAME&gt;</td><td>صفحة الغلاف وبطاقة المشروع</td></tr>
+      <tr><td class="mono">&lt;SUPERVISOR_NAME&gt;</td><td>صفحة الغلاف</td></tr>
+      <tr><td class="mono">&lt;TEAM_MEMBER_1_NAME&gt; .. &lt;TEAM_MEMBER_5_NAME&gt;</td><td>فصل توزيع العمل</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="co-title">لا تُملأ القيم المؤقتة بأرقام تقديرية</span>
+    <p>القيمة المؤقتة التي تُستبدل برقم مُخمَّن أسوأ من تركها كما هي، لأنها تُنشئ ادّعاءً لا يمكن الدفاع عنه أمام
+    لجنة المناقشة. اتركها ظاهرة حتى تقيس القيمة الحقيقية.</p></div>
+
+  <h3>0.5 اصطلاحات الرسوم التوضيحية والأكواد</h3>
+  <p>كل رسم توضيحي له رقم ووصف أسفله، وكل كود له اسم الملف الذي ينتمي إليه في شريط علوي، حتى يعرف القارئ
+  أين يضع الكود بالضبط.</p>
+  <div class="fig">
+    <div class="dg">
+      <div class="drow">
+        <div class="dbox navy">مسار الملف<span class="dtag">backend/app/main.py</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox teal">الكود نفسه<span class="dsub">تعليقات بالإنجليزية فقط</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox orange">كيف نجرّبه<span class="dsub">أمر تشغيل + المخرج المتوقع</span></div>
+      </div>
+    </div>
+    <div class="fig-cap"><b>شكل 0-1:</b> بنية كل صندوق كود في هذا الدليل: المسار، ثم الكود، ثم طريقة التجربة</div>
+  </div>
+  <ul>
+    <li>الأكواد والأوامر تُكتب دائماً من اليسار إلى اليمين حتى داخل النص العربي.</li>
+    <li>لا نضع تعليقات عربية داخل الكود، لأن أي محرّر أو أداة سيتعامل معها بشكل غير متوقّع.</li>
+    <li>كل قيمة قابلة للتغيير تُقرأ من <span class="en">Environment Variable</span> وليس من داخل الكود مباشرة.</li>
+    <li>مخرجات التشغيل تُوصف <em>شكلها</em> (سطر حالة، رسالة نجاح، ملف ناتج) ولا تُكتب كأرقام دقة أو سرعة.</li>
+  </ul>
+
+  <h3>0.6 قواعد الأمانة التوثيقية</h3>
+  <p>نطبّق على هذا الدليل نفس المعيار الذي نطبّقه على الكود: لا نكتب ما لم نتحقق منه.</p>
+  <div class="grid2">
+    <div class="card red"><h5>لا نفعل</h5>
+      <ul><li>لا نكتب دقة أو <span class="mono">mAP</span> أو <span class="mono">FPS</span> لم تُقس فعلياً.</li>
+      <li>لا نقول إن ميزة "مكتملة" قبل أن تعمل وتُختبر.</li>
+      <li>لا ننسخ أرقاماً من أوراق بحثية وننسبها لمشروعنا.</li>
+      <li>لا نكتب أسعاراً أو وعود GPU مجاني.</li>
+      <li>لا ننشر مفاتيح أو كلمات مرور أو بيانات عاملين حقيقيين.</li></ul></div>
+    <div class="card green"><h5>نفعل بدلاً من ذلك</h5>
+      <ul><li>نترك جدول نتائج فارغاً بعنوان (يُملأ بعد التجربة).</li>
+      <li>نوضّح الفرق بين <span class="badge mvp">MVP</span> و<span class="badge future">Future</span>.</li>
+      <li>نذكر الحدود والقيود صراحةً بدل إخفائها.</li>
+      <li>نراجع تراخيص البيانات والـ Models قبل استخدامها.</li>
+      <li>نستخدم قيماً مؤقتة واضحة لأي معلومة ناقصة.</li></ul></div>
+  </div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة المقدمة</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>عرفنا بنية الفصل الواحد، ومعنى كل لون ووسم، وكيف نتعامل مع القيم الناقصة، ولماذا لا نكتب أرقاماً
+        لم نقسها.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>إنشاء ملف <span class="mono">docs/GLOSSARY.md</span> وملف <span class="mono">docs/SCOPE.md</span>.</li>
+          <li>استبدال قيم الغلاف (<span class="mono">&lt;UNIVERSITY_NAME&gt;</span>، <span class="mono">&lt;SUPERVISOR_NAME&gt;</span>) قبل الطباعة النهائية.</li>
+          <li>تثبيت أسماء الأعضاء الخمسة في فصل توزيع العمل.</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>نسخة مطبوعة أو PDF من هذا الدليل يحمل بيانات المشروع الصحيحة.</li>
+        <li>ملف مصطلحات موحّد يستخدمه كل الأعضاء.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>لا يوجد في الدليل أي وسم قيمة مؤقتة غير مذكور في جدول 0-4.</li>
+        <li>كل عضو يعرف معنى كل وسم لوني دون الرجوع للجدول.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>تجاهل أجزاء نهاية الفصل لأنها "شكلية"، وهي في الحقيقة أدوات متابعة الفريق.</li>
+        <li>ملء القيم المؤقتة بأرقام تقديرية لتجميل التوثيق.</li>
+        <li>خلط الوسم <span class="badge mvp">MVP</span> بالوسم <span class="badge future">Future</span> في جداول النطاق.</li></ul></div>
+    </div>
+  </div>
+</section>
