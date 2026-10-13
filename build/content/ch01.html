@@ -1,0 +1,284 @@
+<section class="chapter" id="ch01">
+  <div class="opener">
+    <div class="op-num">01</div>
+    <div class="op-txt">
+      <p class="op-kicker">CH01 &middot; OVERVIEW &amp; SCOPE</p>
+      <h2>نظرة عامة على المشروع ونطاقه</h2>
+      <p class="op-sub">ما الذي نبنيه بالضبط، لمن، وما هي الحدود التي لا نتجاوزها</p>
+    </div>
+  </div>
+
+  <div class="lead">
+    <p>هذا الفصل هو نقطة الاتفاق الأولى للفريق. قبل أن نكتب سطر كود واحد، يجب أن يكون واضحاً للخمسة أعضاء
+    ما هي المشكلة التي نحلّها، ومن سيستخدم النظام، وما الذي يدخل إليه وما الذي يخرج منه، وأين ينتهي نطاق
+    العمل المتفق عليه. كل الفصول التالية تبني على هذا الفصل.</p>
+  </div>
+
+  <h3>1.1 المشكلة التي يعالجها المشروع</h3>
+  <p>في المصانع ومواقع الإنشاء والمستودعات، تُسجَّل كاميرات المراقبة (CCTV) ساعات طويلة من الفيديو كل يوم.
+  المشكلة ليست في نقص التسجيل، بل في أن <strong>لا أحد يستطيع مشاهدة كل هذه الساعات</strong>. النتيجة أن مخالفات
+  معدات الوقاية الشخصية، أو بدايات الحرائق والدخان، أو اقتراب العاملين من المعدات الخطرة، قد تمر دون أن
+  يلاحظها أحد إلا بعد وقوع الحادث.</p>
+  <p>الحل التقليدي هو تكليف فرد أمن بمشاهدة الشاشات، وهو حل غير موثوق لأن الانتباه البشري يتراجع سريعاً مع
+  الوقت، ولأن المراجعة تكون لحظية ولا تُنتج سجلاً يمكن الرجوع إليه وتحليله. لذلك يحتاج الموقع إلى طبقة
+  برمجية تُفرز ما يحدث تلقائياً، وتُنتج <strong>سجلاً منظّماً للحوادث</strong> قابلاً للبحث والمراجعة والتحليل.</p>
+  <div class="callout info"><span class="co-title">ماذا نقصد بـ Incident؟</span>
+    <p><strong>Incident (حادث/واقعة سلامة):</strong> سجل واحد في قاعدة البيانات يمثّل حدثاً أمنياً محتملاً استخرجته
+    قواعد النظام من نتائج تحليل الفيديو، مثل "عامل بدون خوذة" أو "دخان ظهر في الإطار" أو "شخص قريب جداً من
+    ماكينة". الـ Incident ليس مجرد كشف لحظي، بل وحدة عمل لها وقت بداية ووقت نهاية ودرجة خطورة وحالة مراجعة.</p></div>
+
+  <h3>1.2 المستخدمون المستهدفون</h3>
+  <p>النظام موجَّه لثلاث فئات داخل المنشأة الصناعية، ولا نستهدف الجمهور العام ولا نقدّم خدمة مدنية.</p>
+  <table class="tbl">
+    <caption>جدول 1-1: المستخدمون المستهدفون وأهم احتياجاتهم</caption>
+    <thead><tr><th>المستخدم</th><th>ما يحتاجه من النظام</th><th>ما يراه في الـ Frontend</th></tr></thead>
+    <tbody>
+      <tr><td>مسؤول السلامة <span class="mono">safety_officer</span></td>
+        <td>مراجعة الوقائع، تأكيدها أو رفضها، إضافة ملاحظة، ومتابعة المخالفات المتكررة</td>
+        <td>قائمة الـ Incidents، تفاصيل الواقعة مع الدليل، أزرار المراجعة</td></tr>
+      <tr><td>مدير الموقع / الإدارة</td>
+        <td>مؤشرات عامة عن الالتزام بالسلامة خلال فترة زمنية</td>
+        <td>لوحة الـ Analytics وتقارير الالتزام القابلة للتصدير</td></tr>
+      <tr><td>مهندس النظام / مدير التقنية <span class="mono">admin</span></td>
+        <td>التأكد من عمل الـ Models وحالة الـ Jobs ومعدّل الفشل</td>
+        <td>صفحة الحالة والإعدادات، سجل الـ Jobs والأخطاء</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 مدخلات النظام ومخرجاته</h3>
+  <div class="grid2">
+    <div class="card navy"><h5>المدخلات (Inputs)</h5>
+      <ul><li>ملفات فيديو مسجَّلة من كاميرات CCTV تُرفع من المتصفح.</li>
+      <li>مقطع فيديو قصير جاهز للعرض التوضيحي.</li>
+      <li>إعدادات النظام: مسارات الـ Model checkpoints، عتبات الثقة، مناطق الخطر.</li>
+      <li>قرارات بشرية: تأكيد أو رفض واقعة، وملاحظات المراجعة.</li></ul></div>
+    <div class="card green"><h5>المخرجات (Outputs)</h5>
+      <ul><li>سجل وقائع <span class="mono">incidents</span> بحالة ودرجة خطورة.</li>
+      <li>صور دليل <span class="mono">evidence</span> مقتطعة من الإطار الذي وقعت فيه الواقعة.</li>
+      <li>حالة ونتائج الـ <span class="mono">processing_jobs</span> مع نسبة التقدّم.</li>
+      <li>لوحة تحليلات وتقارير يومية وتصدير <span class="mono">CSV</span>.</li></ul></div>
+  </div>
+  <div class="callout warn"><span class="co-title">تنبيه مهم بخصوص المدخلات</span>
+    <p>المدخل الأساسي في هذه المرحلة هو <strong>فيديو مسجَّل ومرفوع</strong>، وليس بثاً مباشراً (Live stream).
+    المشروع <strong>برمجي بالكامل</strong> ولا يعتمد على شراء حساسات أو أجهزة أو دمج عتاد كشرط للـ MVP.</p></div>
+
+
+  <h3>1.4 دور الـ AI Models المتفق عليها</h3>
+  <p>الـ <span class="en">AI Model</span> مسؤوليته محدودة ومحدَّدة: أن يستقبل صورة (Frame) ويُعيد قائمة
+  بالأشياء التي رآها داخل الصورة، مع صندوق إحاطة ودرجة ثقة. الـ Model <strong>لا</strong> يعرف شيئاً عن قاعدة
+  البيانات، ولا عن المستخدمين، ولا عن معنى "مخالفة سلامة"، ولا عن التقارير. هذه مسؤوليات التطبيق حوله.</p>
+  <table class="tbl">
+    <caption>جدول 1-2: مسؤولية كل مكوّن ذكاء اصطناعي وحدود مسؤوليته</caption>
+    <thead><tr><th>المكوّن</th><th>المسؤولية</th><th>ما هو خارج مسؤوليته</th></tr></thead>
+    <tbody>
+      <tr><td>PPE Detector <span class="badge mvp">MVP</span></td>
+        <td>كشف معدات الوقاية والأشخاص في الإطار وتصنيف حالتها</td>
+        <td>لا يقرّر أن هذه "مخالفة مسجَّلة" ولا يخزّن شيئاً</td></tr>
+      <tr><td>Person Detector + Tracker <span class="badge mvp">MVP</span></td>
+        <td>كشف الأشخاص وإعطاء كل شخص مُعرّفاً مؤقتاً <span class="mono">track_id</span> يتبعه بين الإطارات</td>
+        <td>لا يتعرّف على هوية الشخص الحقيقية ولا يستخدم التعرف على الوجوه</td></tr>
+      <tr><td>Fire / Smoke Detector <span class="badge mvp">MVP</span></td>
+        <td>كشف وجود لهب أو دخان في الإطار</td>
+        <td>لا يحدّد سبب الحريق ولا يقيّم شدّته الفعلية</td></tr>
+      <tr><td>Machinery / Equipment Detector <span class="badge mvp">MVP</span></td>
+        <td>تحديد مواضع المعدات داخل الإطار لدعم منطق الاقتراب</td>
+        <td>لا يقيس مسافات حقيقية بالأمتار بدون معايرة كاميرا</td></tr>
+    </tbody>
+  </table>
+  <div class="callout danger"><span class="co-title">قاعدة لا نتنازل عنها</span>
+    <p>لا نكتب في أي مكان أن الـ Model وصل إلى دقة معيّنة، أو أن سرعة المعالجة كذا إطار/ثانية، قبل أن نقيس
+    ذلك فعلياً على مجموعة اختبار المشروع. أي رقم لم يُقس يساوي "غير معروف"، وليس رقماً تقديرياً.</p></div>
+
+  <h3>1.5 الفرق بين الـ AI Model والتطبيق الكامل</h3>
+  <p>أغلب مشاريع التخرّج تتوقف عند "الـ Model يعمل في Notebook". هذا ليس نظاماً. النظام يحتاج طبقات
+  حول الـ Model تُحوّله إلى منتج قابل للاستخدام. الشكل التالي يوضّح هذه الطبقات.</p>
+  <div class="fig">
+    <div class="dg">
+      <div class="drow">
+        <div class="dbox violet">النموذج فقط<span class="dsub">Notebook + checkpoint</span><span class="dtag">PROTOTYPE</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox teal">طبقة التحليل<span class="dsub">Frame sampling + Inference adapter</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox teal">طبقة القواعد<span class="dsub">Safety rules + Incidents</span></div>
+      </div>
+      <div class="darrow"></div>
+      <div class="drow">
+        <div class="dbox navy">الـ Backend<span class="dsub">FastAPI + REST API</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox navy">قاعدة البيانات<span class="dsub">PostgreSQL</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox green">الـ Frontend<span class="dsub">React Dashboard</span></div>
+        <div class="darrow-h"></div>
+        <div class="dbox orange">التقارير<span class="dsub">CSV / PDF</span></div>
+      </div>
+    </div>
+    <div class="fig-cap"><b>شكل 1-1:</b> من نموذج في Notebook إلى نظام كامل — كل مربّع هو مسؤولية يجب تنفيذها واختبارها</div>
+  </div>
+
+  <h3>1.6 مجموعات الميزات الست الأساسية</h3>
+  <p>نطاق المشروع محدَّد بست مجموعات ميزات. لا نضيف ميزات ذكاء اصطناعي جديدة خارجها، لأن أي إضافة تفتح
+  الباب لبيانات جديدة وتدريب جديد واختبار جديد، وهو ما لا يكفي الوقت لتنفيذه بشكل صحيح.</p>
+  <div class="grid2">
+    <div class="card"><h5>1) PPE Detection and Violation Detection</h5>
+      <p class="small">كشف معدات الوقاية الشخصية وتحديد الحالات التي تكون فيها غير مستخدمة، وتحويلها إلى وقائع مخالفة.</p></div>
+    <div class="card"><h5>2) Person Detection and Anonymous Tracking</h5>
+      <p class="small">كشف الأشخاص وتتبّعهم بمُعرّف مؤقت مجهول الهوية لتجميع الملاحظات المتفرّقة في واقعة واحدة.</p></div>
+    <div class="card"><h5>3) Fire and Smoke Detection</h5>
+      <p class="small">كشف ظهور اللهب أو الدخان في الإطار وتسجيله كواقعة عالية الخطورة.</p></div>
+    <div class="card"><h5>4) Machine Proximity Detection</h5>
+      <p class="small">قياس اقتراب الأشخاص من المعدات أو من مناطق خطر مُعرَّفة، وتحويل الاقتراب إلى واقعة.</p></div>
+    <div class="card"><h5>5) Incident Management and Analytics</h5>
+      <p class="small">إدارة الوقائع ومراجعتها وتحليلها إحصائياً من بيانات حقيقية مخزّنة في قاعدة البيانات.</p></div>
+    <div class="card"><h5>6) Safety Compliance Reports</h5>
+      <p class="small">إنتاج تقارير التزام دورية قابلة للتصفية والتصدير لدعم قرارات السلامة.</p></div>
+  </div>
+
+  <h3>1.7 جدول النطاق التفصيلي</h3>
+  <table class="tbl">
+    <caption>جدول 1-3: نطاق الميزات — المدخل، المعالجة، المخرج، وهل هي داخل الـ MVP أم لاحقة</caption>
+    <thead><tr><th class="w17">الميزة</th><th class="w20">Input</th><th class="w28">Processing</th><th class="w20">Output</th><th class="w15">MVP / Future</th></tr></thead>
+    <tbody>
+      <tr><td>PPE Detection</td><td>إطارات مُنتقاة من الفيديو</td>
+        <td>PPE Detector &rarr; فلترة بالثقة &rarr; قواعد عدم الاستخدام &rarr; تأكيد زمني</td>
+        <td>واقعة <span class="mono">ppe_violation</span> + صورة دليل</td>
+        <td><span class="badge mvp">MVP</span></td></tr>
+      <tr><td>Person Tracking</td><td>إطارات متتالية</td>
+        <td>Person Detector + Tracker &rarr; مُعرّف مؤقت لكل شخص</td>
+        <td>سجلات <span class="mono">tracks</span> + ربط الوقائع</td>
+        <td><span class="badge mvp">MVP</span></td></tr>
+      <tr><td>Fire / Smoke</td><td>إطارات مُنتقاة</td>
+        <td>Fire/Smoke Detector &rarr; تأكيد على عدة إطارات &rarr; منع التكرار</td>
+        <td>واقعة <span class="mono">fire_smoke</span> بخطورة عالية</td>
+        <td><span class="badge mvp">MVP</span></td></tr>
+      <tr><td>Machine Proximity</td><td>إطارات + منطقة خطر مُعرَّفة</td>
+        <td>كشف الشخص والمعدة &rarr; حساب تقاطع الصناديق &rarr; قاعدة الاقتراب</td>
+        <td>واقعة <span class="mono">machine_proximity</span></td>
+        <td><span class="badge mvp">MVP</span> (تقريبي)</td></tr>
+      <tr><td>Incident Management</td><td>سجلات الوقائع</td>
+        <td>تصفية، ترقيم صفحات، مراجعة بشرية، سجل تدقيق</td>
+        <td>حالة واقعة محدَّثة + ملاحظات مراجعة</td>
+        <td><span class="badge mvp">MVP</span></td></tr>
+      <tr><td>Analytics</td><td>جداول الوقائع</td>
+        <td>تجميعات SQL على النطاقات الزمنية والأنواع والخطورة</td>
+        <td>مؤشرات ورسوم بيانية</td>
+        <td><span class="badge mvp">MVP</span></td></tr>
+      <tr><td>Compliance Reports</td><td>نفس البيانات المخزّنة</td>
+        <td>تجميع يومي/أسبوعي + تصدير</td>
+        <td>ملف <span class="mono">CSV</span></td>
+        <td><span class="badge mvp">MVP</span> (CSV)</td></tr>
+      <tr><td>PDF Report</td><td>بيانات التقارير</td>
+        <td>توليد ملف PDF منسّق</td>
+        <td>ملف PDF</td>
+        <td><span class="badge future">Future</span></td></tr>
+      <tr><td>Notifications</td><td>وقائع مؤكَّدة</td>
+        <td>إرسال بريد/إشعار داخلي</td>
+        <td>إشعار للمستخدم</td>
+        <td><span class="badge future">Future</span></td></tr>
+      <tr><td>Live CCTV Streaming</td><td>بث مباشر RTSP</td>
+        <td>معالجة فورية مستمرة</td>
+        <td>تنبيه لحظي</td>
+        <td><span class="badge future">Future</span></td></tr>
+      <tr><td>IoT / Sensors</td><td>حساسات فيزيائية</td>
+        <td>دمج إشارات عتاد</td>
+        <td>قراءات بيئية</td>
+        <td><span class="badge future">Future</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.8 الفرق بين Detection و Tracking و Rule و Incident و Analytics</h3>
+  <p>أكثر خطأ يوقع الفرق الطلابية في الارتباك هو خلط هذه المستويات الخمسة. كل مستوى له مدخلات ومخرجات
+  مختلفة، ومسؤول مختلف في الفريق.</p>
+  <table class="tbl">
+    <caption>جدول 1-4: مستويات المعالجة الخمسة من الإطار الخام إلى المؤشر التحليلي</caption>
+    <thead><tr><th class="w15">المستوى</th><th class="w30">المعنى</th><th class="w30">المخرج</th><th class="w25">من ينفّذه</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Detection</span></td><td>رصد شيء في إطار واحد: صندوق + صنف + ثقة</td>
+        <td>قائمة كشوفات لإطار واحد</td><td>Member 1 (AI)</td></tr>
+      <tr><td><span class="en">Tracking</span></td><td>ربط الكشوفات المتشابهة بين الإطارات لتكوين مسار لشخص واحد</td>
+        <td>مُعرّف مسار <span class="mono">track_id</span> مع مدى زمني</td><td>Member 1 + Member 2</td></tr>
+      <tr><td><span class="en">Rule Evaluation</span></td><td>تطبيق قاعدة سلامة على الكشوفات والمسارات والمناطق</td>
+        <td>قرار: "هذا مخالفة" أو "هذا اقتراب خطر"</td><td>Member 2</td></tr>
+      <tr><td><span class="en">Incident</span></td><td>تجميع المخالفات المتقاربة زمنياً في سجل واحد قابل للمراجعة</td>
+        <td>صف في جدول <span class="mono">incidents</span> + دليل</td><td>Member 2 + Member 3</td></tr>
+      <tr><td><span class="en">Analytics</span></td><td>تجميع الوقائع المخزّنة لحساب مؤشرات واتجاهات</td>
+        <td>أرقام ورسوم في لوحة التحكم</td><td>Member 3 + Member 4</td></tr>
+    </tbody>
+  </table>
+  <div class="callout example"><span class="co-title">مثال يربط المستويات ببعضها</span>
+    <p>في الإطار 120 يرى الـ Model شخصاً بثقة <span class="mono">0.88</span> بدون خوذة. هذا <em>Detection</em>.
+    في الإطارات 118 إلى 132 يتكرر نفس الكشف لنفس المسار <span class="mono">track_id=7</span>، هذا <em>Tracking</em>.
+    عند وصول عدد الإطارات المتتالية إلى الحد المطلوب، تُطلق قاعدة <span class="mono">PPE_MISSING_HEAD</span>
+    قراراً بالمخالفة، هذا <em>Rule Evaluation</em>. فيُسجَّل صف واحد في <span class="mono">incidents</span> من
+    الثانية <span class="mono">4.0</span> إلى <span class="mono">4.8</span>، هذا <em>Incident</em>. وعند حساب
+    عدد مخالفات الخوذة في هذا الأسبوع لهذا الفيديو، هذا <em>Analytics</em>.</p></div>
+
+  <h3>1.9 حدود الدقة في حساب مناطق الخطر</h3>
+  <p>حسابات الاقتراب ومناطق الخطر تعمل على <strong>إحداثيات البكسل</strong> داخل الإطار، وليس على مسافات
+  حقيقية. الإطار صورة مسطّحة ناتجة من إسقاط ثلاثي الأبعاد إلى مستوٍ ثنائي، فالمسافة بالبكسل لا تتناسب خطياً
+  مع المسافة الحقيقية، وتتغيّر حسب موضع الكاميرا وارتفاعها وزاوية ميلها.</p>
+  <div class="callout danger"><span class="co-title">لا نكتب أمتاراً بدون معايرة</span>
+    <p>لا يجوز أن نكتب في الواجهة "الشخص يبعد 1.5 متر عن الماكينة" إلا إذا كانت الكاميرا معايَرة
+    (<span class="en">Camera Calibration</span>) ومعروف معامل التحويل بين البكسل والمتر في مستوى الأرضية.
+    البديل الصحيح للـ MVP هو التعبير بمقاييس نسبية: نسبة تداخل الصناديق، أو نسبة مسافة مركز الشخص إلى حدود
+    المنطقة من عرض الإطار. ونكتب في الواجهة أن التقدير <strong>تقريبي</strong>.</p></div>
+  <table class="tbl">
+    <caption>جدول 1-5: ما يمكن قوله بأمان وما لا يمكن قوله</caption>
+    <thead><tr><th class="w40">الحالة</th><th class="w30">تعبير مقبول في الـ MVP</th><th class="w30">تعبير مرفوض بدون معايرة</th></tr></thead>
+    <tbody>
+      <tr><td>شخص داخل منطقة خطر مرسومة على الإطار</td><td>"داخل منطقة الخطر المُعرَّفة"</td><td>"يبعد 2 متر عن الماكينة"</td></tr>
+      <tr><td>تقارب صندوق الشخص مع صندوق المعدة</td><td>"تداخل بنسبة 18% من مساحة الصندوق"</td><td>"المسافة الفعلية 0.8 متر"</td></tr>
+      <tr><td>سرعة شخص متتبَّع</td><td>"إزاحة بالبكسل/ثانية بين إطارين"</td><td>"سرعة 1.2 م/ث"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.10 Planned Architecture مقابل MVP مقابل Future Enhancements</h3>
+  <p>نميّز بصراحة بين ثلاثة مستويات، ونكتب هذه التفرقة في كل فصل حتى لا يتحوّل الوصف إلى ادّعاء بإنجاز.</p>
+  <table class="tbl">
+    <caption>جدول 1-6: مستويات الإنجاز الثلاثة</caption>
+    <thead><tr><th class="w18">المستوى</th><th class="w42">المعنى</th><th class="w40">كيف نتعامل معه في هذا الدليل</th></tr></thead>
+    <tbody>
+      <tr><td><span class="en">Planned Architecture</span></td>
+        <td>الصورة الكاملة للنظام كما نريده بعد اكتماله، وتشمل مكوّنات قد لا تُنفَّذ الآن</td>
+        <td>نرسمه ونشرحه بوضوح مع وسم <span class="badge future">Future</span></td></tr>
+      <tr><td><span class="en">MVP</span></td>
+        <td>أصغر نسخة مكتملة تعمل من أول رفع الفيديو إلى تصدير التقرير</td>
+        <td>هو ما ننفّذه فعلاً ووسم <span class="badge mvp">MVP</span> في كل فصل</td></tr>
+      <tr><td><span class="en">Future Enhancements</span></td>
+        <td>قدرات تُضاف بعد استقرار الـ MVP: PDF، إشعارات، بث مباشر، معايرة كاميرا</td>
+        <td>نذكرها في آخر الفصل كمقترح لا كوعد</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="co-title">لماذا نكتب هذا الفصل أصلاً؟</span>
+    <p>لأن لجنة المناقشة تسأل دائماً سؤالين: "ما الذي نفّذتموه فعلاً؟" و"ما الذي لم تنفّذوه ولماذا؟". الفريق
+    الذي يجيب بوضوح يكسب ثقة، والفريق الذي يخلط بين المخطَّط والمنفَّذ يفقدها بسرعة.</p></div>
+
+  <div class="eoc">
+    <div class="eoc-head">خلاصة الفصل 1</div>
+    <div class="eoc-body">
+      <div class="eoc-row"><h4>ما تعلّمناه</h4>
+        <p>حدّدنا المشكلة (فيديو كثير ومتابعة بشرية غير موثوقة)، والمستخدمين الثلاثة، والمدخلات والمخرجات.
+        وفصلنا بين مسؤولية الـ Model ومسؤولية التطبيق، وثبّتنا ست مجموعات ميزات لا نتجاوزها، وميّزنا بين
+        Detection و Tracking و Rule و Incident و Analytics، ووضّحنا أن مناطق الخطر تقريبية بدون معايرة.</p></div>
+      <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
+        <ul class="checklist">
+          <li>الموافقة على جدول النطاق (جدول 1-3) وتثبيته في ملف <span class="mono">docs/SCOPE.md</span>.</li>
+          <li>تحديد قيمة كل Placeholder يخص الـ Models والبيانات.</li>
+          <li>كتابة تعريفات المصطلحات الخمسة في <span class="mono">docs/GLOSSARY.md</span>.</li>
+          <li>تحديد مواصفات فيديو العرض التوضيحي (المدة، الدقة، المحتوى).</li>
+        </ul></div>
+      <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
+        <ul><li>ملف <span class="mono">docs/SCOPE.md</span> يحتوي جدول النطاق النهائي.</li>
+        <li>ملف <span class="mono">docs/GLOSSARY.md</span> يحتوي المصطلحات وتعريفاتها بالعربية.</li>
+        <li>قائمة نهائية بأسماء الـ Classes في كل Model مكتوبة حرفياً.</li></ul></div>
+      <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
+        <ul><li>كل عضو في الفريق يستطيع شرح الفرق بين Detection و Incident في دقيقتين.</li>
+        <li>لا توجد ميزة في جدول النطاق غير مصنّفة <span class="badge mvp">MVP</span> أو <span class="badge future">Future</span>.</li>
+        <li>لا يوجد رقم دقة أو سرعة مكتوب بدون مصدر قياس.</li></ul></div>
+      <div class="eoc-row"><h4>أخطاء شائعة</h4>
+        <ul><li>اعتبار أن "الـ Model يعمل" يعني أن المشروع انتهى.</li>
+        <li>إضافة ميزات ذكاء اصطناعي جديدة أثناء التنفيذ لأنها "تبدو سهلة".</li>
+        <li>كتابة مسافات بالأمتار في الواجهة اعتماداً على البكسل.</li>
+        <li>استخدام مصطلحات Detection و Incident بالتبادل دون تمييز.</li></ul></div>
+    </div>
+  </div>
+</section>

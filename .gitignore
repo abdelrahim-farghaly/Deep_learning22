@@ -1,0 +1,9 @@
+build/debs/
+build/sysroot/
+build/.pptr/
+build/node_modules/
+build/preview/
+build/*.pdf
+build/httpd.log
+__pycache__/
+*.pyc

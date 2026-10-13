@@ -1,0 +1,80 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8">
+<style>
+@page{size:A4;margin:0;}
+*{box-sizing:border-box;}
+body{margin:0;padding:0;font-family:"Cairo",sans-serif;direction:rtl;}
+.cv{width:210mm;height:297mm;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#071a33 0%,#0b2545 45%,#123a63 100%);color:#fff;}
+.cv .grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:26px 26px;}
+.cv .glow{position:absolute;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(15,139,158,.55) 0%,rgba(15,139,158,0) 70%);
+  top:-140px;left:-120px;}
+.cv .glow2{position:absolute;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(23,162,184,.28) 0%,rgba(23,162,184,0) 70%);
+  bottom:-220px;right:-160px;}
+.cv .bar{position:absolute;top:0;right:0;left:0;height:9px;
+  background:linear-gradient(90deg,#0f8b9e 0%,#17a2b8 45%,#d97706 100%);}
+.cv .inner{position:absolute;inset:0;padding:26mm 20mm 20mm 20mm;display:flex;flex-direction:column;}
+.cv .kicker{font-family:"JetBrainsMono",monospace;direction:ltr;text-align:left;font-size:8.5pt;
+  letter-spacing:3px;color:#7fd8e6;text-transform:uppercase;}
+.cv h1{font-family:"Tajawal",sans-serif;font-size:47pt;line-height:1.06;margin:7mm 0 0 0;color:#fff;font-weight:700;}
+.cv h1 .ai{color:#2fd0e8;}
+.cv .ar-title{font-family:"Tajawal",sans-serif;font-size:16.5pt;color:#e8f4fb;margin:4mm 0 0 0;font-weight:400;}
+.cv .rule{width:64mm;height:4px;background:#0f8b9e;border-radius:3px;margin:7mm 0 6mm 0;}
+.cv .doc{font-size:20pt;font-family:"Tajawal",sans-serif;color:#fff;font-weight:700;}
+.cv .pipe{margin-top:4mm;font-size:10.5pt;color:#bfe3ee;line-height:2;}
+.cv .pipe b{color:#2fd0e8;font-weight:700;}
+.cv .chips{margin-top:8mm;display:flex;flex-wrap:wrap;gap:6px;}
+.cv .chip{border:1px solid rgba(127,216,230,.55);border-radius:20px;padding:2px 11px;font-size:9pt;
+  color:#d9f2f8;font-family:"JetBrainsMono",monospace;direction:ltr;}
+.cv .spacer{flex:1 1 auto;}
+.cv .inside{background:rgba(255,255,255,.055);border:1px solid rgba(127,216,230,.3);border-radius:10px;padding:6mm 7mm;}
+.cv .inside-title{font-family:"Tajawal",sans-serif;font-weight:700;font-size:12pt;color:#2fd0e8;margin-bottom:3mm;}
+.cv .inside-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;font-size:10pt;color:#dceaf5;}
+.cv .inside-grid div::before{content:"AA";color:#0f8b9e;margin-inline-end:6px;}
+.cv .meta{border-top:1px solid rgba(255,255,255,.22);padding-top:5mm;font-size:10.5pt;color:#dbe9f4;line-height:1.95;}
+.cv .meta .row{display:flex;gap:8px;}
+.cv .meta .k{color:#7fd8e6;min-width:44mm;font-family:"Tajawal",sans-serif;font-weight:700;}
+.cv .ph{color:#f0b46b;font-family:"JetBrainsMono",monospace;font-size:9.5pt;direction:ltr;}
+.cv .foot{position:absolute;bottom:8mm;left:20mm;right:20mm;font-size:8.5pt;color:#8fb4cc;
+  display:flex;justify-content:space-between;font-family:"JetBrainsMono",monospace;direction:ltr;}
+</style></head><body>
+<div class="cv"><div class="grid"></div><div class="glow"></div><div class="glow2"></div><div class="bar"></div>
+ <div class="inner">
+  <div class="kicker">Graduation Project &middot; Software Implementation Handbook</div>
+  <h1>SafeVision <span class="ai">AI</span></h1>
+  <div class="ar-title">نظام ذكي لإدارة السلامة الصناعية بالاعتماد على الرؤية الحاسوبية</div>
+  <div class="rule"></div>
+  <div class="doc">الدليل العربي الشامل للتنفيذ</div>
+  <div class="pipe"><b>Backend</b> &middot; <b>Frontend</b> &middot; <b>Database</b> &middot; <b>AI Integration</b> &middot; <b>Testing</b> &middot; <b>Deployment</b><br>
+    المعمارية الكاملة &middot; الـ API &middot; قاعدة البيانات &middot; خط معالجة الفيديو &middot; الواجهة &middot; النشر &middot; خطة الفريق</div>
+  <div class="chips"><span class="chip">Python</span><span class="chip">FastAPI</span><span class="chip">PostgreSQL</span>
+   <span class="chip">SQLAlchemy</span><span class="chip">React</span><span class="chip">TypeScript</span>
+   <span class="chip">OpenCV</span><span class="chip">PyTorch</span><span class="chip">Docker</span><span class="chip">Alembic</span></div>
+  <div class="spacer"></div>
+  <div class="inside">
+    <div class="inside-title">ما يغطّيه هذا الدليل</div>
+    <div class="inside-grid">
+      <div>المعمارية الكاملة للنظام والـ AI Pipeline</div>
+      <div>الـ Backend بـ FastAPI والـ API Contract</div>
+      <div>قاعدة البيانات و PostgreSQL و Alembic</div>
+      <div>دمج الـ Models وخط معالجة الفيديو</div>
+      <div>واجهة React وربطها بالـ API</div>
+      <div>الاختبارات و Docker والنشر وخطة الفريق</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="meta">
+   <div class="row"><span class="k">التوثيق</span><span>وثائق مشروع التخرّج</span></div>
+   <div class="row"><span class="k">إعداد</span><span>فريق مشروع التخرّج &mdash; Graduation Project Team</span></div>
+   <div class="row"><span class="k">القسم</span><span>قسم علوم الحاسب / الذكاء الاصطناعي</span></div>
+   <div class="row"><span class="k">الجامعة</span><span class="ph">&lt;UNIVERSITY_NAME&gt;</span></div>
+   <div class="row"><span class="k">إشراف</span><span class="ph">&lt;SUPERVISOR_NAME&gt;</span></div>
+   <div class="row"><span class="k">العام الدراسي</span><span>2026 &ndash; 2027</span></div>
+  </div>
+ </div>
+ <div class="foot"><span>SafeVision AI</span><span>v1.0 &middot; Implementation Handbook</span></div>
+</div></body></html>
