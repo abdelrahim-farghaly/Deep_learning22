@@ -9,16 +9,14 @@
   </div>
 
   <div class="lead">
-    <p>بعد أن اتفقنا في الفصل الأول على المشكلة والنطاق، يرسم هذا الفصل الصورة الكبيرة: من مكوّنات
-    <span class="en">SafeVision AI</span>، ومسؤولية كل مكوّن، وكيف تتحدّث هذه المكوّنات مع بعضها. هذا الفصل هو
-    المرجع الذي يعود إليه كل عضو عند الشك في "من يفعل ماذا".</p>
+    <p>يرسم هذا الفصل الصورة الكبيرة: مكوّنات <span class="en">SafeVision AI</span>، ومسؤولية كل مكوّن، وكيف
+    تتحدّث مع بعضها، وهو المرجع عند الشك في "من يفعل ماذا".</p>
   </div>
 
   <h3>2.1 معنى البنية المعمارية</h3>
-  <p><strong>System Architecture (البنية المعمارية):</strong> وصف للمكوّنات الرئيسية في النظام ومسؤولية كل
-  مكوّن وطريقة تواصلها. هي ليست كوداً، لكنها تُحدّد شكل الكود قبل كتابته. المعمارية التي اخترناها هي
-  <strong>Modular Monolith</strong> (كتلة واحدة معيارية) مع فصل واضح بين الـ <span class="en">Backend</span>
-  والـ <span class="en">Frontend</span>، وعملية مستقلة واحدة للمعالجة، والسبب مشروح في القسم 2.9.</p>
+  <p><strong>System Architecture (البنية المعمارية):</strong> وصف للمكوّنات ومسؤولية كل مكوّن وطريقة
+  تواصلها. اخترنا <strong>Modular Monolith</strong> (كتلة واحدة معيارية) مع فصل واضح بين الـ
+  <span class="en">Backend</span> والـ <span class="en">Frontend</span> وعملية معالجة مستقلة (السبب في 2.9).</p>
 
   <h3>2.2 المكوّنات الرئيسية ومسؤولية كل مكوّن</h3>
   <p>لكل مكوّن مسؤولية واحدة واضحة، والجدول التالي هو المرجع السريع لها:</p>
@@ -40,13 +38,12 @@
     </tbody>
   </table>
   <div class="callout info"><span class="co-title">تمييز أساسي</span>
-    <p>مخرجات الـ <span class="en">AI Inference Components</span> هي <strong>كشوفات خام</strong> (صناديق
-    وفئات وثقة لكل إطار). الواقعة <span class="mono">incident</span> لا تُنشأ إلا بعد تطبيق قواعد السلامة،
-    ومخرجاتها تُحفظ في PostgreSQL كبيانات وصفية فقط، أمّا الفيديو والدليل فتبقى على القرص.</p></div>
+    <p>مخرجات الـ <span class="en">AI Inference Components</span> هي <strong>كشوفات خام</strong>؛ الواقعة
+    <span class="mono">incident</span> لا تُنشأ إلا بعد قواعد السلامة. الفيديو والدليل يبقيان على القرص،
+    وPostgreSQL يحفظ البيانات الوصفية فقط.</p></div>
 
   <h3>2.3 الفرق بين الطلب المتزامن والوظيفة غير المتزامنة</h3>
-  <p>هذا التمييز هو أهم فكرة معمارية في المشروع. تحليل الفيديو قد يحتاج آلاف الإطارات، ولا يمكن أن يحدث
-  داخل دورة طلب HTTP عادية.</p>
+  <p>أهم فكرة معمارية: تحليل الفيديو يحتاج آلاف الإطارات ولا يمكن أن يحدث داخل طلب HTTP عادي.</p>
   <table class="tbl">
     <caption>جدول 2-2: المتزامن مقابل غير المتزامن</caption>
     <thead><tr><th>الوجه</th><th>طلب متزامن (Synchronous)</th><th>وظيفة غير متزامنة (Asynchronous job)</th></tr></thead>
@@ -60,8 +57,7 @@
     </tbody>
   </table>
   <div class="callout tip"><span class="co-title">قاعدة عملية</span>
-    <p>أي عملية قد تتجاوز ثانية تُنفَّذ كـ job، وأي عملية فورية تُنفَّذ كطلب متزامن. رفع الملف متزامن، أمّا
-    تحليله فغير متزامن دائماً.</p></div>
+    <p>أي عملية قد تتجاوز ثانية تُنفَّذ كـ job؛ رفع الملف متزامن وتحليله غير متزامن دائماً.</p></div>
 
   <h3>2.4 مخطط المعمارية عالي المستوى</h3>
   <div class="fig">
@@ -103,9 +99,8 @@
   </div>
 
   <h3>2.5 معمارية مكوّنات الـ Backend</h3>
-  <p>داخل الـ Backend نستخدم Modular Monolith: تطبيق واحد يُنشر كوحدة واحدة، لكن مقسَّم داخلياً إلى وحدات
-  معيارية (videos, jobs, incidents, analytics, reports) وطبقات أفقية. القاعدة: الراوتر لا يتحدّث مع قاعدة
-  البيانات مباشرة، والخدمة لا تعرف شيئاً عن الـ HTTP.</p>
+  <p>تطبيق واحد يُنشر كوحدة واحدة، لكنه مقسَّم داخلياً إلى وحدات معيارية (videos, jobs, incidents, analytics,
+  reports) وطبقات أفقية. القاعدة: الراوتر لا يتحدّث مع قاعدة البيانات مباشرة، والخدمة لا تعرف الـ HTTP.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox navy">API Routers<span class="dsub">videos / jobs / incidents / analytics</span><span class="dtag">v1</span></div></div>
@@ -124,8 +119,7 @@
   </div>
 
   <h3>2.6 خط معالجة الـ AI</h3>
-  <p>عند طلب المعالجة يمرّ الفيديو بمراحل متتالية، وكل مرحلة تنتج مخرجاً يستهلكه ما بعدها، وأي خطأ يُسجَّل في
-  الـ job ولا يُسقط النظام كله.</p>
+  <p>يمرّ الفيديو بمراحل متتالية، وكل مرحلة تنتج مخرجاً يستهلكه ما بعدها؛ وأي خطأ يُسجَّل في الـ job ولا يُسقط النظام.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox navy">Video file<span class="dsub">stored on disk</span></div></div>
@@ -150,8 +144,7 @@
   </div>
 
   <h3>2.7 التواصل بين الـ Frontend والـ Backend</h3>
-  <p>كل التواصل يتم عبر REST فوق HTTP بصيغة JSON، وكل المسارات تبدأ بـ <span class="mono">/api/v1</span>.
-  الواجهة لا تتصل بقاعدة البيانات ولا تعرف بنية الجداول.</p>
+  <p>كل التواصل عبر REST فوق HTTP بصيغة JSON، والمسارات تبدأ بـ <span class="mono">/api/v1</span>؛ الواجهة لا تعرف قاعدة البيانات.</p>
   <div class="fig">
     <table class="seq">
       <thead><tr><th>المستخدم</th><th>Frontend</th><th>Backend</th><th>DB / Worker</th></tr></thead>
@@ -166,13 +159,13 @@
     </table>
     <div class="fig-cap"><b>شكل 2-4:</b> تدفّق الرسائل بين المستخدم والواجهة والـ Backend وقاعدة البيانات</div>
   </div>
-  <p>متابعة حالة المهمة تتم عبر <strong>Polling</strong> (سؤال متكرّر): تطلب الواجهة حالة الـ job دورياً حتى
-  تتغير من <span class="mono">running</span> إلى <span class="mono">completed</span> أو
-  <span class="mono">failed</span>. لم نستخدم WebSocket في الـ MVP لأنه إضافة تعقيد بلا حاجة عاجلة.</p>
+  <p>متابعة الحالة تتم عبر <strong>Polling</strong>: تسأل الواجهة عن الـ job دورياً حتى تتغير من
+  <span class="mono">running</span> إلى <span class="mono">completed</span> أو <span class="mono">failed</span>.
+  لم نستخدم WebSocket في الـ MVP.</p>
 
   <h3>2.8 تدفّق بيانات الوقائع والدليل</h3>
-  <p>عند كشف واقعة تُكتب في جدول <span class="mono">incidents</span>، ثم يُقتطع إطار من الفيديو ويُحفظ كدليل
-  في جدول <span class="mono">evidence</span> مع مفتاح التخزين <span class="mono">storage_key</span>.</p>
+  <p>تُكتب الواقعة في <span class="mono">incidents</span>، ثم يُقتطع إطار ويُحفظ كدليل في
+  <span class="mono">evidence</span> مع <span class="mono">storage_key</span>.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox green">Detection<span class="dsub">class_name = helmet</span></div></div>
@@ -193,13 +186,13 @@
     </div>
     <div class="fig-cap"><b>شكل 2-5:</b> من الكشف الخام إلى الواقعة والدليل ثم المراجعة والتقرير</div>
   </div>
-  <p>مسار حالة الواقعة ثابت: <span class="mono">detected</span> ثم <span class="mono">pending_review</span>
-  ثم <span class="mono">confirmed</span> أو <span class="mono">rejected</span> وأخيراً
-  <span class="mono">closed</span>، وكل تغيير يُسجَّل في <span class="mono">incident_reviews</span> لأثر تدقيق كامل.</p>
+  <p>مسار الحالة ثابت: <span class="mono">detected</span> &rarr; <span class="mono">pending_review</span> &rarr;
+  <span class="mono">confirmed</span> أو <span class="mono">rejected</span> &rarr; <span class="mono">closed</span>،
+  وكل تغيير يُسجَّل في <span class="mono">incident_reviews</span>.</p>
 
   <h3>2.9 لماذا Modular Monolith أفضل من Microservices لفريق طلابي</h3>
-  <p><strong>Modular Monolith:</strong> تطبيق واحد من الداخل مقسَّم إلى وحدات مستقلّة.
-  <strong>Microservices:</strong> خدمات صغيرة منفصلة، لكل منها عملية وقاعدة بيانات وتواصل عبر الشبكة.</p>
+  <p><strong>Modular Monolith:</strong> تطبيق واحد مقسَّم داخلياً إلى وحدات.
+  <strong>Microservices:</strong> خدمات منفصلة، لكل منها عملية وقاعدة بيانات وتواصل عبر الشبكة.</p>
   <table class="tbl">
     <caption>جدول 2-3: مقارنة الاختيار المعماري</caption>
     <thead><tr><th class="w22">المعيار</th><th class="w39">Modular Monolith (اختيارنا)</th><th class="w39">Microservices</th></tr></thead>
@@ -212,12 +205,11 @@
     </tbody>
   </table>
   <p>السبب الأهم: نظامنا سلسلة كتابة مترابطة (فيديو &larr; job &larr; detections &larr; incidents &larr;
-  evidence). في الـ Microservices تصبح معاملات موزّعة وهي من أعقد مشكلات البرمجة، أمّا في Modular Monolith
-  فتبقى معاملة قاعدة بيانات واحدة مضمونة. لا نرفض الـ Microservices مبدئياً بل نؤجّلها، والحدود النظيفة بين
-  الوحدات تجعل الانتقال ممكناً لاحقاً.</p>
+  evidence). في الـ Microservices تصبح معاملات موزّعة معقّدة، أمّا هنا فتبقى معاملة قاعدة بيانات واحدة
+  مضمونة. لا نرفضها بل نؤجّلها، والحدود النظيفة تجعل الانتقال ممكناً لاحقاً.</p>
 
   <h3>2.10 اتجاه التواصل بين المكوّنات</h3>
-  <p>التواصل يتجه في خط واحد ولا يعود للخلف، وفهم هذه القاعدة يمنع معظم الأخطاء:</p>
+  <p>التواصل في خط واحد ولا يعود للخلف:</p>
   <ul>
     <li><strong>المتصفح &rarr; Frontend:</strong> تفاعل المستخدم فقط، ولا وصول مباشر لخدمة أخرى.</li>
     <li><strong>Frontend &rarr; Backend:</strong> طلبات HTTP فقط، بلا معرفة بقاعدة البيانات.</li>
@@ -226,16 +218,14 @@
     <li><strong>Worker &rarr; PostgreSQL:</strong> تحديث تقدّم الـ job وكتابة الوقائع والدليل.</li>
   </ul>
   <div class="callout info"><span class="co-title">لماذا؟</span>
-    <p>لأن الـ API يجب أن يبقى سريعاً؛ لو شغّلنا الـ Model داخل عملية الـ API لتجمّدت كل الطلبات الأخرى
-    أثناء التحليل. فصل الـ worker هو ما يجعل النظام قابلاً للاستخدام أثناء العمل.</p></div>
+    <p>لأن تشغيل الـ Model داخل عملية الـ API يجمّد بقية الطلبات؛ فصل الـ worker يبقي النظام قابلاً للاستخدام.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 2</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>رسمنا البنية الكاملة من المتصفح إلى التخزين، وحدّدنا مسؤولية كل مكوّن، وفرّقنا بين الطلب المتزامن
-        والوظيفة غير المتزامنة، وشرحنا لماذا Modular Monolith هو الخيار الصحيح لفريق من خمسة أعضاء، وثبّتنا
-        اتجاه التواصل في خط واحد.</p></div>
+        <p>رسمنا البنية الكاملة، وحدّدنا مسؤولية كل مكوّن، وفرّقنا بين الطلب المتزامن
+        والوظيفة غير المتزامنة، وشرحنا لماذا Modular Monolith هو الخيار الصحيح لفريق من خمسة أعضاء.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>حفظ الأشكال الخمسة في <span class="mono">docs/ARCHITECTURE.md</span>.</li>

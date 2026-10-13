@@ -478,16 +478,14 @@
   </div>
 
   <div class="lead">
-    <p>بعد أن اتفقنا في الفصل الأول على المشكلة والنطاق، يرسم هذا الفصل الصورة الكبيرة: من مكوّنات
-    <span class="en">SafeVision AI</span>، ومسؤولية كل مكوّن، وكيف تتحدّث هذه المكوّنات مع بعضها. هذا الفصل هو
-    المرجع الذي يعود إليه كل عضو عند الشك في "من يفعل ماذا".</p>
+    <p>يرسم هذا الفصل الصورة الكبيرة: مكوّنات <span class="en">SafeVision AI</span>، ومسؤولية كل مكوّن، وكيف
+    تتحدّث مع بعضها، وهو المرجع عند الشك في "من يفعل ماذا".</p>
   </div>
 
   <h3>2.1 معنى البنية المعمارية</h3>
-  <p><strong>System Architecture (البنية المعمارية):</strong> وصف للمكوّنات الرئيسية في النظام ومسؤولية كل
-  مكوّن وطريقة تواصلها. هي ليست كوداً، لكنها تُحدّد شكل الكود قبل كتابته. المعمارية التي اخترناها هي
-  <strong>Modular Monolith</strong> (كتلة واحدة معيارية) مع فصل واضح بين الـ <span class="en">Backend</span>
-  والـ <span class="en">Frontend</span>، وعملية مستقلة واحدة للمعالجة، والسبب مشروح في القسم 2.9.</p>
+  <p><strong>System Architecture (البنية المعمارية):</strong> وصف للمكوّنات ومسؤولية كل مكوّن وطريقة
+  تواصلها. اخترنا <strong>Modular Monolith</strong> (كتلة واحدة معيارية) مع فصل واضح بين الـ
+  <span class="en">Backend</span> والـ <span class="en">Frontend</span> وعملية معالجة مستقلة (السبب في 2.9).</p>
 
   <h3>2.2 المكوّنات الرئيسية ومسؤولية كل مكوّن</h3>
   <p>لكل مكوّن مسؤولية واحدة واضحة، والجدول التالي هو المرجع السريع لها:</p>
@@ -509,13 +507,12 @@
     </tbody>
   </table>
   <div class="callout info"><span class="co-title">تمييز أساسي</span>
-    <p>مخرجات الـ <span class="en">AI Inference Components</span> هي <strong>كشوفات خام</strong> (صناديق
-    وفئات وثقة لكل إطار). الواقعة <span class="mono">incident</span> لا تُنشأ إلا بعد تطبيق قواعد السلامة،
-    ومخرجاتها تُحفظ في PostgreSQL كبيانات وصفية فقط، أمّا الفيديو والدليل فتبقى على القرص.</p></div>
+    <p>مخرجات الـ <span class="en">AI Inference Components</span> هي <strong>كشوفات خام</strong>؛ الواقعة
+    <span class="mono">incident</span> لا تُنشأ إلا بعد قواعد السلامة. الفيديو والدليل يبقيان على القرص،
+    وPostgreSQL يحفظ البيانات الوصفية فقط.</p></div>
 
   <h3>2.3 الفرق بين الطلب المتزامن والوظيفة غير المتزامنة</h3>
-  <p>هذا التمييز هو أهم فكرة معمارية في المشروع. تحليل الفيديو قد يحتاج آلاف الإطارات، ولا يمكن أن يحدث
-  داخل دورة طلب HTTP عادية.</p>
+  <p>أهم فكرة معمارية: تحليل الفيديو يحتاج آلاف الإطارات ولا يمكن أن يحدث داخل طلب HTTP عادي.</p>
   <table class="tbl">
     <caption>جدول 2-2: المتزامن مقابل غير المتزامن</caption>
     <thead><tr><th>الوجه</th><th>طلب متزامن (Synchronous)</th><th>وظيفة غير متزامنة (Asynchronous job)</th></tr></thead>
@@ -529,8 +526,7 @@
     </tbody>
   </table>
   <div class="callout tip"><span class="co-title">قاعدة عملية</span>
-    <p>أي عملية قد تتجاوز ثانية تُنفَّذ كـ job، وأي عملية فورية تُنفَّذ كطلب متزامن. رفع الملف متزامن، أمّا
-    تحليله فغير متزامن دائماً.</p></div>
+    <p>أي عملية قد تتجاوز ثانية تُنفَّذ كـ job؛ رفع الملف متزامن وتحليله غير متزامن دائماً.</p></div>
 
   <h3>2.4 مخطط المعمارية عالي المستوى</h3>
   <div class="fig">
@@ -572,9 +568,8 @@
   </div>
 
   <h3>2.5 معمارية مكوّنات الـ Backend</h3>
-  <p>داخل الـ Backend نستخدم Modular Monolith: تطبيق واحد يُنشر كوحدة واحدة، لكن مقسَّم داخلياً إلى وحدات
-  معيارية (videos, jobs, incidents, analytics, reports) وطبقات أفقية. القاعدة: الراوتر لا يتحدّث مع قاعدة
-  البيانات مباشرة، والخدمة لا تعرف شيئاً عن الـ HTTP.</p>
+  <p>تطبيق واحد يُنشر كوحدة واحدة، لكنه مقسَّم داخلياً إلى وحدات معيارية (videos, jobs, incidents, analytics,
+  reports) وطبقات أفقية. القاعدة: الراوتر لا يتحدّث مع قاعدة البيانات مباشرة، والخدمة لا تعرف الـ HTTP.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox navy">API Routers<span class="dsub">videos / jobs / incidents / analytics</span><span class="dtag">v1</span></div></div>
@@ -593,8 +588,7 @@
   </div>
 
   <h3>2.6 خط معالجة الـ AI</h3>
-  <p>عند طلب المعالجة يمرّ الفيديو بمراحل متتالية، وكل مرحلة تنتج مخرجاً يستهلكه ما بعدها، وأي خطأ يُسجَّل في
-  الـ job ولا يُسقط النظام كله.</p>
+  <p>يمرّ الفيديو بمراحل متتالية، وكل مرحلة تنتج مخرجاً يستهلكه ما بعدها؛ وأي خطأ يُسجَّل في الـ job ولا يُسقط النظام.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox navy">Video file<span class="dsub">stored on disk</span></div></div>
@@ -619,8 +613,7 @@
   </div>
 
   <h3>2.7 التواصل بين الـ Frontend والـ Backend</h3>
-  <p>كل التواصل يتم عبر REST فوق HTTP بصيغة JSON، وكل المسارات تبدأ بـ <span class="mono">/api/v1</span>.
-  الواجهة لا تتصل بقاعدة البيانات ولا تعرف بنية الجداول.</p>
+  <p>كل التواصل عبر REST فوق HTTP بصيغة JSON، والمسارات تبدأ بـ <span class="mono">/api/v1</span>؛ الواجهة لا تعرف قاعدة البيانات.</p>
   <div class="fig">
     <table class="seq">
       <thead><tr><th>المستخدم</th><th>Frontend</th><th>Backend</th><th>DB / Worker</th></tr></thead>
@@ -635,13 +628,13 @@
     </table>
     <div class="fig-cap"><b>شكل 2-4:</b> تدفّق الرسائل بين المستخدم والواجهة والـ Backend وقاعدة البيانات</div>
   </div>
-  <p>متابعة حالة المهمة تتم عبر <strong>Polling</strong> (سؤال متكرّر): تطلب الواجهة حالة الـ job دورياً حتى
-  تتغير من <span class="mono">running</span> إلى <span class="mono">completed</span> أو
-  <span class="mono">failed</span>. لم نستخدم WebSocket في الـ MVP لأنه إضافة تعقيد بلا حاجة عاجلة.</p>
+  <p>متابعة الحالة تتم عبر <strong>Polling</strong>: تسأل الواجهة عن الـ job دورياً حتى تتغير من
+  <span class="mono">running</span> إلى <span class="mono">completed</span> أو <span class="mono">failed</span>.
+  لم نستخدم WebSocket في الـ MVP.</p>
 
   <h3>2.8 تدفّق بيانات الوقائع والدليل</h3>
-  <p>عند كشف واقعة تُكتب في جدول <span class="mono">incidents</span>، ثم يُقتطع إطار من الفيديو ويُحفظ كدليل
-  في جدول <span class="mono">evidence</span> مع مفتاح التخزين <span class="mono">storage_key</span>.</p>
+  <p>تُكتب الواقعة في <span class="mono">incidents</span>، ثم يُقتطع إطار ويُحفظ كدليل في
+  <span class="mono">evidence</span> مع <span class="mono">storage_key</span>.</p>
   <div class="fig">
     <div class="dg">
       <div class="drow"><div class="dbox green">Detection<span class="dsub">class_name = helmet</span></div></div>
@@ -662,13 +655,13 @@
     </div>
     <div class="fig-cap"><b>شكل 2-5:</b> من الكشف الخام إلى الواقعة والدليل ثم المراجعة والتقرير</div>
   </div>
-  <p>مسار حالة الواقعة ثابت: <span class="mono">detected</span> ثم <span class="mono">pending_review</span>
-  ثم <span class="mono">confirmed</span> أو <span class="mono">rejected</span> وأخيراً
-  <span class="mono">closed</span>، وكل تغيير يُسجَّل في <span class="mono">incident_reviews</span> لأثر تدقيق كامل.</p>
+  <p>مسار الحالة ثابت: <span class="mono">detected</span> &rarr; <span class="mono">pending_review</span> &rarr;
+  <span class="mono">confirmed</span> أو <span class="mono">rejected</span> &rarr; <span class="mono">closed</span>،
+  وكل تغيير يُسجَّل في <span class="mono">incident_reviews</span>.</p>
 
   <h3>2.9 لماذا Modular Monolith أفضل من Microservices لفريق طلابي</h3>
-  <p><strong>Modular Monolith:</strong> تطبيق واحد من الداخل مقسَّم إلى وحدات مستقلّة.
-  <strong>Microservices:</strong> خدمات صغيرة منفصلة، لكل منها عملية وقاعدة بيانات وتواصل عبر الشبكة.</p>
+  <p><strong>Modular Monolith:</strong> تطبيق واحد مقسَّم داخلياً إلى وحدات.
+  <strong>Microservices:</strong> خدمات منفصلة، لكل منها عملية وقاعدة بيانات وتواصل عبر الشبكة.</p>
   <table class="tbl">
     <caption>جدول 2-3: مقارنة الاختيار المعماري</caption>
     <thead><tr><th class="w22">المعيار</th><th class="w39">Modular Monolith (اختيارنا)</th><th class="w39">Microservices</th></tr></thead>
@@ -681,12 +674,11 @@
     </tbody>
   </table>
   <p>السبب الأهم: نظامنا سلسلة كتابة مترابطة (فيديو &larr; job &larr; detections &larr; incidents &larr;
-  evidence). في الـ Microservices تصبح معاملات موزّعة وهي من أعقد مشكلات البرمجة، أمّا في Modular Monolith
-  فتبقى معاملة قاعدة بيانات واحدة مضمونة. لا نرفض الـ Microservices مبدئياً بل نؤجّلها، والحدود النظيفة بين
-  الوحدات تجعل الانتقال ممكناً لاحقاً.</p>
+  evidence). في الـ Microservices تصبح معاملات موزّعة معقّدة، أمّا هنا فتبقى معاملة قاعدة بيانات واحدة
+  مضمونة. لا نرفضها بل نؤجّلها، والحدود النظيفة تجعل الانتقال ممكناً لاحقاً.</p>
 
   <h3>2.10 اتجاه التواصل بين المكوّنات</h3>
-  <p>التواصل يتجه في خط واحد ولا يعود للخلف، وفهم هذه القاعدة يمنع معظم الأخطاء:</p>
+  <p>التواصل في خط واحد ولا يعود للخلف:</p>
   <ul>
     <li><strong>المتصفح &rarr; Frontend:</strong> تفاعل المستخدم فقط، ولا وصول مباشر لخدمة أخرى.</li>
     <li><strong>Frontend &rarr; Backend:</strong> طلبات HTTP فقط، بلا معرفة بقاعدة البيانات.</li>
@@ -695,16 +687,14 @@
     <li><strong>Worker &rarr; PostgreSQL:</strong> تحديث تقدّم الـ job وكتابة الوقائع والدليل.</li>
   </ul>
   <div class="callout info"><span class="co-title">لماذا؟</span>
-    <p>لأن الـ API يجب أن يبقى سريعاً؛ لو شغّلنا الـ Model داخل عملية الـ API لتجمّدت كل الطلبات الأخرى
-    أثناء التحليل. فصل الـ worker هو ما يجعل النظام قابلاً للاستخدام أثناء العمل.</p></div>
+    <p>لأن تشغيل الـ Model داخل عملية الـ API يجمّد بقية الطلبات؛ فصل الـ worker يبقي النظام قابلاً للاستخدام.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 2</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>رسمنا البنية الكاملة من المتصفح إلى التخزين، وحدّدنا مسؤولية كل مكوّن، وفرّقنا بين الطلب المتزامن
-        والوظيفة غير المتزامنة، وشرحنا لماذا Modular Monolith هو الخيار الصحيح لفريق من خمسة أعضاء، وثبّتنا
-        اتجاه التواصل في خط واحد.</p></div>
+        <p>رسمنا البنية الكاملة، وحدّدنا مسؤولية كل مكوّن، وفرّقنا بين الطلب المتزامن
+        والوظيفة غير المتزامنة، وشرحنا لماذا Modular Monolith هو الخيار الصحيح لفريق من خمسة أعضاء.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>حفظ الأشكال الخمسة في <span class="mono">docs/ARCHITECTURE.md</span>.</li>
@@ -888,15 +878,12 @@
   </div>
 
   <div class="lead">
-    <p>الهيكل المنظَّم للمجلدات هو أول انطباع يأخذه المشرف عن الفريق، وهو أيضاً أول شيء يمنع الفوضى أثناء
-    العمل المتوازي. في هذا الفصل نثبّت شجرة المجلدات كاملة، ونوضّح وظيفة كل مجلد، ونحدّد بدقة ما يُرفع إلى
-    GitHub وما لا يُرفع أبداً، مع ملفَّي <span class="mono">.gitignore</span> و<span class="mono">.env.example</span>
-    كاملين جاهزين للنسخ.</p>
+    <p>نثبّت هنا شجرة المجلدات كاملة، ووظيفة كل مجلد، وما يُرفع إلى GitHub وما لا يُرفع أبداً، مع ملفَّي
+    <span class="mono">.gitignore</span> و<span class="mono">.env.example</span> جاهزين للنسخ.</p>
   </div>
 
   <h3>4.1 شجرة المجلدات الكاملة</h3>
-  <p>هذه الشجرة هي المرجع الرسمي، وأي ملف جديد يجب أن يجد مكانه فيها. لا ننشئ مجلدات عشوائية ولا نضع ملف
-  Backend داخل الـ Frontend.</p>
+  <p>هذه الشجرة هي المرجع الرسمي؛ كل ملف جديد يجب أن يجد مكانه فيها، ولا ننشئ مجلدات عشوائية.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">repository tree</span><span class="ftag">text</span></div>
 <pre>safevision-ai/
   backend/                 # FastAPI application (package name: app)
@@ -958,23 +945,21 @@
   </table>
 
   <h3>4.3 ما لا يجب أن يدخل Git أبداً ولماذا</h3>
-  <p><strong>Git:</strong> نظام تتبّع الإصدارات الذي يحفظ تاريخ كل تغيير. لكن Git مصمَّم للنصوص الصغيرة لا
-  للملفات الضخمة. لذلك هناك ثلاثة أصناف لا نرفعها:</p>
+  <p><strong>Git:</strong> نظام تتبّع الإصدارات، وهو مصمَّم للنصوص الصغيرة لا للملفات الضخمة، لذلك ثلاثة
+  أصناف لا نرفعها:</p>
   <ul>
-    <li><strong>الملفات الكبيرة (Binaries):</strong> الفيديوهات المرفوعة وأوزان الـ Models. رفعها يجعل حجم
-    المستودع ينتفخ، وكل عضو سيضطر لتنزيل جيجابايتات عند كل <span class="mono">git clone</span>.</li>
-    <li><strong>البيانات المولَّدة (Generated):</strong> صور الدليل والتقارير. هذه مخرجات تشغيل وليست كوداً،
-    ويمكن إعادة توليدها.</li>
-    <li><strong>الأسرار (Secrets):</strong> كلمة مرور قاعدة البيانات، و<span class="mono">SECRET_KEY</span>،
-    ومفاتيح S3. تسريبها على GitHub خطر أمني حقيقي ولو كان المستودع خاصاً.</li>
+    <li><strong>الملفات الكبيرة (Binaries):</strong> الفيديوهات وأوزان الـ Models؛ رفعها يُنتفخ حجم المستودع
+    ويجعل كل <span class="mono">git clone</span> بطيئاً.</li>
+    <li><strong>البيانات المولَّدة (Generated):</strong> صور الدليل والتقارير؛ مخرجات تشغيل يمكن إعادة توليدها.</li>
+    <li><strong>الأسرار (Secrets):</strong> كلمة مرور قاعدة البيانات و<span class="mono">SECRET_KEY</span>
+    ومفاتيح S3؛ تسريبها خطر أمني حقيقي.</li>
   </ul>
   <div class="callout danger"><span class="co-title">خطر</span>
-    <p>رفع ملف <span class="mono">.env</span> أو أي مفتاح حقيقي إلى GitHub خطأ لا يُصلَح بمجرد الحذف، لأن
-    التاريخ يحتفظ به. القاعدة: نرفع <span class="mono">.env.example</span> فقط، وننشئ <span class="mono">.env</span>
-    محلياً على كل جهاز.</p></div>
+    <p>رفع ملف <span class="mono">.env</span> أو أي مفتاح حقيقي خطأ لا يُصلَح بمجرد الحذف لأن التاريخ يحتفظ به.
+    نرفع <span class="mono">.env.example</span> فقط وننشئ <span class="mono">.env</span> محلياً.</p></div>
 
   <h3>4.4 ملف <span class="mono">.gitignore</span> كامل</h3>
-  <p>هذا الملف يخبر Git بالملفات التي يتجاهلها. يوضع في جذر المستودع، ويُكتب بترتيب واضح حسب النوع.</p>
+  <p>يوضع في جذر المستودع ويخبر Git بالملفات التي يتجاهلها، مرتّبة حسب النوع.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">.gitignore</span><span class="ftag">gitignore</span></div>
 <pre># ---- Python ----
 __pycache__/
@@ -1038,13 +1023,12 @@ Thumbs.db
 *.pid
 docker-compose.override.yml</pre></div>
   <div class="callout note"><span class="co-title">ملاحظة</span>
-    <p>السطر <span class="mono">!.env.example</span> استثناء مهم: نمنع <span class="mono">.env</span> الحقيقي
-    ونسمح بالقالب فقط. و<span class="mono">!data/sample/**</span> يسمح برفع عيّنات صغيرة للاختبار.</p></div>
+    <p>السطر <span class="mono">!.env.example</span> يسمح بالقالب فقط، و<span class="mono">!data/sample/**</span>
+    يسمح برفع عيّنات صغيرة للاختبار.</p></div>
 
   <h3>4.5 ملف <span class="mono">.env.example</span> بقيم Placeholder فقط</h3>
-  <p>هذا القالب يُرفع إلى GitHub، ويُنسخ على كل جهاز إلى <span class="mono">.env</span> ثم تُملأ قيمه الحقيقية
-  محلياً. كل القيم هنا Placeholder بالشكل <span class="mono">&lt;NAME&gt;</span> ولا يجوز وضع سرّ حقيقي فيه.
-  أسماء المتغيّرات مطابقة تماماً لما في SPEC.md.</p>
+  <p>قالب يُرفع إلى GitHub ويُنسخ على كل جهاز إلى <span class="mono">.env</span>. قيمه Placeholder بالشكل
+  <span class="mono">&lt;NAME&gt;</span>، وأسماء المتغيّرات مطابقة لـ SPEC.md.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">ini</span></div>
 <pre># ---- Application ----
 APP_NAME=SafeVision AI
@@ -1114,9 +1098,8 @@ JOB_MAX_RETRIES=2
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_ENABLE_AUTH=false</pre></div>
   <div class="callout info"><span class="co-title">لماذا قيم Placeholder؟</span>
-    <p>لأن <span class="mono">.env.example</span> يوثّق <strong>أسماء</strong> المتغيّرات المطلوبة، لا قيمها.
-    كل عضو ينسخه ويضع قيمه الخاصة. و<span class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</span> هو مسار أوزان
-    الـ Model الذي يحدّده فريق الذكاء الاصطناعي عند توفّر الـ checkpoint.</p></div>
+    <p>لأن القالب يوثّق <strong>أسماء</strong> المتغيّرات لا قيمها؛ كل عضو يضع قيمه الخاصة، مثل
+    <span class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</span> الذي يحدّده فريق الذكاء الاصطناعي.</p></div>
 
   <h3>4.6 اتفاقيات تسمية الملفات والفروع</h3>
   <p>اتفاق التسمية يمنع الالتباس ويسهّل البحث. نلتزم بالقواعد التالية دون استثناء:</p>
@@ -1351,16 +1334,14 @@ $ npm run dev</pre></div>
   </div>
 
   <div class="lead">
-    <p>هذا الفصل يبني الـ Backend فعلاً. نضع طبقات واضحة تفصل بين استقبال الطلب ومنطق العمل والوصول لقاعدة
-    البيانات، ونعرض ملفات مترابطة قابلة للتشغيل بأسماء متطابقة في كل مكان، بحيث يستطيع أي عضو تشغيل المشروع
-    وقراءة الكود وفهمه.</p>
+    <p>نضع طبقات واضحة تفصل بين استقبال الطلب ومنطق العمل والوصول لقاعدة البيانات، ونعرض ملفات مترابطة قابلة
+    للتشغيل بأسماء متطابقة في كل مكان.</p>
   </div>
 
   <h3>6.1 الطبقات ولماذا نفصلها</h3>
-  <p>الفصل بين الطبقات يعني أن كل طبقة تعرف الطبقة التي تحتها فقط. الراوتر يستقبل الطلب ويتحقق منه، والـ
-  <strong>Service</strong> يحمل منطق العمل، والـ <strong>Repository</strong> يتحدّث مع قاعدة البيانات، والـ
-  <strong>Model</strong> يعرّف الجدول. هذا يجعل الكود قابلاً للاختبار وللعمل المتوازي، فكل عضو يعمل على طبقة
-  دون أن يكسر الأخرى.</p>
+  <p>كل طبقة تعرف الطبقة التي تحتها فقط: الراوتر يستقبل الطلب، والـ <strong>Service</strong> يحمل منطق
+  العمل، والـ <strong>Repository</strong> يتحدّث مع قاعدة البيانات، والـ <strong>Model</strong> يعرّف الجدول.
+  هذا يجعل الكود قابلاً للاختبار وللعمل المتوازي.</p>
 
   <h3>6.2 مخطط معمارية الطبقات</h3>
   <div class="fig">
@@ -1401,8 +1382,8 @@ $ npm run dev</pre></div>
   </div>
 
   <h3>6.3 نقطة الدخول والـ Routers</h3>
-  <p><span class="mono">main.py</span> هو نقطة الدخول: ينشئ تطبيق FastAPI، يضيف CORS، ويُدرج الراوتر الرئيسي
-  تحت البادئة <span class="mono">/api/v1</span>.</p>
+  <p><span class="mono">main.py</span> نقطة الدخول: ينشئ تطبيق FastAPI، يضيف CORS، ويُدرج الراوتر الرئيسي تحت
+  <span class="mono">/api/v1</span>.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/main.py</span><span class="ftag">python</span></div>
 <pre>from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -1426,7 +1407,7 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 @app.get("/")
 def root() -&gt; dict:
     return {"app": settings.APP_NAME, "docs": "/docs"}</pre></div>
-  <p>الراوتر الرئيسي يجمع راوترات الإصدار الأول في مكان واحد:</p>
+  <p>الراوتر الرئيسي يجمع راوترات v1:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/api/v1/router.py</span><span class="ftag">python</span></div>
 <pre>from fastapi import APIRouter
 
@@ -1437,8 +1418,7 @@ api_router.include_router(health.router)
 api_router.include_router(videos.router)</pre></div>
 
   <h3>6.4 إدارة الإعدادات بـ pydantic-settings</h3>
-  <p>كل الإعدادات تُقرأ من متغيّرات البيئة عبر كائن واحد. أسماء الحقول مطابقة تماماً لأسماء متغيّرات البيئة
-  في SPEC.md، وقيمها الافتراضية مناسبة للتشغيل المحلي.</p>
+  <p>كل الإعدادات تُقرأ من متغيّرات البيئة عبر كائن واحد بأسماء مطابقة لـ SPEC.md وقيم افتراضية محلية.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/core/config.py</span><span class="ftag">python</span></div>
 <pre>from functools import lru_cache
 
@@ -1492,8 +1472,8 @@ def get_settings() -&gt; Settings:
 settings = get_settings()</pre></div>
 
   <h3>6.5 إدارة الـ session</h3>
-  <p><span class="mono">db/session.py</span> ينشئ المحرّك ومصنع الجلسات، ويوفّر تبعية
-  <span class="mono">get_db</span> التي تُعطي كل طلب جلسة قاعدة بيانات ثم تُغلقها تلقائياً.</p>
+  <p><span class="mono">db/session.py</span> ينشئ المحرّك ومصنع الجلسات، ويوفّر <span class="mono">get_db</span>
+  التي تُعطي كل طلب جلسة ثم تُغلقها تلقائياً.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/db/session.py</span><span class="ftag">python</span></div>
 <pre>from collections.abc import Generator
 
@@ -1514,8 +1494,8 @@ def get_db() -&gt; Generator[Session, None, None]:
         db.close()</pre></div>
 
   <h3>6.6 الـ Model: تعريف جدول <span class="mono">videos</span></h3>
-  <p>الـ <strong>Model</strong> صنف SQLAlchemy يمثّل جدولاً في PostgreSQL. كل حقل يطابق عموداً، ونوعه صريح
-  عبر <span class="mono">Mapped</span>، وهذا ما يجعل Alembic قادراً على توليد الـ migrations.</p>
+  <p>الـ <strong>Model</strong> صنف SQLAlchemy يمثّل جدولاً؛ كل حقل يطابق عموداً بنوع صريح عبر
+  <span class="mono">Mapped</span>، وهذا ما يمكّن Alembic من توليد الـ migrations.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/models/video.py</span><span class="ftag">python</span></div>
 <pre>import uuid
 from datetime import datetime
@@ -1549,14 +1529,14 @@ class Video(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )</pre></div>
   <div class="callout note"><span class="co-title">ملاحظة</span>
-    <p>لتبسيط الفصل عرّفنا <span class="mono">Base</span> هنا؛ في المشروع الكامل يمكن نقله إلى
-    <span class="mono">app/db/base.py</span> ويستورده كل الـ models.</p></div>
+    <p>لتبسيط الفصل عرّفنا <span class="mono">Base</span> هنا؛ في المشروع الكامل يُنقل إلى
+    <span class="mono">app/db/base.py</span>.</p></div>
 
   <h3>6.7 الـ Schema: عقد الدخل والخرج</h3>
-  <p>الـ <strong>Schema</strong> صنف Pydantic يحدّد شكل البيانات الداخلة والخارجة. نستخدم
-  <span class="mono">VideoOut</span> للردّ و<span class="mono">VideoCreate</span> للإدخال. الـ
-  <span class="mono">JobOut</span> مضمّن هنا لأن <span class="mono">VideoOut.latest_job</span> يشير إليه، وفي
-  المشروع الكامل يوضع في <span class="mono">schemas/job.py</span>.</p>
+  <p>الـ <strong>Schema</strong> صنف Pydantic يحدّد شكل البيانات الداخلة والخارجة: <span class="mono">VideoOut</span>
+  للردّ و<span class="mono">VideoCreate</span> للإدخال. الـ <span class="mono">JobOut</span> مضمّن هنا لأن
+  <span class="mono">VideoOut.latest_job</span> يشير إليه (وفي المشروع الكامل يوضع في
+  <span class="mono">schemas/job.py</span>).</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/schemas/video.py</span><span class="ftag">python</span></div>
 <pre>import uuid
 from datetime import datetime
@@ -1606,8 +1586,8 @@ class VideoOut(VideoBase):
     latest_job: JobOut | None = None</pre></div>
 
   <h3>6.8 طبقة الـ Repository</h3>
-  <p>الـ <strong>Repository</strong> هو المكان الوحيد الذي يكتب استعلامات قاعدة البيانات. الـ Service
-  يستدعيه ولا يكتب SQL بنفسه، وهذا يجعل تغيير طريقة التخزين لاحقاً سهلاً.</p>
+  <p>الـ <strong>Repository</strong> هو المكان الوحيد الذي يكتب استعلامات قاعدة البيانات؛ الـ Service يستدعيه
+  ولا يكتب SQL بنفسه.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/repositories/video_repository.py</span><span class="ftag">python</span></div>
 <pre>import uuid
 
@@ -1643,7 +1623,7 @@ class VideoRepository:
 
   <h3>6.9 طبقة الـ Service</h3>
   <p>الـ <strong>Service</strong> يحمل منطق العمل: يتحقق من الامتداد، يبني كائن الـ Model، ويستدعي الـ
-  Repository. لا يعرف شيئاً عن الـ HTTP ولا عن الاستعلامات.</p>
+  Repository؛ لا يعرف الـ HTTP ولا الاستعلامات.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/services/video_service.py</span><span class="ftag">python</span></div>
 <pre>import uuid
 
@@ -1682,8 +1662,8 @@ class VideoService:
         return self.repository.list(offset=offset, limit=page_size)</pre></div>
 
   <h3>6.10 الـ Endpoints</h3>
-  <p>كل ملف في <span class="mono">api/v1/endpoints/</span> يعرّف راوتراً صغيراً. الـ endpoints تستقبل الطلب،
-  تحقّق من الصحة، تستدعي الـ Service، وترمي أخطاء HTTP عند الحاجة.</p>
+  <p>كل ملف في <span class="mono">api/v1/endpoints/</span> يعرّف راوتراً صغيراً يستقبل الطلب، يتحقق من
+  الصحة، يستدعي الـ Service، ويرمي أخطاء HTTP عند الحاجة.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/api/v1/endpoints/health.py</span><span class="ftag">python</span></div>
 <pre>from fastapi import APIRouter, Depends
 from sqlalchemy import text
@@ -1728,31 +1708,31 @@ def get_video(video_id: uuid.UUID, db: Session = Depends(get_db)):
     if video is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
     return video</pre></div>
-  <p>بهذا تُبنى المسارات النهائية تلقائياً: <span class="mono">/api/v1/health</span> و
-  <span class="mono">/api/v1/videos</span> و<span class="mono">/api/v1/videos/{video_id}</span>.</p>
+  <p>المسارات الناتجة: <span class="mono">/api/v1/health</span> و<span class="mono">/api/v1/videos</span>
+  و<span class="mono">/api/v1/videos/{video_id}</span>.</p>
 
   <h3>6.11 Dependency Injection والأخطاء و Logging و CORS</h3>
   <ul>
     <li><strong>Dependency Injection:</strong> تمرير التبعيات عبر <span class="mono">Depends</span> كما في
     <span class="mono">get_db</span>، فيحصل كل طلب على جلسة مستقلة تُغلق تلقائياً.</li>
-    <li><strong>معالجة الأخطاء:</strong> نستخدم <span class="mono">HTTPException</span> بحالات واضحة
-    (404، 400، 409)، ونُسجّل الأخطاء غير المتوقّعة عبر معالج عام دون كشف التفاصيل الحسّاسة للمستخدم.</li>
-    <li><strong>Logging:</strong> سجل موحّد يطبع المسار والحالة وزمن التنفيذ، ويُضبط مستواه بـ
+    <li><strong>معالجة الأخطاء:</strong> <span class="mono">HTTPException</span> بحالات واضحة (404، 400، 409)،
+    ومعالج عام للأخطاء غير المتوقّعة دون كشف التفاصيل الحسّاسة.</li>
+    <li><strong>Logging:</strong> سجل موحّد يطبع المسار والحالة وزمن التنفيذ، ومستواه من
     <span class="mono">APP_DEBUG</span>.</li>
-    <li><strong>CORS:</strong> نسمح بأصل الـ Frontend فقط عبر <span class="mono">CORS_ORIGINS</span>، وهذه هي
-    أشهر مشكلة عند بداية الربط بين الطرفين.</li>
+    <li><strong>CORS:</strong> نسمح بأصل الـ Frontend فقط عبر <span class="mono">CORS_ORIGINS</span>، وهي أشهر
+    مشكلة عند بداية الربط.</li>
   </ul>
 
   <h3>6.12 التحقق من الملفات والمصادقة وإصدار الـ API</h3>
   <ul>
-    <li><strong>التحقق من الملف المرفوع:</strong> نتحقق من الامتداد عبر
-    <span class="mono">allowed_extension_set</span> ومن الحجم عبر <span class="mono">MAX_UPLOAD_MB</span>،
-    ونعيد <span class="mono">413</span> للملف الأكبر و<span class="mono">422</span> للنوع غير المسموح.</li>
+    <li><strong>التحقق من الملف المرفوع:</strong> الامتداد عبر <span class="mono">allowed_extension_set</span>
+    والحجم عبر <span class="mono">MAX_UPLOAD_MB</span>، مع <span class="mono">413</span> للملف الأكبر
+    و<span class="mono">422</span> للنوع غير المسموح.</li>
     <li><strong>Authentication / Authorization:</strong> خلف علم <span class="mono">AUTH_ENABLED</span>. عند
     تفعيله نتحقق من الـ JWT عبر <span class="mono">PyJWT</span> ونضبط الصلاحيات حسب
     <span class="mono">user_role</span>. في وضع العرض التوضيحي يكون <span class="mono">AUTH_ENABLED=false</span>.</li>
     <li><strong>API versioning:</strong> كل المسارات تحت <span class="mono">/api/v1</span> عبر
-    <span class="mono">API_V1_PREFIX</span>، فإضافة <span class="mono">v2</span> لاحقاً لا تكسر العملاء الحاليين.</li>
+    <span class="mono">API_V1_PREFIX</span>، فإضافة <span class="mono">v2</span> لاحقاً لا تكسر العملاء.</li>
   </ul>
 
   <h3>6.13 الفرق بين الطبقات وترتيب التنفيذ</h3>
@@ -1768,12 +1748,12 @@ def get_video(video_id: uuid.UUID, db: Session = Depends(get_db)):
       <tr><td>Worker</td><td>تشغيل المعالجة الطويلة خارج الطلب</td><td>لا تخدم طلبات HTTP</td></tr>
     </tbody>
   </table>
-  <p>ترتيب التنفيذ عند بناء أي وحدة جديدة: <strong>Model</strong> ثم <strong>Schema</strong> ثم
+  <p>ترتيب التنفيذ عند بناء وحدة جديدة: <strong>Model</strong> ثم <strong>Schema</strong> ثم
   <strong>Repository</strong> ثم <strong>Service</strong> ثم <strong>Endpoint</strong>، وأخيراً الـ
-  <strong>Worker</strong> إن كانت الوحدة تحتاج معالجة طويلة.</p>
+  <strong>Worker</strong> عند الحاجة.</p>
 
   <h3>6.14 متطلبات الـ Backend</h3>
-  <p>هذه المكتبات الأساسية. نثبّت الإصدارات النهائية بعد التحقق من المصادر الرسمية كما في الفصل الثالث.</p>
+  <p>المكتبات الأساسية؛ نثبّت إصداراتها النهائية بعد التحقق من المصادر الرسمية (الفصل الثالث).</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/requirements.txt</span><span class="ftag">text</span></div>
 <pre>fastapi
 uvicorn[standard]
@@ -1791,21 +1771,20 @@ pandas
 torch
 ultralytics</pre></div>
   <div class="callout tip"><span class="co-title">تشغيل سريع</span>
-    <p>بعد تثبيت المتطلبات نشغّل الـ Backend بأمر <span class="mono">uvicorn app.main:app --reload</span>، ثم
-    نفتح <span class="mono">http://localhost:8000/docs</span> للتأكد من ظهور الـ endpoints.</p></div>
+    <p>نشغّل الـ Backend بأمر <span class="mono">uvicorn app.main:app --reload</span>، ثم نفتح
+    <span class="mono">http://localhost:8000/docs</span> للتأكد من ظهور الـ endpoints.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 6</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>بنينا الـ Backend بطبقات واضحة: <span class="mono">main.py</span> و<span class="mono">router.py</span>
-        للعرض، و<span class="mono">config.py</span> للإعدادات، و<span class="mono">session.py</span> للجلسات،
-        و<span class="mono">models/video.py</span> للجدول، و<span class="mono">schemas/video.py</span> للتحقق،
-        و<span class="mono">repositories/video_repository.py</span> للوصول، و
-        <span class="mono">services/video_service.py</span> للمنطق، وendpoints الـ health والـ videos.</p></div>
+        <p>بنينا الـ Backend بطبقات واضحة مترابطة: <span class="mono">main.py</span> و<span class="mono">router.py</span>
+        وendpoints للعرض، و<span class="mono">config.py</span> و<span class="mono">session.py</span> للبنية،
+        و<span class="mono">models/video.py</span> و<span class="mono">schemas/video.py</span> للبيانات،
+        و<span class="mono">video_repository.py</span> و<span class="mono">video_service.py</span> للمنطق.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
-          <li>إنشاء الملفات بنفس الأسماء والاستيرادات المذكورة أعلاه.</li>
+          <li>إنشاء الملفات بنفس الأسماء والاستيرادات أعلاه.</li>
           <li>تشغيل <span class="mono">uvicorn app.main:app --reload</span> بلا أخطاء استيراد.</li>
           <li>التأكد من رد <span class="mono">/api/v1/health</span> بحالة سليمة.</li>
           <li>إضافة باقي الوحدات (jobs, incidents, analytics, reports) بنفس النمط.</li>
@@ -1815,13 +1794,13 @@ ultralytics</pre></div>
         <li>طبقات منفصلة بلا استيرادات دائرية.</li>
         <li>ملف <span class="mono">requirements.txt</span> قابل للتثبيت على أي جهاز.</li></ul></div>
       <div class="eoc-row"><h4>كيف نتحقق من الإنجاز</h4>
-        <ul><li>لا يستورد أي endpoint قاعدة البيانات مباشرة خارج طبقة الـ Repository.</li>
-        <li>لا توجد استعلامات SQL مكتوبة داخل الـ endpoints.</li>
+        <ul><li>لا يستورد أي endpoint قاعدة البيانات خارج الـ Repository.</li>
+        <li>لا استعلامات SQL داخل الـ endpoints.</li>
         <li>كل ملف يستورد أسماء موجودة فعلاً، ولا أخطاء <span class="mono">ImportError</span>.</li></ul></div>
       <div class="eoc-row"><h4>أخطاء شائعة</h4>
         <ul><li>كتابة منطق العمل داخل الـ endpoint بدل الـ Service.</li>
         <li>نسيان <span class="mono">from_attributes=True</span> فيردّ الـ Schema خطأ تحويل.</li>
-        <li>إرجاع كائن SQLAlchemy مباشرة بدون <span class="mono">response_model</span>.</li>
+        <li>إرجاع كائن SQLAlchemy بدون <span class="mono">response_model</span>.</li>
         <li>نسيان إغلاق الجلسة، أو مشاركتها بين الطلبات.</li>
         <li>إغفال CORS فتظهر أخطاء في المتصفح فقط.</li></ul></div>
     </div>
@@ -1839,20 +1818,19 @@ ultralytics</pre></div>
   </div>
 
   <div class="lead"><p>عقد الـ API (<span class="en">API contract</span>) هو الاتفاق الملزم بين الـ Backend والـ Frontend:
-  أسماء المسارات، وأشكال الطلب والرد، ورموز الحالة، وأشكال الخطأ. إذا ثبّتنا هذا العقد أولاً، يستطيع
-  عضوان أن يبنيا طرفي النظام بالتوازي دون انتظار أحدهما للآخر. هذا الفصل هو المرجع الحرفي لكل نداء في الفصول التالية.</p></div>
+  أسماء المسارات، وأشكال الطلب والرد، ورموز الحالة، وأشكال الخطأ. تثبيته أولاً يسمح ببناء الطرفين بالتوازي،
+  وهو المرجع الحرفي لكل نداء في الفصول التالية.</p></div>
 
   <h3>7.1 لماذا نكتب العقد أولاً</h3>
-  <p>الطريقة التقليدية هي أن يبني الـ Backend أولاً ثم ينتظر الـ Frontend، وهذا يضيّع أسابيع. البديل أن نتفق
-  على الـ Endpoints والأشكال مكتوبةً، فيبدأ الطرفان في نفس اليوم. القاعدة الحاكمة: <strong>أي تغيير في العقد
-  يُعلَن ويُوثَّق قبل تنفيذه</strong>، ولا يُغيَّر اسم حقل بصمت لأن ذلك يكسر الشاشات المعتمدة عليه.</p>
-  <p>كل المسارات تبدأ بالبادئة <span class="mono">/api/v1</span> على العنوان الأساسي
+  <p>البناء التسلسلي (Backend ثم Frontend) يضيّع أسابيع؛ البديل أن نتفق على الـ Endpoints والأشكال مكتوبةً
+  فيبدأ الطرفان معاً. القاعدة الحاكمة: <strong>أي تغيير في العقد يُعلَن ويُوثَّق قبل تنفيذه</strong>، ولا
+  يُغيَّر اسم حقل بصمت. كل المسارات تبدأ بـ <span class="mono">/api/v1</span> على
   <span class="mono">http://localhost:8000</span>، وكل الأجسام <span class="en">JSON</span> إلا الرفع.</p>
 
   <h3>7.2 جدول الـ Endpoints الكامل</h3>
   <p>الجدول التالي هو المصدر الوحيد للحقيقة. الرمز <span class="mono">yes*</span> يعني أن المصادقة تُفرض فقط
-  عند <span class="mono">AUTH_ENABLED=true</span>؛ في وضع العرض التوضيحي تكون القيمة <span class="mono">false</span>
-  ويعمل النظام كأن مستخدماً افتراضياً بدور <span class="mono">safety_officer</span> مسجَّل دخوله.</p>
+  عند <span class="mono">AUTH_ENABLED=true</span>؛ في وضع العرض (<span class="mono">false</span>) يعمل النظام
+  بمستخدم افتراضي دوره <span class="mono">safety_officer</span>.</p>
   <table class="tbl">
     <caption>جدول 7-1: عقد الـ REST API الكامل (البادئة /api/v1)</caption>
     <thead><tr><th class="w10">Method</th><th class="w20">Endpoint</th><th class="w18">Purpose</th><th class="w20">Request</th><th class="w16">Response</th><th class="w8">Auth</th><th>Errors</th></tr></thead>
@@ -1880,8 +1858,7 @@ ultralytics</pre></div>
   </table>
 
   <h3>7.3 رموز الحالة (Status Codes)</h3>
-  <p>نستخدم رموز الحالة القياسية في <span class="en">HTTP</span>، ولا نعيد أبداً <span class="mono">200</span>
-  عند الفشل. الجدول يوضّح متى يظهر كل رمز ولماذا.</p>
+  <p>نستخدم رموز <span class="en">HTTP</span> القياسية ولا نعيد <span class="mono">200</span> عند الفشل:</p>
   <table class="tbl">
     <caption>جدول 7-2: رموز الحالة المستخدمة ومعانيها</caption>
     <thead><tr><th class="w12">Code</th><th class="w28">المعنى</th><th>متى يظهر في نظامنا</th></tr></thead>
@@ -1903,8 +1880,8 @@ ultralytics</pre></div>
   </table>
 
   <h3>7.4 أمثلة JSON حقيقية</h3>
-  <p>هذه الأشكال مطابقة حرفياً لـ <span class="mono">SPEC.md</span>، ويجب أن تُستنسخ في أنواع الـ TypeScript
-  بنفس الأسماء دون تغيير حرف واحد. مثال رد الرفع والقراءة <span class="mono">VideoOut</span>:</p>
+  <p>هذه الأشكال مطابقة حرفياً لـ <span class="mono">SPEC.md</span> وتُستنسخ في أنواع TypeScript بنفس الأسماء.
+  رد الرفع/القراءة <span class="mono">VideoOut</span>:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/videos/{video_id} &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "id": "3f1a9c2e-0b7d-4e51-9a44-77d2c1b0e8f3",
@@ -1935,8 +1912,8 @@ ultralytics</pre></div>
   }
 }</pre></div>
 
-  <p>الواقعة <span class="mono">IncidentOut</span> تحمل مصفوفة دليل <span class="mono">evidence</span>، وكل عنصر
-  فيه رابط <span class="mono">file_url</span> جاهز للعرض دون بناء مسار في الواجهة:</p>
+  <p><span class="mono">IncidentOut</span> يحمل مصفوفة <span class="mono">evidence</span>، وكل عنصر فيه
+  <span class="mono">file_url</span> جاهز للعرض:</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">GET /api/v1/incidents/{incident_id} &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "id": "9d4c1b70-2e6a-4f13-8c55-1a2b3c4d5e6f",
@@ -1971,9 +1948,7 @@ ultralytics</pre></div>
   ]
 }</pre></div>
 
-  <p>الردود الإحصائية <span class="mono">AnalyticsOverview</span> و<span class="mono">TimeseriesPoint</span>
-  تُبنى من صفوف مخزَّنة، وكل كائنات التوزيع (<span class="mono">incidents_by_type</span> وغيره) هي كائنات
-  مفاتيحها قيم الـ enum:</p>
+  <p>الردود الإحصائية تُبنى من صفوف مخزَّنة، وكائنات التوزيع مفاتيحها قيم الـ enum:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/analytics/overview &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "total_videos": 14,
@@ -1989,8 +1964,8 @@ ultralytics</pre></div>
 }</pre></div>
 
   <h3>7.5 Pagination و Filtering و Sorting و Date-range</h3>
-  <p>كل مسارات القوائم تعيد نفس غلاف الصفحات (<span class="en">pagination envelope</span>)، فتُكتب منطقية
-  الترقيم مرة واحدة في الواجهة وتُعاد في كل الصفحات. الحد الأقصى لـ <span class="mono">page_size</span> هو 100.</p>
+  <p>كل مسارات القوائم تعيد غلاف الصفحات نفسه (<span class="en">pagination envelope</span>)؛ الحد الأقصى لـ
+  <span class="mono">page_size</span> هو 100.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/incidents?page=2&amp;page_size=20&amp;incident_type=ppe_violation&amp;sort=-created_at &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "items": [ { "id": "9d4c1b70-...", "incident_type": "ppe_violation", "severity": "high" } ],
@@ -2013,7 +1988,7 @@ ultralytics</pre></div>
       <tr><td class="mono">video_id</td><td>UUID</td><td>وقائع فيديو واحد بعينه</td></tr>
     </tbody>
   </table>
-  <p>نكتب معاملات الترقيم والفلترة مرة واحدة في مخطط <span class="en">Pydantic</span> قابل لإعادة الاستخدام:</p>
+  <p>نكتب معاملات الترقيم مرة واحدة في مخطط <span class="en">Pydantic</span> قابل لإعادة الاستخدام:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/schemas/common.py</span><span class="ftag">python</span></div>
 <pre>from typing import Generic, TypeVar
 
@@ -2036,7 +2011,7 @@ class Paginated(BaseModel, Generic[T]):
     pages: int = 0</pre></div>
 
   <h3>7.6 إبقاء العقد مستقراً أثناء العمل المتوازي</h3>
-  <p>العمل المتوازي لا ينجح إلا بأدوات تحمي العقد. نستخدم خمس أدوات بسيطة:</p>
+  <p>نحمي العقد بخمس أدوات:</p>
   <ul>
     <li><strong>ملف <span class="en">OpenAPI</span>:</strong> يولّده FastAPI تلقائياً على <span class="mono">/openapi.json</span>؛
     نصدّره إلى <span class="mono">docs/openapi.json</span> بعد كل تعديل مقصود.</li>
@@ -2050,9 +2025,9 @@ class Paginated(BaseModel, Generic[T]):
     ومسؤول الـ Frontend معاً قبل الدمج.</li>
   </ul>
   <div class="callout tip"><span class="co-title">نصيحة عملية</span>
-    <p>افتح <span class="mono">/docs</span> (<span class="en">Swagger UI</span>) بعد كل تشغيل للـ Backend، وجرّب
-    الـ Endpoints يدوياً قبل كتابة كود الواجهة. هذا يكشف أخطاء العقد مبكراً وبتكلفة قريبة من الصفر.</p></div>
-  <p>مثال نداء من الطرفية لإنشاء job ثم متابعته:</p>
+    <p>جرّب الـ Endpoints يدوياً على <span class="mono">/docs</span> (<span class="en">Swagger UI</span>) قبل
+    كتابة كود الواجهة.</p></div>
+  <p>مثال من الطرفية:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">curl &mdash; create a processing job and poll it</span><span class="ftag">bash</span></div>
 <pre>$ curl -X POST http://localhost:8000/api/v1/videos/&lt;video_id&gt;/process
 # HTTP/1.1 202 Accepted
@@ -2061,25 +2036,21 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
 # HTTP/1.1 200 OK  {"status":"running","progress":42.5}</pre></div>
 
   <h3>7.7 أخطاء الـ API الموحّدة</h3>
-  <p>لا نعيد أشكال خطأ مختلفة من كل endpoint. لكل خطأ شكل واحد فيه رمز آلي ورسالة صديقة للمستخدم،
-  فيستطيع الـ Frontend عرض رسالة مفهومة دون فحص نص الخطأ.</p>
+  <p>شكل خطأ واحد لكل الـ endpoints: رمز آلي ورسالة صديقة، فلا تفحص الواجهة نص الخطأ.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">Error response shape &mdash; 404 / 409 / 413</span><span class="ftag">json</span></div>
 <pre>{
   "detail": "Video not found",
   "code": "video_not_found"
 }</pre></div>
-  <p>أخطاء تحقق <span class="mono">422</span> تأتي من <span class="en">Pydantic</span> بشكل قياسي يحتوي
-  <span class="mono">detail</span> كمصفوفة عناصر لكل حقل مرفوض، ونتعامل معه في الواجهة بتحويل الحقل
-  <span class="mono">loc</span> إلى رسالة عربية.</p>
+  <p>أخطاء <span class="mono">422</span> تأتي من <span class="en">Pydantic</span> بـ <span class="mono">detail</span>
+  كمصفوفة لكل حقل مرفوض، ونحوّل <span class="mono">loc</span> إلى رسالة عربية في الواجهة.</p>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 7</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>ثبّتنا جدول الـ Endpoints الكامل بمعاملاته ورموز حالته، وعرفنا شكل كل كائن رد
-        (<span class="mono">VideoOut</span>, <span class="mono">JobOut</span>, <span class="mono">IncidentOut</span>,
-        <span class="mono">EvidenceOut</span>, <span class="mono">AnalyticsOverview</span>) وغلاف الصفحات،
-        وأدوات إبقاء العقد مستقراً أثناء البناء المتوازي.</p></div>
+        <p>ثبّتنا جدول الـ Endpoints ورموز الحالة، وأشكال كائنات الرد وغلاف الصفحات، وأدوات إبقاء العقد
+        مستقراً أثناء البناء المتوازي.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>تثبيت جدول 7-1 في <span class="mono">docs/API.md</span> كمرجع ملزم للفريقين.</li>
@@ -2114,10 +2085,10 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
     </div>
   </div>
 
-  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام: كل فيديو وكل واقعة وكل دليل وكل قرار مراجعة يُحفظ في صف واضح. في هذا الفصل نُثبّت مخططاً واحداً (<span class="en">schema</span>) يتفق عليه الفريق، ونكتب أول <span class="en">migration</span> تنشئه فعلياً في <span class="en">PostgreSQL</span>، فيستطيع أي عضو بناء القاعدة بأمر واحد.</p></div>
+  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام. في هذا الفصل نُثبّت مخططاً واحداً (<span class="en">schema</span>) ونكتب أول <span class="en">migration</span> تنشئه في <span class="en">PostgreSQL</span>، فيبني أي عضو القاعدة بأمر واحد.</p></div>
 
   <h3>8.1 مبادئ التصميم التي نلتزم بها</h3>
-  <p>قبل الجداول نفسها، نتفق على ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
+  <p>ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
   <table class="tbl">
     <caption>جدول 8-1: مبادئ تصميم قاعدة البيانات</caption>
     <thead><tr><th class="w25">المبدأ</th><th>المعنى العملي</th></tr></thead>
@@ -2146,9 +2117,8 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h3>8.2 الـ Enums: القيم المسموح بها فقط</h3>
-  <p>نُعرّف ثمانية أنواع تعدادية (<span class="en">enum</span>) ونستخدمها في كل مكان بدل النصوص الحرة. هذا
-  القرار يمنع أشهر خطأ في المشاريع الطلابية: كتابة <span class="mono">"Done"</span> في مكان
-  <span class="mono">"processed"</span>. القيم التالية حرفية ومطابقة لعقد الـ API في الفصل 7.</p>
+  <p>ثمانية أنواع تعدادية (<span class="en">enum</span>) بدل النصوص الحرة، فلا يمكن كتابة حالة غير معروفة.
+  القيم التالية حرفية ومطابقة لعقد الـ API في الفصل 7.</p>
   <table class="tbl">
     <caption>جدول 8-2: أنواع الـ Enums وقيمها</caption>
     <thead><tr><th class="w28">الـ Enum</th><th>القيم المسموح بها</th></tr></thead>
@@ -2224,13 +2194,11 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
 </pre></div>
 
   <h3>8.3 الجداول الأساسية في الـ MVP</h3>
-  <p>هذه هي الجداول التي نبنيها فعلاً في المرحلة الأولى. كل جدول مذكور بعمدته وأنواعه ومفاتيحه وقابليته
-  لأن يكون <span class="mono">NULL</span>، والغرض من كل عمود. الأسماء هنا حرفية ويجب ألا تتغيّر.</p>
+  <p>جداول المرحلة الأولى: العمود والنوع والمفتاح وقابلية <span class="mono">NULL</span> والغرض، بأسماء حرفية.</p>
 
   <h4>جدول <span class="mono">users</span> <span class="badge opt">اختياري</span></h4>
-  <p>يُنشأ فقط عند تفعيل المصادقة (<span class="mono">AUTH_ENABLED=true</span>). في وضع العرض التوضيحي
-  (<span class="mono">AUTH_ENABLED=false</span>) يتصرّف النظام كأن مستخدم <span class="mono">safety_officer</span>
-  افتراضياً هو المسجَّل دخوله. لا نخزّن كلمة المرور أبداً كنص صريح، بل كتجزئة <span class="en">bcrypt</span>.</p>
+  <p>يُنشأ فقط عند <span class="mono">AUTH_ENABLED=true</span>؛ وإلا يتصرّف النظام كأن
+  <span class="mono">safety_officer</span> افتراضي مسجَّل دخوله. كلمة المرور تُخزَّن كتجزئة <span class="en">bcrypt</span>.</p>
   <table class="tbl">
     <caption>جدول 8-3: أعمدة <span class="mono">users</span></caption>
     <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w14">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -2246,10 +2214,9 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h4>جدول <span class="mono">videos</span> <span class="badge mvp">MVP</span></h4>
-  <p>الجدول المركزي: صف واحد لكل فيديو مرفوع. لاحظ أن الملف نفسه لا يُخزَّن هنا؛ العمود
-  <span class="mono">storage_key</span> هو مفتاح الوصول إليه في طبقة التخزين (الفصل 9). الأعمدة
-  <span class="mono">duration_seconds</span> و <span class="mono">fps</span> و <span class="mono">frame_count</span>
-  تُملأ بعد التحقق من الفيديو، لذلك تُقبل قيمتها <span class="mono">NULL</span> في لحظة الرفع.</p>
+  <p>صف واحد لكل فيديو مرفوع؛ الملف نفسه ليس هنا بل مفتاحه <span class="mono">storage_key</span> (الفصل 9).
+  أعمدة <span class="mono">duration_seconds</span> و <span class="mono">fps</span> و <span class="mono">frame_count</span>
+  تُملأ بعد التحقق فتُقبل <span class="mono">NULL</span> عند الرفع.</p>
   <table class="tbl">
     <caption>جدول 8-4: أعمدة <span class="mono">videos</span></caption>
     <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -2273,8 +2240,7 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h4>جدول <span class="mono">processing_jobs</span> <span class="badge mvp">MVP</span></h4>
-  <p>صف واحد لكل تشغيل لخط المعالجة على فيديو. هنا تُتابَع حالة الـ job ونسبة التقدّم. القيد الحرج هنا هو
-  الفهرس الفريد الجزئي الذي يمنع وجود وظيفتين نشطتين لنفس الفيديو في نفس الوقت.</p>
+  <p>صف لكل تشغيل لخط المعالجة، تُتابَع فيه الحالة والتقدّم. الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</p>
   <table class="tbl">
     <caption>جدول 8-5: أعمدة <span class="mono">processing_jobs</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -2294,12 +2260,11 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
     </tbody>
   </table>
   <div class="callout info"><span class="co-title">الفهرس الفريد الجزئي</span>
-    <p>القيد <span class="mono">UNIQUE (video_id) WHERE status IN ('queued','running')</span> يمنع إنشاء وظيفتين
-    فعّالتين لنفس الفيديو. هذا هو خط الدفاع الأول ضد المعالجة المزدوجة الذي نشرحه تفصيلاً في الفصل 11.</p></div>
+    <p>القيد <span class="mono">UNIQUE (video_id) WHERE status IN ('queued','running')</span> هو خط الدفاع الأول
+    ضد المعالجة المزدوجة (تفصيلاً في الفصل 11).</p></div>
 
   <h4>جدول <span class="mono">detections</span> <span class="badge mvp">MVP</span></h4>
-  <p>كل كشف خام يُخرجه الـ Model يمكن أن يُكتب هنا: الصندوق المحيط، درجة الثقة، الإطار، والزمن، واسم
-  الـ Model وإصداره. هذا الجدول هو الأسرع نمواً في النظام بأكمله، لذلك نتعامل معه بحذر (انظر القسم 8.7).</p>
+  <p>كل كشف خام: الصندوق والثقة والإطار والزمن واسم الـ Model وإصداره. أسرع الجداول نمواً، فنتعامل معه بحذر (القسم 8.7).</p>
   <table class="tbl">
     <caption>جدول 8-6: أعمدة <span class="mono">detections</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w20">النوع</th><th class="w18">المفتاح</th><th>الغرض</th></tr></thead>
@@ -2318,19 +2283,15 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
     </tbody>
   </table>
   <p class="small">الفهارس: <span class="mono">(job_id, frame_number)</span> و <span class="mono">(class_name)</span>
-  و <span class="mono">(video_id)</span>. الفهرس المركّب مهم لأن أكثر استعلام نتوقعه هو "أعطني الكشوفات
-  مرتبةً حسب الإطار داخل وظيفة معيّنة".</p>
+  و <span class="mono">(video_id)</span>.</p>
 
   <h4>جدول <span class="mono">tracks</span> <span class="badge opt">موصى به</span></h4>
-  <p>ملخّص لكل مسار تتبّع (<span class="en">track</span>) بدل تخزين كل إطار. عمود واحد لكل مسار مع أول وآخر
-  إطار وعدد مرات الظهور. القيد <span class="mono">UNIQUE (job_id, track_id)</span> يضمن عدم تكرار نفس المسار
-  داخل الوظيفة. التتبّع نفسه مسؤولية الـ <span class="en">ByteTrack</span> عبر
-  <span class="mono">model.track</span> (الفصل 10).</p>
+  <p>ملخّص لكل مسار تتبّع (<span class="en">track</span>) بأول وآخر إطار وعدد الظهور، بدل تخزين كل إطار.
+  القيد <span class="mono">UNIQUE (job_id, track_id)</span> يمنع التكرار؛ التتبّع عبر <span class="en">ByteTrack</span> (الفصل 10).</p>
 
   <h4>جدول <span class="mono">incidents</span> <span class="badge mvp">MVP</span></h4>
-  <p>هذا هو الجدول الذي يقرأه مسؤول السلامة في الواجهة. كل صف يمثّل واقعة لها نوع ودرجة خطورة وحالة
-  مراجعة، وزمن بداية وزمن نهاية. الحالة الافتراضية <span class="mono">detected</span>، والخطورة الافتراضية
-  <span class="mono">medium</span>، ويُحدَّثان لاحقاً حسب قواعد الفصل 12 ودورة الحياة في الفصل 13.</p>
+  <p>الجدول الذي يقرأه مسؤول السلامة: واقعة بنوع وخطورة وحالة، وزمن بداية ونهاية. الافتراضي
+  <span class="mono">detected</span> و <span class="mono">medium</span> (الفصلان 12 و 13).</p>
   <table class="tbl">
     <caption>جدول 8-7: أعمدة <span class="mono">incidents</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th>الغرض</th></tr></thead>
@@ -2354,12 +2315,10 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
     </tbody>
   </table>
   <p class="small">الفهارس: <span class="mono">(video_id)</span> و <span class="mono">(incident_type)</span>
-  و <span class="mono">(severity)</span> و <span class="mono">(status)</span> و <span class="mono">(created_at)</span>.
-  هذه الفهارس تخدم مباشرةً شاشة الـ Incidents التي تفلتر بالنوع والخطورة والحالة وتُرتّب بالتاريخ.</p>
+  و <span class="mono">(severity)</span> و <span class="mono">(status)</span> و <span class="mono">(created_at)</span> — تخدم فلاتر شاشة الـ Incidents.</p>
 
   <h4>جدول <span class="mono">evidence</span> <span class="badge mvp">MVP</span></h4>
-  <p>كل واقعة قد يكون لها أكثر من دليل: صورة مقتطعة من الإطار، أو مقطع قصير، أو ملف بيانات وصفية. الملف
-  نفسه محفوظ في طبقة التخزين، وهنا نحفظ فقط <span class="mono">storage_key</span> ونوع المحتوى والحجم.</p>
+  <p>دليل الواقعة: صورة أو مقطع أو بيانات وصفية. الملف في طبقة التخزين، وهنا <span class="mono">storage_key</span> ونوع المحتوى والحجم.</p>
   <table class="tbl">
     <caption>جدول 8-8: أعمدة <span class="mono">evidence</span></caption>
     <thead><tr><th class="w28">العمود</th><th class="w22">النوع</th><th>الغرض</th></tr></thead>
@@ -2377,9 +2336,8 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h4>جدول <span class="mono">incident_reviews</span> <span class="badge mvp">MVP</span></h4>
-  <p>سجل تدقيق (<span class="en">audit log</span>) لا يُعدَّل ولا يُحذَف. كل إجراء مراجعة يُلحق صفاً جديداً
-  يحمل الحالة السابقة والحالة الجديدة والملاحظة. هذا هو أساس <span class="en">Auditability</span> الذي
-  نشرحه في الفصل 13.</p>
+  <p>سجل تدقيق (<span class="en">audit log</span>) لا يُعدَّل ولا يُحذَف: كل إجراء يُلحق صفاً بالحالة السابقة
+  والجديدة والملاحظة (الفصل 13).</p>
   <table class="tbl">
     <caption>جدول 8-9: أعمدة <span class="mono">incident_reviews</span></caption>
     <thead><tr><th class="w30">العمود</th><th class="w24">النوع</th><th>الغرض</th></tr></thead>
@@ -2395,24 +2353,20 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h3>8.4 الجداول المؤجَّلة</h3>
-  <p>ثلاثة جداول مخطَّطة لكنها لا تدخل الـ MVP، ونذكرها هنا حتى لا يخترعها أحد لاحقاً بأسماء مختلفة.</p>
+  <p>ثلاثة جداول مخطَّطة خارج الـ MVP، نثبّت أسماءها حتى لا تختلط لاحقاً.</p>
   <div class="grid3">
     <div class="card navy"><h5>cameras <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">id</span> و <span class="mono">name</span> و <span class="mono">location_label</span>
-      و <span class="mono">description</span> و <span class="mono">created_at</span>. تُستخدم لربط الفيديو بكاميرا
-      محدّدة عند معايرة الموقع، و <span class="mono">videos.camera_id</span> يبقى <span class="mono">NULL</span> في الـ MVP.</p></div>
+      <p><span class="mono">id, name, location_label, description, created_at</span>. تربط الفيديو بكاميرا؛
+      <span class="mono">videos.camera_id</span> يبقى <span class="mono">NULL</span> في الـ MVP.</p></div>
     <div class="card orange"><h5>model_runs <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">job_id</span> و <span class="mono">model_name</span> و <span class="mono">model_version</span>
-      و <span class="mono">device</span> و <span class="mono">weights_path</span> و <span class="mono">classes_json</span>
-      و <span class="mono">duration_ms</span>. تسجّل تفاصيل كل تشغيل Model لأغراض التشخيص.</p></div>
+      <p><span class="mono">job_id, model_name, model_version, device, weights_path, classes_json, duration_ms</span>.
+      تسجّل تفاصيل كل تشغيل Model للتشخيص.</p></div>
     <div class="card green"><h5>notifications <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">user_id</span> و <span class="mono">incident_id</span> و <span class="mono">channel</span>
-      و <span class="mono">status</span>. للتنبيهات الخارجية (بريد/رسالة) بعد استقرار الـ MVP.</p></div>
+      <p><span class="mono">user_id, incident_id, channel, status</span> — تنبيهات خارجية بعد استقرار الـ MVP.</p></div>
   </div>
 
   <h3>8.5 مخطط العلاقات (ER Diagram)</h3>
-  <p>يُلخّص الشكل التالي كل الجداول والعلاقات بينها. لاحظ أن كل العلاقات من نوع واحد إلى متعدّد
-  (<span class="en">1..N</span>)، وأن <span class="mono">videos</span> هو الجذر الذي تتفرّع منه بقية الكيانات.</p>
+  <p>كل الجداول وعلاقاتها من نوع <span class="en">1..N</span>، و <span class="mono">videos</span> جذر تتفرّع منه بقية الكيانات.</p>
   <div class="fig"><div class="er">
     <div class="er-table"><div class="er-name">users</div><ul><li class="pk">id</li><li>email</li><li>hashed_password</li><li>role</li></ul></div>
     <div class="er-table late"><div class="er-name">cameras</div><ul><li class="pk">id</li><li>name</li><li>location_label</li></ul></div>
@@ -2442,8 +2396,7 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h3>8.6 الفهارس ودعم الفلترة والترتيب</h3>
-  <p>الفلترة في الواجهة ليست ميزة تجميلية؛ كل فلتر يعني شرط <span class="mono">WHERE</span> في الاستعلام،
-  وبدون فهرس مناسب يتحوّل إلى مسح كامل للجدول. لذلك نربط كل فهرس باستعلام حقيقي معروف.</p>
+  <p>كل فلتر شرط <span class="mono">WHERE</span>؛ نربط كل فهرس باستعلام حقيقي لتفادي المسح الكامل للجدول.</p>
   <table class="tbl">
     <caption>جدول 8-11: الفهارس ومبرّر كل واحد</caption>
     <thead><tr><th class="w30">الفهرس</th><th>الاستعلام الذي يخدمه</th></tr></thead>
@@ -2459,25 +2412,21 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
       <tr><td class="mono">incidents(video_id)</td><td>جلب كل وقائع فيديو معيّن</td></tr>
     </tbody>
   </table>
-  <p>الفلترة المتعدّدة في الـ API (نوع + خطورة + حالة + نطاق تاريخ + فيديو) تُبنى كسلاسل شروط تُضاف تدريجياً،
-  مع ترقيم صفحات (<span class="en">pagination</span>) دائماً عبر <span class="mono">LIMIT</span> و
-  <span class="mono">OFFSET</span>. هذا يمنع إرجاع آلاف الصفوف في ردّ واحد.</p>
+  <p>الفلترة المتعدّدة تُبنى كسلاسل شروط، مع ترقيم صفحات (<span class="en">pagination</span>) دائماً عبر
+  <span class="mono">LIMIT</span> و <span class="mono">OFFSET</span>.</p>
 
   <h3>8.7 نمو جدول <span class="mono">detections</span> وخيار <span class="mono">PERSIST_ALL_DETECTIONS</span></h3>
-  <p>فيديو عشر دقائق بمعدّل 25 إطاراً/ثانية يعني 15000 إطار. تسجيل كل كشف في كل إطار يُنشئ ملايين الصفوف دون فائدة، لأن ما يهمّ المستخدم هو الوقائع لا كل كشف.</p>
+  <p>فيديو عشر دقائق = 15000 إطار؛ تسجيل كل كشف يُنشئ ملايين الصفوف بلا فائدة، فالمهمّ الوقائع لا كل كشف.</p>
   <ul>
-    <li><strong>القيمة الافتراضية:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=false</span>، فلا نكتب إلا
-    الكشوفات التي تهمّ (المرتبطة بوقائع أو بمخالفات محتملة) أو نأخذ عيّنات منها.</li>
-    <li><strong>عند التفعيل:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=true</span> يُستخدم أثناء
-    التطوير والتشخيص فقط، مع وعي كامل بضغط القرص والزمن.</li>
-    <li><strong>الربط بخط المعالجة:</strong> قرار الكتابة يُتخذ داخل الـ worker (الفصل 11)، لا داخل الـ Model نفسه.</li>
+    <li><strong>الافتراضي:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=false</span>، فلا نكتب إلا الكشوفات المهمّة أو عيّنات منها.</li>
+    <li><strong>عند التفعيل:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=true</span> للتطوير والتشخيص فقط.</li>
+    <li><strong>الربط:</strong> قرار الكتابة داخل الـ worker (الفصل 11)، لا داخل الـ Model.</li>
   </ul>
   <div class="callout warn"><span class="co-title">تنبيه عملي</span>
-    <p>لا تُفعّل <span class="mono">PERSIST_ALL_DETECTIONS=true</span> على جهاز ضعيف أو قرص ممتلئ. ابدأ دائماً
-    بالقيمة الافتراضية، وارفعها مؤقتاً فقط عند تحقيقك في مشكلة كشف محدّدة.</p></div>
+    <p>ابدأ بالقيمة الافتراضية، وارفعها مؤقتاً فقط عند تحقيقك في مشكلة كشف، وتجنّبها على جهاز ضعيف أو قرص ممتلئ.</p></div>
 
   <h3>8.8 لماذا لا نخزّن الفيديو داخل <span class="en">PostgreSQL</span></h3>
-  <p>لماذا لا نضع ملف الفيديو في حقل <span class="mono">BYTEA</span>؟ لأن <span class="en">PostgreSQL</span> قاعدة علائقية، وحجم الفيديوهات والصور الدليلية سيضخّم النسخ الاحتياطي والاستعلام بلا داعٍ. نحفظ <strong>وصفاً صغيراً</strong> عن الملف، ويبقى الملف نفسه في نظام ملفات أو تخزين كائنات مستقل.</p>
+  <p>لماذا لا نضع الفيديو في حقل <span class="mono">BYTEA</span>؟ لأن حجمه يضخّم النسخ الاحتياطي والاستعلام. نحفظ <strong>وصفاً صغيراً</strong> فقط، ويبقى الملف في نظام ملفات أو تخزين كائنات مستقل.</p>
   <table class="tbl">
     <caption>جدول 8-12: أين يوضع كل شيء</caption>
     <thead><tr><th class="w33">البيانات</th><th class="w30">مكانها</th><th>السبب</th></tr></thead>
@@ -2490,9 +2439,8 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
   </table>
 
   <h3>8.9 Alembic والمهاجرات الأولى</h3>
-  <p><strong>Alembic</strong> هو أداة إدارة المهاجرات (<span class="en">migrations</span>) الخاصة بـ
-  <span class="en">SQLAlchemy</span>: تحوّل تعريفات الـ Models إلى تغييرات فعلية في قاعدة البيانات، وتسمح
-  لكل عضو بإعادة بناء المخطط نفسه بأمر واحد بدل إنشاء الجداول يدوياً.</p>
+  <p><strong>Alembic</strong> أداة المهاجرات (<span class="en">migrations</span>) لـ
+  <span class="en">SQLAlchemy</span>: تحوّل تعريفات الـ Models إلى تغييرات فعلية، فيعيد أي عضو بناء المخطط بأمر واحد.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/models/video.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/models/video.py (abbreviated)</span>
 <span class="kw">import</span> uuid
@@ -2538,14 +2486,13 @@ $ alembic init migrations
 $ alembic revision --autogenerate -m "initial schema"
 $ alembic upgrade head
 </pre></div>
-  <p>بعد تنفيذ الأمر الأخير تصبح قاعدة البيانات مطابقة للمخطط. أمر <span class="mono">--autogenerate</span>
-  يقارن الـ Models بالوضع الحالي ويولّد ملف المهاجرة، لكن مراجعته يدوياً قبل التطبيق خطوة إلزامية.</p>
+  <p>بعد الأمر الأخير تطابق القاعدة المخطط. <span class="mono">--autogenerate</span> يولّد المهاجرة بمقارنة
+  الـ Models بالوضع الحالي، ومراجعتها يدوياً إلزامية.</p>
 
   <h3>8.10 الخصوصية: لا نخزّن هويات حقيقية للعاملين</h3>
-  <p>النظام يكتشف معدات الوقاية والاقتراب من المعدات، ولا يحتاج معرفة <em>من</em> هو العامل. لذلك لا نخزّن أسماء ولا صوراً تعريفية ولا أرقام هوية، بل <span class="mono">track_id</span> رقمياً مؤقّتاً داخل الوظيفة وصور دليل تخدم المراجعة فقط.</p>
+  <p>لا نحتاج معرفة <em>من</em> هو العامل، فلا نخزّن أسماء ولا صوراً تعريفية ولا أرقام هوية، بل <span class="mono">track_id</span> مؤقّتاً وصور دليل للمراجعة.</p>
   <div class="callout note"><span class="co-title">ملاحظة للجنة المناقشة</span>
-    <p>إذا سُئلنا عن الخصوصية، فالجواب: النظام يحفظ أدلة بصرية للحدث لا هويات أشخاص، ويُستخدم لمساعدة المراجعة
-    البشرية لا للتعقّب الفردي.</p></div>
+    <p>النظام يحفظ أدلة بصرية للحدث لا هويات أشخاص، ويساعد المراجعة البشرية لا التعقّب الفردي.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 8</div>
@@ -2848,22 +2795,17 @@ router = APIRouter(prefix=<span class="str">"/videos"</span>, tags=[<span class=
     </div>
   </div>
 
-  <div class="lead"><p>في هذا الفصل لا نصمّم Models جديدة ولا نعيد التدريب. المهمة هي <strong>الدمج</strong>: كيف يُحمَّل
-  كل <span class="en">checkpoint</span> متفق عليه، وكيف تُترجم مخرجاته المختلفة إلى صيغة كشف واحدة يفهمها
-  باقي النظام. الصيغة الموحّدة هي العقد الذي يربط الفصل 11 و 12 و 13 ببعضها.</p></div>
+  <div class="lead"><p>لا نصمّم Models جديدة ولا نعيد التدريب؛ المهمة هي <strong>الدمج</strong>: تحميل كل
+  <span class="en">checkpoint</span> وتحويل مخرجاته إلى صيغة كشف واحدة تربط الفصول 11 و 12 و 13.</p></div>
 
   <h3>10.1 مبدأ أساسي: لا نعيد تصميم الـ Models</h3>
-  <p>الـ Models المتفق عليها (كشف معدات الوقاية، وكشف الحرائق والدخان، وتتبّع الأشخاص) تمّ اختيارها في مرحلة
-  سابقة. دورنا هنا أن نغلّفها بمحوّل (<span class="en">adapter</span>) يوحّد شكل مخرجاتها. أي محاولة لتغيير
-  المعمارية أو إعادة التدريب أثناء التكامل هي خارج النطاق وتؤجّل المشروع.</p>
+  <p>الـ Models الثلاثة (PPE، الحرائق والدخان، تتبّع الأشخاص) اختيرت سابقاً؛ دورنا أن نغلّفها بمحوّل
+  (<span class="en">adapter</span>) يوحّد مخرجاتها. تغيير المعمارية أو إعادة التدريب خارج النطاق.</p>
   <div class="callout danger"><span class="co-title">قاعدة صارمة</span>
-    <p>لا نغيّر أوزاناً ولا نعيد تدريباً. إن لم يعمل الـ Model، نسجّل الخطأ ونعالجه، ولا نستبدله بـ Model آخر
-    في منتصف المشروع.</p></div>
+    <p>لا نغيّر أوزاناً ولا نعيد تدريباً. إن لم يعمل الـ Model نسجّل الخطأ ونعالجه، ولا نستبدله في منتصف المشروع.</p></div>
 
   <h3>10.2 مسارات الـ checkpoints وكيف نستبدل الـ Placeholders</h3>
-  <p>كل مسار يُقرأ من متغيّر بيئة، وقيمته الافتراضية الآن <span class="en">placeholder</span>. القاعدة:
-  نستبدل كل <span class="en">placeholder</span> بمسار حقيقي بمجرد أن يسلّم مسؤول الـ Models الملف، دون تعديل
-  أي سطر كود.</p>
+  <p>كل مسار من متغيّر بيئة وقيمته الافتراضية <span class="en">placeholder</span>؛ نستبدله بمسار حقيقي بمجرد تسليم الملف، دون تعديل كود.</p>
   <table class="tbl">
     <caption>جدول 10-1: الـ Placeholders وكيف تُستبدل</caption>
     <thead><tr><th class="w33">الـ Placeholder</th><th class="w24">المتغيّر</th><th>كيف نستبدله</th></tr></thead>
@@ -2876,10 +2818,9 @@ router = APIRouter(prefix=<span class="str">"/videos"</span>, tags=[<span class=
   </table>
 
   <h3>10.3 اختيار الجهاز: CPU أم GPU</h3>
-  <p>يتحكّم المتغيّر <span class="mono">MODEL_DEVICE</span> في الجهاز: <span class="mono">cpu</span> أو
-  <span class="mono">cuda</span>. القاعدة العملية: نطوّر ونجرّب على <span class="mono">cpu</span> لأنه متاح
-  للجميع، ونستخدم <span class="mono">cuda</span> عند توفّر كرت رسومي لتقليل زمن المعالجة. الكود نفسه لا يتغيّر
-  بين الحالتين.</p>
+  <p>المتغيّر <span class="mono">MODEL_DEVICE</span> يحدّد <span class="mono">cpu</span> أو
+  <span class="mono">cuda</span>: نطوّر على <span class="mono">cpu</span> للجميع، ونستخدم
+  <span class="mono">cuda</span> عند توفّر كرت لتقليل الزمن. الكود لا يتغيّر.</p>
   <div class="callout warn"><span class="co-title">ذاكرة الـ GPU</span>
     <p>إذا نفدت ذاكرة كرت الرسوم، نُصغّر <span class="mono">INFERENCE_IMG_SIZE</span> أو نعود إلى
     <span class="mono">cpu</span>. لا نُشغّل عدّة عمليات inference ثقيلة في نفس الوقت على نفس الجهاز.</p></div>
@@ -2908,21 +2849,18 @@ router = APIRouter(prefix=<span class="str">"/videos"</span>, tags=[<span class=
 
 settings = <span class="fn">Settings</span>()
 </pre></div>
-  <p>المعنى: <span class="mono">INFERENCE_IMG_SIZE</span> هو الحجم الذي يُصغَّر إليه الإطار قبل الـ Model،
-  و<span class="mono">NMS_IOU_THRESHOLD</span> يحذف الصناديق المتداخلة (<span class="en">Non-Maximum
-  Suppression</span>)، و<span class="mono">DETECTION_CONF_THRESHOLD</span> هو الحد العام للثقة. توجد أيضاً عتبات
-  أدق لكل نوع (<span class="mono">PPE_CONF_THRESHOLD</span> و <span class="mono">FIRE_CONF_THRESHOLD</span>
-  و <span class="mono">SMOKE_CONF_THRESHOLD</span>) لأن كل Model له سلوك مختلف.</p>
+  <p><span class="mono">INFERENCE_IMG_SIZE</span> حجم الإطار قبل الـ Model، و<span class="mono">NMS_IOU_THRESHOLD</span>
+  يحذف الصناديق المتداخلة (<span class="en">Non-Maximum Suppression</span>)، و<span class="mono">DETECTION_CONF_THRESHOLD</span>
+  حدّ الثقة العام. ولأن كل Model مختلف، توجد عتبات أدق لكل نوع (<span class="mono">PPE_CONF_THRESHOLD</span>،
+  <span class="mono">FIRE_CONF_THRESHOLD</span>، <span class="mono">SMOKE_CONF_THRESHOLD</span>).</p>
 
   <h3>10.5 خريطة أسماء الأصناف</h3>
-  <p>كل <span class="en">checkpoint</span> يعيد أسماء أصناف خاصة به (قد تكون إنجليزية أو مختصرة). نخريطها
-  (<span class="en">class map</span>) إلى أسماء داخلية واحدة، فيتعامل الفصل 12 مع أسماء ثابتة. إذا وُجد صنف
-  غير معروف في الخريطة نُبقيه باسمه الأصلي ولا نخترع له معنى.</p>
+  <p>كل <span class="en">checkpoint</span> يعيد أسماء أصناف خاصة به، نخريطها (<span class="en">class map</span>)
+  إلى أسماء داخلية واحدة ليتعامل معها الفصل 12. الصنف غير المعروف نُبقيه باسمه الأصلي.</p>
 
   <h3>10.6 الصيغة الموحّدة للكشف</h3>
-  <p>هذا هو العقد الداخلي: كل محوّل يعيد قائمة من كائنات <span class="mono">Detection</span> بنفس الحقول تماماً
-  المذكورة في المواصفة (الفصل 4). الواجهة <span class="mono">DetectionModel</span> تفرض على كل الـ Models نفس
-  الدوال: <span class="mono">load</span> و <span class="mono">predict</span>.</p>
+  <p>العقد الداخلي: كل محوّل يعيد قائمة <span class="mono">Detection</span> بنفس حقول المواصفة (الفصل 4)،
+  والواجهة <span class="mono">DetectionModel</span> تفرض <span class="mono">load</span> و <span class="mono">predict</span>.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/base.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/base.py</span>
 <span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
@@ -3014,8 +2952,7 @@ PPE_CLASS_MAP = {
 </pre></div>
 
   <h3>10.9 سجل الـ Models <span class="mono">model_registry</span></h3>
-  <p>لتفادي تحميل الـ checkpoint أكثر من مرة (وهو عملية بطيئة وثقيلة على الذاكرة)، نبني سجلاً يضمن نسخة واحدة
-  من كل خدمة عبر <span class="mono">lru_cache</span>.</p>
+  <p>لتفادي تحميل ثقيل متكرّر، يضمن السجل نسخة واحدة من كل خدمة عبر <span class="mono">lru_cache</span>.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/ai/model_registry.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/model_registry.py</span>
 <span class="kw">from</span> functools <span class="kw">import</span> lru_cache
@@ -3047,9 +2984,8 @@ PPE_CLASS_MAP = {
 </pre></div>
 
   <h3>10.10 المحوّل التجريبي <span class="mono">demo_adapter</span> <span class="badge opt">للاختبار فقط</span></h3>
-  <p>أحياناً نريد اختبار خط المعالجة كاملاً قبل توفّر الـ checkpoints. لهذا نكتب محوّلاً وهمياً يعيد صناديق
-  ثابتة دون تشغيل أي Model. هذا المحوّل <strong>وهمي صراحةً</strong> ولا يمثّل مخرجات Model حقيقي، ولا يجوز
-  استخدامه في العرض النهائي ولا في أي قياس دقة.</p>
+  <p>لاختبار خط المعالجة قبل توفّر الـ checkpoints نكتب محوّلاً وهمياً يعيد صناديق ثابتة دون تشغيل أي Model.
+  هذا المحوّل <strong>وهمي صراحةً</strong> ولا يُستخدم في العرض النهائي ولا في أي قياس دقة.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/demo_adapter.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/demo_adapter.py</span>
 <span class="cmt"># WARNING: this adapter is FAKE. It runs no model and returns fixed boxes.</span>
@@ -3076,18 +3012,15 @@ PPE_CLASS_MAP = {
             model_name=self.name, model_version=self.version, track_id=<span class="num">1</span>)]
 </pre></div>
   <div class="callout danger"><span class="co-title">خطر الخلط</span>
-    <p>لا تُبِت أبداً بترك <span class="mono">demo_adapter</span> يعمل في وضع غير الاختبار. يجب أن يكون تبديله
-    صريحاً عبر الإعدادات، ويجب أن يظهر في سجلّ التشغيل أن الـ Model المستخدم وهمي.</p></div>
+    <p>لا تترك <span class="mono">demo_adapter</span> يعمل خارج وضع الاختبار؛ يجب أن يكون تبديله صريحاً عبر
+    الإعدادات وأن يظهر في السجل أن الـ Model وهمي.</p></div>
 
   <h3>10.11 الأداء والموارد ومعالجة الأخطاء</h3>
   <ul>
-    <li><strong>المعالجة بالإطار مقابل الدفعات:</strong> فيديو CCTV يُقرأ إطاراً بإطار؛ نجمع عدّة إطارات في
-    دفعة (<span class="en">batch</span>) عند الإمكان لتسريع الـ inference، ونعود إلى الإطار المفرد عند ضيق الذاكرة.</li>
-    <li><strong>التسخين <span class="en">warm-up</span>:</strong> نُشغّل الـ Model مرة على إطار وهمي عند التحميل
-    لتفادي بطء أول إطار حقيقي.</li>
-    <li><strong>إدارة الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة عبر السجل، ويُعاد استخدامه لكل الوظائف.</li>
-    <li><strong>معالجة الأخطاء:</strong> كل استدعاء <span class="mono">predict</span> داخل
-    <span class="mono">try/except</span>؛ خطأ إطار واحد لا يُسقط الوظيفة كلها، بل يُسجَّل ويُكمَل.</li>
+    <li><strong>الدفعات:</strong> نجمع عدّة إطارات في دفعة (<span class="en">batch</span>) لتسريع الـ inference، ونعود للإطار المفرد عند ضيق الذاكرة.</li>
+    <li><strong>التسخين <span class="en">warm-up</span>:</strong> تشغيل الـ Model على إطار وهمي عند التحميل لتفادي بطء أول إطار.</li>
+    <li><strong>الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة عبر السجل ويُعاد استخدامه.</li>
+    <li><strong>الأخطاء:</strong> كل <span class="mono">predict</span> داخل <span class="mono">try/except</span>؛ خطأ إطار لا يُسقط الوظيفة.</li>
   </ul>
 
   <h3>10.12 حالات الفشل الشائعة وكيف نعالجها</h3>
@@ -3104,10 +3037,9 @@ PPE_CLASS_MAP = {
   </table>
 
   <h3>10.13 تسجيل الإصدار وإعادة الإنتاج، والدقة</h3>
-  <p>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>، ويُسجَّل
-  إصدار الحزمة في <span class="mono">processing_jobs.model_bundle_version</span>. هذا يجعل نتائج أي وظيفة قابلة
-  للتفسير لاحقاً: نعرف بأي Model وبأي إصدار صدرت. الدقة لا تُفترض ولا تُكتب في التوثيق قبل قياسها على مجموعة
-  اختبار مستقلة؛ الجدول التالي يبقى فارغاً حتى تنتهي التجربة.</p>
+  <p>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>، وإصدار الحزمة
+  في <span class="mono">processing_jobs.model_bundle_version</span>، فتُفسَّر نتائج أي وظيفة لاحقاً. الدقة
+  تُقاس على مجموعة اختبار مستقلة ولا تُفترض؛ الجدول يبقى فارغاً حتى تنتهي التجربة.</p>
   <table class="tbl">
     <caption>جدول 10-3: نتائج تقييم الـ Models (يُملأ بعد التجربة)</caption>
     <thead><tr><th class="w30">الـ Model</th><th class="w22">مجموعة الاختبار</th><th>النتيجة</th></tr></thead>
@@ -3118,8 +3050,8 @@ PPE_CLASS_MAP = {
     </tbody>
   </table>
   <div class="callout note"><span class="co-title">لا ندمج بيانات تدريب مختلفة بلا تحقّق</span>
-    <p>إذا جاءت أوزان من مصادر مختلفة، يجب التحقق من خريطة الأصناف وتنسيق الـ annotation وطريقة تقسيم
-    (<span class="en">splits</span>) البيانات قبل أي دمج، وإلا كانت النتائج مضلّلة.</p></div>
+    <p>قبل دمج أوزان من مصادر مختلفة، تحقّق من خريطة الأصناف وتنسيق الـ annotation وتقسيم
+    (<span class="en">splits</span>) البيانات، وإلا كانت النتائج مضلّلة.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 10</div>
@@ -3160,15 +3092,13 @@ PPE_CLASS_MAP = {
     </div>
   </div>
 
-  <div class="lead"><p>معالجة فيديو دقائق قد تستغرق وقتاً أطول بكثير من مهلة أي طلب HTTP. لهذا نفصل الطلب عن التنفيذ:
-  الـ API ينشئ وظيفة (<span class="en">job</span>) ويعيد فوراً، وعملية مستقلة تُسمّى
-  <span class="en">worker</span> تلتقط الوظائف وتنفّذها وتُحدّث التقدّم في قاعدة البيانات.</p></div>
+  <div class="lead"><p>معالجة فيديو دقائق قد تتجاوز مهلة أي طلب HTTP. لذلك نفصل الطلب عن التنفيذ: الـ API
+  ينشئ وظيفة (<span class="en">job</span>) ويعيد فوراً، وعملية مستقلة (<span class="en">worker</span>) تنفّذها وتُحدّث التقدّم.</p></div>
 
   <h3>11.1 لماذا الطلب المتزامن خطأ</h3>
   <p>لو عالجنا الفيديو داخل <span class="mono">POST /api/v1/videos/{video_id}/process</span> مباشرةً، لانتظر
-  المتصفح دقائق حتى ينتهي الطلب، ثم قد يقطعه انقطاع الشبكة أو إعادة تحميل الصفحة، فتضيع كل النتيجة. كما أن
-  خادم <span class="en">Uvicorn</span> محدود بعدد العمليات، وقد يتجمّد عند معالجة عدّة فيديوهات معاً. الحل:
-  تنفيذ طويل ومنفصل، وواجهة تستعلم عن الحالة.</p>
+  المتصفح دقائق ثم قد يقطعه انقطاع الشبكة فتضيع النتيجة، ولتجمّد خادم <span class="en">Uvicorn</span> عند
+  عدّة فيديوهات. الحل: تنفيذ منفصل وواجهة تستعلم عن الحالة.</p>
 
   <h3>11.2 تصميم خط الـ Jobs في ست عشرة خطوة</h3>
   <ol>
@@ -3191,54 +3121,46 @@ PPE_CLASS_MAP = {
   </ol>
 
   <h3>11.3 حالات الـ Job</h3>
-  <p>الحالة تتبع القيم الخمس في المواصفة: <span class="mono">queued</span> ثم <span class="mono">running</span>
-  ثم <span class="mono">completed</span> أو <span class="mono">failed</span>، ويمكن
-  <span class="mono">cancelled</span> قبل البدء. لا نخرج عن هذه القيم أبداً.</p>
+  <p>القيم الخمس في المواصفة: <span class="mono">queued</span> ثم <span class="mono">running</span> ثم
+  <span class="mono">completed</span> أو <span class="mono">failed</span>، و<span class="mono">cancelled</span> قبل البدء.</p>
 
   <h3>11.4 لماذا لا نستخدم <span class="mono">BackgroundTasks</span> كنظام jobs</h3>
-  <p>يوفّر <span class="en">FastAPI</span> آلية <span class="mono">BackgroundTasks</span> لتنفيذ عمل بعد إرجاع
-  الردّ، لكنها <strong>ليست نظام وظائف موثوقاً</strong> للأسباب التالية:</p>
+  <p>آلية <span class="mono">BackgroundTasks</span> في <span class="en">FastAPI</span> تنفّذ عملاً بعد الردّ، لكنها <strong>ليست نظام وظائف موثوقاً</strong>:</p>
   <ul>
-    <li><strong>تعيش داخل عملية الخادم:</strong> إذا أُعيد تشغيل الـ API أو تعطّل، تضيع المهمة بلا أثر.</li>
-    <li><strong>لا يوجد صف دائم:</strong> لا يوجد سجل يمكن الاستعلام عنه لمعرفة الحالة أو التقدّم.</li>
-    <li><strong>لا إعادة محاولة:</strong> لا توجد <span class="en">retries</span> ولا استئناف بعد الفشل.</li>
-    <li><strong>تنافس على الموارد:</strong> تعمل داخل نفس عملية الـ API فتنافس الطلبات على الـ CPU/GPU.</li>
+    <li><strong>تعيش داخل عملية الخادم:</strong> إعادة تشغيل الـ API أو تعطّله تضيّع المهمة بلا أثر.</li>
+    <li><strong>لا صف دائم:</strong> لا سجل يمكن الاستعلام عنه لمعرفة الحالة أو التقدّم.</li>
+    <li><strong>لا إعادة محاولة:</strong> لا <span class="en">retries</span> ولا استئناف بعد الفشل.</li>
+    <li><strong>تنافس على الموارد:</strong> تعمل داخل عملية الـ API فتنافس الطلبات على الـ CPU/GPU.</li>
     <li><strong>لا قابلية للتوسّع:</strong> لا يمكن تشغيل عدّة عمّال على أجهزة مختلفة.</li>
   </ul>
   <div class="callout warn"><span class="co-title">القاعدة</span>
-    <p>نستخدم <span class="mono">BackgroundTasks</span> لمهام صغيرة غير حرجة فقط (مثل كتابة سجل)، أما المعالجة
-    الثقيلة فمكانها الـ worker المستقل.</p></div>
+    <p>نستخدم <span class="mono">BackgroundTasks</span> لمهام صغيرة غير حرجة فقط (كتابة سجل)، والمعالجة الثقيلة في الـ worker المستقل.</p></div>
 
   <h3>11.5 الـ Worker المستقل وقائمة الوظائف المبنية على قاعدة البيانات</h3>
   <p>نستخدم <strong>طابور وظائف مدعوماً بقاعدة البيانات</strong> (<span class="en">DB-backed queue</span>):
-  الوظائف صفوف في <span class="mono">processing_jobs</span>، والـ worker عملية منفصلة تستعلم عنها. الحجز يتم
-  بـ <span class="mono">SELECT ... FOR UPDATE SKIP LOCKED</span> حتى لا يلتقط عاملان نفس الوظيفة. هذا يحقّق
-  الموثوقية بلا إدخال <span class="en">Redis</span> أو <span class="en">Celery</span> (المستبعدين من الـ MVP).</p>
+  الوظائف صفوف في <span class="mono">processing_jobs</span> والـ worker عملية منفصلة. الحجز بـ
+  <span class="mono">SELECT ... FOR UPDATE SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة، فنحقّق الموثوقية
+  بلا <span class="en">Redis</span> أو <span class="en">Celery</span> (المستبعدين من الـ MVP).</p>
 
   <h3>11.6 <span class="en">Frame sampling</span> كمعامل قابل للضبط</h3>
-  <p>لا نحلّل كل إطار؛ نختار إطاراً كل <span class="mono">FRAME_SAMPLE_EVERY_N</span> إطار (الافتراضي
-  <span class="mono">5</span>). يوفّر هذا وقتاً كبيراً، لكنه قد يُفوّت حدثاً قصيراً. لذلك نضبط القيمة بعد
-  التحقق من ثلاثة أمور: معدّل استرجاع الأحداث (<span class="en">event recall</span>)، ومدة الفيديو، وسرعة
-  المعالجة على العتاد المتاح. ونضع حدّاً أعلى للإطارات عبر <span class="mono">MAX_FRAMES_PER_JOB</span>.</p>
+  <p>نحلّل إطاراً كل <span class="mono">FRAME_SAMPLE_EVERY_N</span> (الافتراضي <span class="mono">5</span>):
+  يوفّر وقتاً لكنه قد يُفوّت حدثاً قصيراً، فنضبط القيمة بعد التحقق من استرجاع الأحداث
+  (<span class="en">event recall</span>) ومدة الفيديو وسرعة العتاد، بحدّ أعلى عبر <span class="mono">MAX_FRAMES_PER_JOB</span>.</p>
   <div class="callout info"><span class="co-title">كيف نختار N؟</span>
-    <p>ابدأ بـ <span class="mono">5</span> على فيديو عرض قصير، وقِس زمن المعالجة، ثم كبّر الرقم إذا كان الوقت
-    طويلاً جداً، أو صغّره إذا لاحظنا أحداثاً مفقودة.</p></div>
+    <p>ابدأ بـ <span class="mono">5</span> على فيديو قصير، وقِس الزمن، ثم كبّر الرقم إن كان طويلاً أو صغّره إن فُقدت أحداث.</p></div>
 
   <h3>11.7 منع المعالجة المزدوجة ونفاد الموارد</h3>
   <ul>
-    <li><strong>على مستوى قاعدة البيانات:</strong> الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</li>
-    <li><strong>على مستوى الحجز:</strong> <span class="mono">SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة.</li>
-    <li><strong>على مستوى الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة، و<span class="mono">WORKER_CONCURRENCY</span>
-    يحدّد عدد الوظائف المتزامنة في العامل، فنمنع تشغيل عدّة <span class="en">inference</span> ثقيلة معاً.</li>
-    <li><strong>عند الفشل:</strong> نُعيد الوظيفة أو نعلّمها <span class="mono">failed</span> حسب
-    <span class="mono">JOB_MAX_RETRIES</span>، مع تنظيف أي دليل ناقص.</li>
+    <li><strong>قاعدة البيانات:</strong> الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</li>
+    <li><strong>الحجز:</strong> <span class="mono">SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة.</li>
+    <li><strong>الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة، و<span class="mono">WORKER_CONCURRENCY</span> يحدّ الوظائف المتزامنة فنمنع عدّة <span class="en">inference</span> ثقيلة معاً.</li>
+    <li><strong>الفشل:</strong> إعادة المحاولة أو <span class="mono">failed</span> حسب <span class="mono">JOB_MAX_RETRIES</span>، مع تنظيف الدليل الناقص.</li>
   </ul>
 
   <h3>11.8 نسبة التقدّم ورسائل الخطأ</h3>
-  <p>نحسب <span class="mono">progress</span> كنسبة مئوية بين <span class="mono">frames_processed</span> و
-  <span class="mono">frames_total</span>، ونحدّثه دورياً (لا في كل إطار) لتقليل الكتابة. الواجهة تستعلم عبر
-  <span class="mono">GET /api/v1/jobs/{job_id}</span> وتعرض الشريط. عند الفشل نكتب سبباً واضحاً في
-  <span class="mono">error_message</span> بدل رسالة غامضة.</p>
+  <p><span class="mono">progress</span> نسبة بين <span class="mono">frames_processed</span> و
+  <span class="mono">frames_total</span>، نحدّثه دورياً (لا كل إطار). الواجهة تستعلم عبر
+  <span class="mono">GET /api/v1/jobs/{job_id}</span>، وعند الفشل نكتب سبباً واضحاً في <span class="mono">error_message</span>.</p>
 
   <h3>11.9 مخطط تسلسل معالجة الفيديو</h3>
   <div class="fig"><table class="seq">
@@ -3401,12 +3323,11 @@ JOB_MAX_RETRIES: int = <span class="num">1</span>
     على أجهزة مختلفة لأن الحجز عبر قاعدة البيانات آمن.</p></div>
 
   <h3>11.11 متى نحتاج <span class="en">Task Queue</span> فعلاً؟</h3>
-  <p>طابور قاعدة البيانات كافٍ لفريق طلابي وعدد محدود من العمّال على جهاز واحد. نحتاج نظاماً مثل
-  <span class="en">Redis</span> أو <span class="en">Celery</span> فقط عند تشغيل عمّال على عدّة أجهزة، أو
-  الحاجة إلى جدولة مؤقتة وأولويات معقّدة ومهام متكرّرة. كل هذا خارج نطاق الـ MVP، وذكره هنا ليعرف الفريق
-  حدّ التصميم الحالي.</p>
-  <p>أما إلغاء الوظيفة <span class="mono">cancelled</span> فيتاح فقط قبل بدء التنفيذ؛ فبعد أن يلتقط الـ worker
-  الوظيفة نتركه يُنهي الإطار الحالي بأمان بدل قتل العملية فجأة.</p>
+  <p>طابور قاعدة البيانات كافٍ لفريق طلابي وعدد محدود من العمّال على جهاز واحد. نحتاج <span class="en">Redis</span>
+  أو <span class="en">Celery</span> فقط لعمّال على عدّة أجهزة، أو لجدولة مؤقتة وأولويات ومهام متكرّرة — وكلها
+  خارج الـ MVP.</p>
+  <p>وإلغاء الوظيفة <span class="mono">cancelled</span> متاح فقط قبل بدء التنفيذ؛ فبعد الالتقاط نترك الـ worker
+  يُنهي الإطار الحالي بأمان.</p>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 11</div>
@@ -3943,14 +3864,12 @@ TRANSITIONS = {
     </div>
   </div>
 
-  <div class="lead"><p>هذا الفصل يضع هيكل واجهة المستخدم قبل كتابة مكوّناتها: كيف نقسّم الكود، وكيف ننظّم المسارات،
-  وكيف نطابق أنواع <span class="en">TypeScript</span> مع عقد الـ API حرفياً. الهدف أن يجد أي عضو مكانه بسرعة،
-  وأن تكون الشاشة العشر واضحة الغرض والبيانات قبل تنفيذها في الفصل التالي.</p></div>
+  <div class="lead"><p>هذا الفصل يضع هيكل الواجهة قبل كتابة مكوّناتها: تقسيم الكود، وتنظيم المسارات، ومطابقة
+  أنواع <span class="en">TypeScript</span> مع عقد الـ API حرفياً، وتوضيح الشاشات العشر قبل تنفيذها.</p></div>
 
   <h3>14.1 بنية تطبيق React</h3>
   <p>نقسّم <span class="mono">src</span> حسب <strong>الميزة (feature)</strong> لا حسب نوع الملف فقط، فيصبح كل
-  جزء مسؤولاً عن نفسه. الطبقة <span class="mono">api</span> تعزل نداءات الشبكة، و<span class="mono">hooks</span>
-  تحتوي المنطق القابل لإعادة الاستخدام، و<span class="mono">types</span> تحتوي عقد البيانات المشترك.</p>
+  جزء مسؤولاً عن نفسه:</p>
   <table class="tbl">
     <caption>جدول 14-1: طبقات الـ Frontend ومسؤولية كل طبقة</caption>
     <thead><tr><th class="w22">المجلّد</th><th>المسؤولية</th></tr></thead>
@@ -3966,9 +3885,9 @@ TRANSITIONS = {
   </table>
 
   <h3>14.2 خريطة الصفحات والمسارات</h3>
-  <p>نستخدم <span class="mono">react-router-dom v6</span>، ونجمع الصفحات في ثلاثة أقسام: قسم المصادقة
-  (اختياري)، قسم التشغيل اليومي، وقسم التحليل والتقارير. المسارات المحمية تُحوَّل إلى <span class="mono">/login</span>
-  فقط عند <span class="mono">VITE_ENABLE_AUTH=true</span>.</p>
+  <p>نستخدم <span class="mono">react-router-dom v6</span> في ثلاثة أقسام: المصادقة (اختياري)، التشغيل اليومي،
+  والتحليل والتقارير. المسارات المحمية تُحوَّل إلى <span class="mono">/login</span> عند
+  <span class="mono">VITE_ENABLE_AUTH=true</span>.</p>
   <div class="fig"><div class="dg">
     <div class="dgroup"><div class="dg-title">Authentication (optional)</div>
       <div class="drow"><div class="dbox navy">/login<span class="dsub">LoginPage</span></div></div></div>
@@ -3995,8 +3914,7 @@ TRANSITIONS = {
   </div><div class="fig-cap"><b>شكل 14-1:</b> خريطة صفحات الـ Frontend ومساراتها</div></div>
 
   <h3>14.3 وصف الصفحات العشر</h3>
-  <p>لكل صفحة غرض واحد واضح، ونداءات محدَّدة، وإجراءات مستخدم معروفة، وسلوك تحميل وخطأ صريح. لا نبني
-  صفحة "تاعمل كل حاجة"، بل نبني عشر شاشات مركّزة.</p>
+  <p>لكل صفحة غرض واحد ونداءات محدَّدة وسلوك تحميل/خطأ صريح:</p>
   <table class="tbl">
     <caption>جدول 14-2: الصفحات العشر ونداءاتها وسلوكها</caption>
     <thead><tr><th class="w20">الصفحة / المسار</th><th class="w26">الغرض والمكوّنات</th><th class="w30">نداءات الـ API</th><th>إجراءات المستخدم وسلوك التحميل/الخطأ</th></tr></thead>
@@ -4015,8 +3933,7 @@ TRANSITIONS = {
   </table>
 
   <h3>14.4 Wireframes للصفحات الرئيسية</h3>
-  <p>رسومات مصغّرة تحدّد التخطيط قبل التنفيذ: أي عنصر في أي منطقة، وأين أزرار الإجراء. هذه الرسومات هي
-  مرجع التصميم المتجاوب، فالشريط الجانبي يتحوّل إلى قائمة منسدلة على الشاشات الصغيرة.</p>
+  <p>رسومات مصغّرة تحدّد التخطيط قبل التنفيذ؛ والشريط الجانبي يتحوّل إلى قائمة منسدلة على الشاشات الصغيرة.</p>
   <div class="grid2">
     <div class="wf"><div class="wf-top">Dashboard &mdash; /</div>
       <div class="wf-body"><div class="wf-side">Dashboard<br>Videos<br>Incidents<br>Analytics<br>Reports</div>
@@ -4050,8 +3967,7 @@ TRANSITIONS = {
 
   <h3>14.5 أنواع TypeScript المشتركة</h3>
   <p>هذا الملف هو الجسر بين عقد الـ API والواجهة. كل واجهة هنا تطابق كائن رد في <span class="mono">SPEC.md</span>
-  بنفس أسماء الحقول؛ أي اختلاف حرف واحد يُعدّ خطأً يجب إصلاحه. الاتحادات (<span class="en">union types</span>)
-  تأتي من قيم الـ enum المتفق عليها.</p>
+  بنفس أسماء الحقول؛ أي اختلاف حرف واحد خطأ يجب إصلاحه.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/types/api.ts</span><span class="ftag">typescript</span></div>
 <pre>// Mirrors SPEC.md response shapes exactly. Do not rename fields.
 
@@ -4163,7 +4079,7 @@ export interface Paginated&lt;T&gt; {
 }</pre></div>
 
   <h3>14.6 شجرة <span class="mono">frontend/src</span> الكاملة</h3>
-  <p>هذه الشجرة هي المرجع الحرفي لأماكن الملفات، وتطابق أسماء الملفات المستخدمة في الفصل التالي.</p>
+  <p>المرجع الحرفي لأماكن الملفات، ويطابق أسماء الفصل التالي:</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src (tree)</span><span class="ftag">text</span></div>
 <pre>frontend/src/
   main.tsx                 # app bootstrap, router provider
@@ -4205,8 +4121,7 @@ export interface Paginated&lt;T&gt; {
       LoginPage.tsx          useAuth.ts</pre></div>
 
   <h3>14.7 الحالات والتجربة والهوية البصرية</h3>
-  <p>الواجهة الجيدة لا تُظهر شاشة بيضاء ولا خطأ صامتاً. لكل قائمة أو بطاقة ثلاث حالات صريحة، ونتعامل معها
-  بمكوّنات موحّدة بدل تكرار الشروط في كل صفحة.</p>
+  <p>لكل قائمة أو بطاقة ثلاث حالات صريحة بمكوّنات موحّدة:</p>
   <table class="tbl">
     <caption>جدول 14-3: الحالات الثلاث ومكوّناتها</caption>
     <thead><tr><th class="w20">الحالة</th><th class="w30">المكوّن</th><th>القاعدة</th></tr></thead>
@@ -4217,26 +4132,24 @@ export interface Paginated&lt;T&gt; {
     </tbody>
   </table>
   <ul>
-    <li><strong>النماذج (<span class="en">forms</span>):</strong> تحقق قبل الإرسال (حجم الملف، الامتداد، التاريخ)، وزر معطّل أثناء الإرسال لمنع الطلب المزدوج.</li>
-    <li><strong>الإشعارات (<span class="en">Toast</span>):</strong> تأكيد نجاح أو فشل الإجراء، وتُدار من سياق واحد أعلى الشجرة.</li>
-    <li><strong>حالة المصادقة:</strong> يعتمد سلوكها على <span class="mono">VITE_ENABLE_AUTH</span>؛ عند <span class="mono">false</span> نتجاوز شاشة الدخول، وعند <span class="mono">true</span> نحمي المسارات ونرسل التوكن.</li>
-    <li><strong>التصميم المتجاوب وإمكانية الوصول:</strong> تخطيط شبكي يتكيّف مع العرض، وتباين لوني كافٍ، ونصوص بديلة للصور، وتنقّل بلوحة المفاتيح.</li>
+    <li><strong>النماذج (<span class="en">forms</span>):</strong> تحقق قبل الإرسال وزر معطّل أثناءه لمنع الطلب المزدوج.</li>
+    <li><strong>الإشعارات (<span class="en">Toast</span>):</strong> تأكيد نجاح/فشل الإجراء من سياق واحد أعلى الشجرة.</li>
+    <li><strong>حالة المصادقة:</strong> تتبع <span class="mono">VITE_ENABLE_AUTH</span>؛ عند <span class="mono">false</span> نتجاوز الدخول، وعند <span class="mono">true</span> نحمي المسارات ونرسل التوكن.</li>
+    <li><strong>التجاوب وإمكانية الوصول:</strong> تخطيط شبكي، تباين كافٍ، نصوص بديلة، وتنقّل بلوحة المفاتيح.</li>
   </ul>
-  <p><strong>الهوية البصرية:</strong> <span class="en">Dark Navy</span> للبنية والعناوين، <span class="en">Teal</span>
-  للمعلومات، <span class="en">Orange</span> للتحذير، <span class="en">Red</span> للخطر، وخلفيات محايدة للنصوص.
-  نتجنّب التدرجات الزائدة والحركات غير الضرورية لأنها تشتّت عن المعلومة وتُثقل الأداء. ألوان الخطورة في الواجهة
-  تتبع الـ enum نفسه: <span class="mono">low, medium, high, critical</span>.</p>
+  <p><strong>الهوية البصرية:</strong> <span class="en">Dark Navy</span> للبنية، <span class="en">Teal</span>
+  للمعلومات، <span class="en">Orange</span> للتحذير، <span class="en">Red</span> للخطر، وخلفيات محايدة؛ بلا
+  تدرجات أو حركات زائدة. ألوان الخطورة تتبع الـ enum: <span class="mono">low, medium, high, critical</span>.</p>
   <div class="callout info"><span class="co-title">لا روابط إنتاج داخل المكوّنات</span>
-    <p>لا نكتب <span class="mono">http://localhost:8000</span> ولا أي عنوان إنتاجي داخل أي مكوّن. العنوان يأتي
-    دائماً من <span class="mono">import.meta.env.VITE_API_BASE_URL</span> عبر عميل واحد في
-    <span class="mono">api/client.ts</span>.</p></div>
+    <p>العنوان يأتي دائماً من <span class="mono">import.meta.env.VITE_API_BASE_URL</span> عبر عميل واحد في
+    <span class="mono">api/client.ts</span>، ولا يُكتب أي عنوان داخل مكوّن.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 14</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>قسّمنا الـ Frontend حسب الميزة، ورسمنا خريطة الصفحات والمسارات، ووصفنا الشاشات العشر بنداءاتها
-        وسلوكها، وأثبتنا أنواع TypeScript المطابقة للـ API، وثبّتنا حالات التحميل والخطأ والفراغ والهوية البصرية.</p></div>
+        <p>قسّمنا الـ Frontend حسب الميزة، ورسمنا خريطة الصفحات، ووصفنا الشاشات العشر، وأثبتنا أنواع
+        TypeScript المطابقة للـ API، وثبّتنا حالات التحميل/الخطأ/الفراغ والهوية البصرية.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>إنشاء مجلّدات <span class="mono">features/hooks/api/types</span> كما في الشجرة.</li>
@@ -4271,15 +4184,14 @@ export interface Paginated&lt;T&gt; {
     </div>
   </div>
 
-  <div class="lead"><p>هذا الفصل يحوّل التصميم إلى شاشات تعمل فعلاً. نبني طبقة النداءات مرة واحدة، ثم نربط بها الرفع
-  والجداول والرسوم وتنزيل التقارير. القاعدة الحاكمة: <strong>كل رقم يظهر للمستخدم يجب أن يكون قد جاء من استجابة
-  API حقيقية</strong>، ولا يوجد رقم مكتوب في الكود.</p></div>
+  <div class="lead"><p>هذا الفصل يحوّل التصميم إلى شاشات تعمل: طبقة نداءات واحدة، ثم ربط الرفع والجداول والرسوم
+  وتنزيل التقارير. القاعدة الحاكمة: <strong>كل رقم يظهر للمستخدم يأتي من استجابة API حقيقية</strong>، ولا
+  يوجد رقم مكتوب في الكود.</p></div>
 
   <h3>15.1 عميل الـ API وإعداد الـ Base URL</h3>
-  <p>عميل واحد (<span class="mono">api/client.ts</span>) يعرف العنوان الأساسي ويضيف التوكن تلقائياً. العنوان يُقرأ
-  من <span class="mono">VITE_API_BASE_URL</span>، فلا نكتب عنواناً داخل أي مكوّن. مصادقة الطلبات تُفعَّل فقط
-  عند <span class="mono">VITE_ENABLE_AUTH=true</span>، وهي القيمة المقابلة لـ <span class="mono">AUTH_ENABLED</span>
-  في الـ Backend.</p>
+  <p>عميل واحد (<span class="mono">api/client.ts</span>) يقرأ العنوان من
+  <span class="mono">VITE_API_BASE_URL</span> ويضيف التوكن تلقائياً عند
+  <span class="mono">VITE_ENABLE_AUTH=true</span> (مقابل <span class="mono">AUTH_ENABLED</span> في الـ Backend).</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/api/client.ts</span><span class="ftag">typescript</span></div>
 <pre>import axios from "axios";
 
@@ -4296,14 +4208,12 @@ api.interceptors.request.use((config) =&gt; {
   return config;
 });</pre></div>
   <div class="callout warn"><span class="co-title">CORS</span>
-    <p>المتصفح يمنع الـ Frontend من الاتصال بـ Backend على منفذ مختلف إلا إذا أذن الخادم. لذلك نضع عنوان
-    الواجهة في <span class="mono">CORS_ORIGINS</span> على الـ Backend (مثلاً
-    <span class="mono">http://localhost:5173</span>). إذا ظهر خطأ CORS فالمشكلة في قائمة الأصول المسموح بها،
-    وليست في كود React.</p></div>
+    <p>المتصفح يمنع الاتصال بمنفذ مختلف إلا بإذن الخادم، لذا نضع عنوان الواجهة في
+    <span class="mono">CORS_ORIGINS</span> (مثلاً <span class="mono">http://localhost:5173</span>). خطأ CORS
+    سببه هذه القائمة لا كود React.</p></div>
 
   <h3>15.2 طبقة نداءات الفيديو</h3>
-  <p>كل نداءات مورد الفيديو في ملف واحد تعيد الأنواع المطابقة للـ API. هذا يعني أن الصفحات لا تلمس Axios مباشرة،
-  بل تستدعي دوالّ واضحة الأسماء.</p>
+  <p>كل نداءات الفيديو في ملف واحد؛ الصفحات تستدعي دوالّ واضحة ولا تلمس Axios مباشرة:</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/api/videos.ts</span><span class="ftag">typescript</span></div>
 <pre>import { api } from "./client";
 import type { JobOut, Paginated, VideoOut } from "../types/api";
@@ -4346,9 +4256,8 @@ export async function deleteVideo(id: string) {
 }</pre></div>
 
   <h3>15.3 الرفع مع FormData وشريط التقدّم</h3>
-  <p>الرفع يستخدم <span class="en">FormData</span> لأن الـ endpoint يستقبل <span class="mono">multipart/form-data</span>.
-  نتحقّق من الامتداد والحجم قبل الإرسال، ونعطّل الزر أثناء الرفع، ونعرض نسبة التقدّم من حدث
-  <span class="mono">onUploadProgress</span>. عند النجاح نعيد الفيديو الجديد للصفحة لتحديث الجدول.</p>
+  <p>الرفع يستخدم <span class="en">FormData</span> لأن الـ endpoint يستقبل <span class="mono">multipart/form-data</span>:
+  تحقق قبل الإرسال، زر معطّل أثناءه، وتقدّم من <span class="mono">onUploadProgress</span>.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/features/videos/UploadVideoForm.tsx</span><span class="ftag">tsx</span></div>
 <pre>import { useState } from "react";
 import { uploadVideo } from "../../api/videos";
@@ -4395,8 +4304,7 @@ export function UploadVideoForm({ onUploaded }: { onUploaded: (v: VideoOut) =&gt
 }</pre></div>
 
   <h3>15.4 نداءات الوقائع والاستطلاع</h3>
-  <p>نداءات الوقائع تعيد غلاف الصفحات نفسه، فتُبنى الفلترة والترقيم مرة واحدة. الملف التالي يجمع القائمة
-  والتفاصيل والمراجعة والدليل:</p>
+  <p>نداءات الوقائع تعيد غلاف الصفحات نفسه؛ هذا الملف يجمع القائمة والتفاصيل والمراجعة والدليل:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/api/incidents.ts</span><span class="ftag">typescript</span></div>
 <pre>import { api } from "./client";
 import type { EvidenceOut, IncidentOut, IncidentPatch, Paginated } from "../types/api";
@@ -4432,8 +4340,7 @@ export async function listEvidence(id: string) {
   const { data } = await api.get&lt;EvidenceOut[]&gt;(`/api/v1/incidents/${id}/evidence`);
   return data;
 }</pre></div>
-  <p>الاستطلاع (polling) يُدار عبر خطّاف عام يوقف نفسه عند انتهاء العمل، ويطبّق تراجعاً بسيطاً عند الخطأ.
-  نستخدمه لمتابعة حالة الـ job بعد بدء المعالجة (تفاصيل أكثر في الفصل 16).</p>
+  <p>خطّاف استطلاع عام يوقف نفسه عند انتهاء العمل ويطبّق تراجعاً بسيطاً عند الخطأ (الفصل 16):</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/hooks/usePolling.ts</span><span class="ftag">typescript</span></div>
 <pre>import { useEffect, useRef, useState } from "react";
 
@@ -4479,8 +4386,7 @@ export function usePolling&lt;T&gt;(
 }</pre></div>
 
   <h3>15.5 جدول الوقائع</h3>
-  <p>الجدول يعرض الأعمدة المهمة فقط: النوع، الخطورة، الحالة، وقت البداية، وعدد الكشوفات. كل صف يقود إلى
-  صفحة التفاصيل، ولون الشارة يتبع الـ enum مباشرةً، فلا يوجد لون مخترع.</p>
+  <p>أعمدة الجدول: النوع، الخطورة، الحالة، وقت البداية، وعدد الكشوفات؛ وكل صف يقود إلى التفاصيل.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/features/incidents/IncidentTable.tsx</span><span class="ftag">tsx</span></div>
 <pre>import { Link } from "react-router-dom";
 import type { IncidentOut } from "../../types/api";
@@ -4515,8 +4421,8 @@ export function IncidentTable({ items }: { items: IncidentOut[] }) {
 }</pre></div>
 
   <h3>15.6 بطاقات التحليلات ورسم بياني بـ Recharts</h3>
-  <p>البطاقات تقرأ مباشرة من <span class="mono">AnalyticsOverview</span>؛ لا تحسب شيئاً محلياً ولا تستخدم أرقاماً
-  ثابتة. الرسوم الزمنية تقرأ من <span class="mono">TimeseriesPoint[]</span> حيث كل نقطة يوم واحد.</p>
+  <p>البطاقات تقرأ من <span class="mono">AnalyticsOverview</span> والرسوم من
+  <span class="mono">TimeseriesPoint[]</span> (كل نقطة يوم)؛ بلا أي حساب أو رقم محلي.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/features/analytics/OverviewCards.tsx</span><span class="ftag">tsx</span></div>
 <pre>import type { AnalyticsOverview } from "../../types/api";
 
@@ -4566,8 +4472,7 @@ export function IncidentsTimeseries({ points }: { points: TimeseriesPoint[] }) {
 }</pre></div>
 
   <h3>15.7 تنزيل تقرير CSV</h3>
-  <p>ملف CSV ليس JSON، لذلك لا نمرّره عبر عميل الـ Axios العادي بالطريقة نفسها؛ نطلب الملف كـ
-  <span class="en">blob</span> ثم ننشئ رابطاً مؤقتاً ونضغط عليه برمجياً. اسم الملف يأتي من الـ header إن وُجد.</p>
+  <p>نطلب CSV كـ <span class="en">blob</span> ثم ننشئ رابطاً مؤقتاً ونضغط عليه برمجياً:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/features/reports/ExportCsvButton.tsx</span><span class="ftag">tsx</span></div>
 <pre>import { useState } from "react";
 import { api } from "../../api/client";
@@ -4594,7 +4499,7 @@ export function ExportCsvButton({ query }: { query: Record&lt;string, string&gt;
 }</pre></div>
 
   <h3>15.8 ربط كل صفحة ببياناتها</h3>
-  <p>الجدول يلخّص ما يجلبه كل قسم فعلاً، حتى لا نكتب رقماً بلا مصدر:</p>
+  <p>ما يجلبه كل قسم فعلاً:</p>
   <table class="tbl">
     <caption>جدول 15-1: الصفحات ومصادر بياناتها</caption>
     <thead><tr><th class="w22">الصفحة</th><th class="w30">البيانات</th><th>النداء</th></tr></thead>
@@ -4606,16 +4511,16 @@ export function ExportCsvButton({ query }: { query: Record&lt;string, string&gt;
       <tr><td>Reports</td><td>ملخص يومي وتصدير CSV</td><td class="mono">GET /reports/daily, /reports/export</td></tr>
     </tbody>
   </table>
-  <p>عند <span class="mono">AUTH_ENABLED=false</span> (وضع العرض) لا تحتاج هذه الصفحات توكن، ويعمل النظام
-  بمستخدم افتراضي دوره <span class="mono">safety_officer</span>. عند <span class="mono">true</span> يُرسل عميل
-  الـ API التوكن تلقائياً، وتُحوَّل الصفحات المحمية إلى <span class="mono">/login</span> عند فقدانه.</p>
+  <p>عند <span class="mono">AUTH_ENABLED=false</span> لا تحتاج الصفحات توكن وتعمل بمستخدم افتراضي دوره
+  <span class="mono">safety_officer</span>؛ وعند <span class="mono">true</span> يُرسل التوكن وتُحوَّل الصفحات
+  المحمية إلى <span class="mono">/login</span> عند فقدانه.</p>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 15</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>بنينا عميل Axios واحداً يقرأ عنوانه من متغيّر البيئة، وطبقات نداءات لكل مورد، ورفعاً بـ FormData
-        مع تقدّم، وخطّاف استطلاع يوقف نفسه، وجدول وقائع، وبطاقات تحليلات، ورسم Recharts، وتنزيل CSV.</p></div>
+        <p>بنينا عميل Axios يقرأ عنوانه من البيئة، وطبقات نداءات لكل مورد، ورفعاً بـ FormData مع تقدّم،
+        وخطّاف استطلاع، وجدول وقائع، وبطاقات تحليلات، ورسم Recharts، وتنزيل CSV.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>ضبط <span class="mono">VITE_API_BASE_URL</span> و<span class="mono">VITE_ENABLE_AUTH</span> في ملف <span class="mono">.env</span>.</li>
@@ -5224,21 +5129,18 @@ VITE_ENABLE_AUTH=false</pre></div>
   </div>
 
   <div class="lead">
-    <p>حتى هذه اللحظة كان كل عضو يشغّل النظام بطريقته: نسخة Python هنا، ومنفذ مختلف هناك، وقاعدة بيانات
-    ثالثة على جهاز زميله. هذا الفصل يحلّ مشكلة "يعمل عندي ولا يعمل عندك" عبر تغليف كل مكوّن في حاوية
-    <span class="en">Container</span> وربطها بأمر واحد. الهدف العملي: أن يستطيع أي عضو — أو لجنة المناقشة —
-    تشغيل النظام كاملاً على جهاز نظيف دون تثبيت Python أو Node أو PostgreSQL يدوياً.</p>
+    <p>هذا الفصل يحلّ مشكلة "يعمل عندي ولا يعمل عندك": نغلّف كل مكوّن في حاوية
+    <span class="en">Container</span> ونربطها بأمر واحد، فيستطيع أي عضو — أو لجنة المناقشة — تشغيل النظام
+    كاملاً على جهاز نظيف دون تثبيت Python أو Node أو PostgreSQL يدوياً.</p>
   </div>
 
   <h3>19.1 شرح Docker و Docker Compose من البداية</h3>
-  <p><strong>Docker:</strong> أداة تُغلّف التطبيق مع كل ما يحتاجه (نسخة اللغة، المكتبات، إعدادات النظام) في
-  وحدة واحدة قابلة للتشغيل تسمّى <strong>Image (صورة)</strong>. عند تشغيل الصورة نحصل على
-  <strong>Container (حاوية)</strong>: عملية معزولة تشبه جهازاً صغيراً مستقلاً. الفائدة أن الحاوية تعطي نفس
-  النتيجة على Windows و Linux و macOS لأنها لا تعتمد على مكتبات الجهاز المضيف.</p>
-  <p><strong>Docker Compose:</strong> أداة تُشغّل عدة حاويات معاً من ملف واحد اسمه
-  <span class="mono">docker-compose.yml</span>. النظام عندنا يحتاج أربع حاويات (قاعدة بيانات، backend،
-  worker، frontend) تشتغل وتتحدّث مع بعضها، وبدون Compose كنّا سنكتب أربعة أوامر طويلة وننسى ترتيبها.
-  Compose ينشئ أيضاً <strong>network (شبكة)</strong> خاصة و<strong>volumes</strong> مشتركة تلقائياً.</p>
+  <p><strong>Docker:</strong> أداة تُغلّف التطبيق مع كل ما يحتاجه في وحدة قابلة للتشغيل تسمّى
+  <strong>Image (صورة)</strong>؛ وتشغيلها يُنتج <strong>Container (حاوية)</strong>: عملية معزولة تعطي نفس
+  النتيجة على Windows و Linux و macOS.</p>
+  <p><strong>Docker Compose:</strong> أداة تُشغّل عدة حاويات معاً من ملف واحد
+  <span class="mono">docker-compose.yml</span>، وتنشئ لهنّ <strong>network (شبكة)</strong> خاصة
+  و<strong>volumes</strong> مشتركة تلقائياً. نظامنا يحتاج أربع حاويات متصلة.</p>
   <table class="tbl">
     <caption>جدول 19-1: المصطلحات الأربعة التي يجب ألا يخلط بينها الفريق</caption>
     <thead><tr><th>المصطلح</th><th>المعنى بالعربية</th><th>مثال في مشروعنا</th></tr></thead>
@@ -5251,7 +5153,7 @@ VITE_ENABLE_AUTH=false</pre></div>
   </table>
 
   <h3>19.2 الحاويات الأربع ومسؤولية كل واحدة</h3>
-  <p>لا نضع كل شيء في حاوية واحدة، ولا نُفرط في التقسيم. أربع حاويات هي الحد المعقول لمشروع طلابي:</p>
+  <p>أربع حاويات هي الحد المعقول لمشروع طلابي:</p>
   <table class="tbl">
     <caption>جدول 19-2: خدمات Docker Compose ومسؤولية كل خدمة</caption>
     <thead><tr><th>اسم الخدمة</th><th>المسؤولية</th><th>الصورة / البناء</th><th>المنفذ المنشور</th></tr></thead>
@@ -5263,9 +5165,8 @@ VITE_ENABLE_AUTH=false</pre></div>
     </tbody>
   </table>
   <div class="callout note"><span class="co-title">لماذا الـ worker منفصل؟</span>
-    <p>لأن معالجة الفيديو تستهلك الوقت والذاكرة، ولا نريدها أن تُجمّد الـ API. الـ worker عملية مستقلة تقرأ
-    الـ jobs من قاعدة البيانات بالترتيب (<span class="en">DB-backed queue</span>)، ولذلك يمكن إيقافه وإعادة
-    تشغيله دون إسقاط الـ API.</p></div>
+    <p>لأن معالجة الفيديو تستهلك الوقت والذاكرة ولا نريدها أن تُجمّد الـ API. الـ worker عملية مستقلة تقرأ
+    الـ jobs من قاعدة البيانات بالترتيب (<span class="en">DB-backed queue</span>).</p></div>
 
   <h3>19.3 مخطط النشر بـ Docker</h3>
   <div class="fig">
@@ -5299,11 +5200,10 @@ VITE_ENABLE_AUTH=false</pre></div>
   </div>
 
   <h3>19.4 شبكة الحاويات: أسماء الخدمات بدل localhost</h3>
-  <p>هذا أهم مفهوم يجب أن يفهمه الفريق قبل كتابة أي ملف. داخل شبكة Docker، كل حاوية لها عنوان IP خاص،
-  و<strong>لا يمكن استخدام <span class="mono">localhost</span></strong> للوصول إلى حاوية أخرى، لأن
-  <span class="mono">localhost</span> داخل حاوية الـ backend يشير إلى الـ backend نفسه لا إلى قاعدة البيانات.
-  لذلك نستخدم <strong>اسم الخدمة</strong> كاسم نطاق داخلي: الحاوية <span class="mono">db</span> تُنادى باسم
-  <span class="mono">db</span>، والـ <span class="mono">backend</span> يُنادى باسم <span class="mono">backend</span>.</p>
+  <p>داخل شبكة Docker لكل حاوية عنوان خاص، و<strong>لا يمكن استخدام <span class="mono">localhost</span></strong>
+  للوصول إلى حاوية أخرى: <span class="mono">localhost</span> داخل الـ backend يشير إليه هو لا إلى قاعدة
+  البيانات. لذلك نستخدم <strong>اسم الخدمة</strong> كاسم نطاق داخلي (<span class="mono">db</span>،
+  <span class="mono">backend</span>).</p>
   <table class="tbl">
     <caption>جدول 19-3: من يتحدّث إلى من، وبأي عنوان</caption>
     <thead><tr><th>المتصل</th><th>الهدف</th><th>العنوان داخل الحاويات</th><th>العنوان من المتصفح على الجهاز</th></tr></thead>
@@ -5315,14 +5215,13 @@ VITE_ENABLE_AUTH=false</pre></div>
     </tbody>
   </table>
   <div class="callout warn"><span class="co-title">الخطأ الأشهر</span>
-    <p>كتابة <span class="mono">DATABASE_URL=...@localhost:5432/...</span> داخل حاوية الـ backend. هذه القيمة
-    صحيحة عند التشغيل المباشر على الجهاز، لكنها خاطئة داخل Docker ويظهر خطأ
-    <span class="mono">connection refused</span>. القيمة الصحيحة داخل الحاويات تستخدم اسم الخدمة
-    <span class="mono">db</span>. أمّا من المتصفح على الجهاز فنستخدم <span class="mono">localhost</span> لأن
-    المنافذ منشورة (published) على الجهاز المضيف.</p></div>
+    <p>كتابة <span class="mono">DATABASE_URL=...@localhost:5432/...</span> داخل حاوية الـ backend: صحيحة على
+    الجهاز، خاطئة داخل Docker (تظهر <span class="mono">connection refused</span>). داخل الحاويات نستخدم اسم
+    الخدمة <span class="mono">db</span>، ومن المتصفح نستخدم <span class="mono">localhost</span> لأن المنافذ
+    منشورة على الجهاز المضيف.</p></div>
 
   <h3>19.5 الـ Volumes: كيف تصل ملفات الـ Models والفيديوهات للحاويات</h3>
-  <p>الحاوية قابلة للحذف، ولذلك لا نضع فيها شيئاً نفقد فقدانه. ثلاثة أنواع من التخزين في مشروعنا:</p>
+  <p>الحاوية قابلة للحذف، فلا نضع فيها شيئاً نفقد فقدانه. ثلاثة أنواع تخزين:</p>
   <ul>
     <li><strong>pgdata</strong> (named volume): يحفظ ملفات PostgreSQL فيبقى كل شيء بعد إعادة تشغيل الحاوية.</li>
     <li><strong>storage</strong>: مجلد مشترك بين الـ backend والـ worker يحتوي الفيديوهات المرفوعة
@@ -5331,14 +5230,13 @@ VITE_ENABLE_AUTH=false</pre></div>
       الجهاز، لأن ملفات الـ checkpoints كبيرة ولا تُرفع إلى Git ولا تُنسخ داخل الصورة.</li>
   </ul>
   <div class="callout info"><span class="co-title">لماذا bind mount للـ models؟</span>
-    <p>لأن مسار الـ checkpoint يُحدَّد من متغيّر <span class="mono">PPE_MODEL_PATH</span> و
-    <span class="mono">FIRE_SMOKE_MODEL_PATH</span>. ربط المجلد يجعل تغيير الـ checkpoint عملية نسخ ملف بسيطة
-    دون إعادة بناء الصورة. نضع <span class="mono">:ro</span> لضمان أن الحاوية تقرأ ولا تكتب.</p></div>
+    <p>مسار الـ checkpoint يُحدَّد من <span class="mono">PPE_MODEL_PATH</span> و
+    <span class="mono">FIRE_SMOKE_MODEL_PATH</span>؛ فربط المجلد يجعل تغييره نسخ ملف دون إعادة بناء الصورة،
+    مع <span class="mono">:ro</span> لضمان القراءة فقط.</p></div>
 
   <h3>19.6 ملف الـ Backend Dockerfile</h3>
-  <p>صورة الـ backend مبنية على Python 3.11، وتُثبّت المتطلبات أولاً ثم يُنسخ الكود، لأن Docker يخزّن كل خطوة
-  مؤقتاً (<span class="en">layer cache</span>) فلا يعيد التثبيت عند تغيير الكود فقط. نستخدم الـ worker نفس
-  الصورة مع أمر تشغيل مختلف.</p>
+  <p>صورة الـ backend مبنية على Python 3.11، وتُثبّت المتطلبات أولاً ثم يُنسخ الكود للاستفادة من
+  <span class="en">layer cache</span>. يستخدم الـ worker نفس الصورة بأمر تشغيل مختلف.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/Dockerfile</span><span class="ftag">dockerfile</span></div>
 <pre># SafeVision AI - backend image (also used by the worker service)
 FROM python:3.11-slim
@@ -5368,10 +5266,9 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 </pre></div>
 
   <h3>19.7 ملف الـ Frontend Dockerfile</h3>
-  <p>نبني الواجهة في مرحلة أولى (builder) ثم ننقل الناتج الثابت إلى صورة nginx صغيرة. هذا نمط
-  <span class="en">multi-stage build</span> ويقلّل حجم الصورة كثيراً، لأن Node و
-  <span class="mono">node_modules</span> لا تدخل الصورة النهائية. قيمة
-  <span class="mono">VITE_API_BASE_URL</span> تُثبَّت وقت البناء لأن Vite يدمج المتغيّرات في ملفات الإنتاج.</p>
+  <p>نمط <span class="en">multi-stage build</span>: نبني الواجهة ثم ننقل الناتج الثابت إلى صورة nginx صغيرة،
+  فتبقى Node و<span class="mono">node_modules</span> خارج الصورة النهائية. تُثبَّت قيمة
+  <span class="mono">VITE_API_BASE_URL</span> وقت البناء لأن Vite يدمج المتغيّرات في ملفات الإنتاج.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/Dockerfile</span><span class="ftag">dockerfile</span></div>
 <pre># SafeVision AI - frontend image (multi-stage build)
 # ---- Stage 1: build the static assets ----
@@ -5398,8 +5295,8 @@ CMD ["nginx", "-g", "daemon off;"]
 </pre></div>
 
   <h3>19.8 ملف .dockerignore</h3>
-  <p>الملف <span class="mono">.dockerignore</span> يمنع إرسال الملفات غير الضرورية إلى محرّك Docker. الفائدة
-  مزدوجة: بناء أسرع، وحماية من تسريب الأسرار أو الفيديوهات الخاصة إلى داخل الصورة بالخطأ.</p>
+  <p><span class="mono">.dockerignore</span> يمنع إرسال الملفات غير الضرورية إلى محرّك Docker: بناء أسرع،
+  وحماية من تسريب الأسرار أو الفيديوهات داخل الصورة.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">.dockerignore</span><span class="ftag">text</span></div>
 <pre># Never ship secrets, big binaries or local artifacts inside an image
 .git
@@ -5429,11 +5326,10 @@ docs/
 </pre></div>
 
   <h3>19.9 ملف docker-compose.yml</h3>
-  <p>هذا الملف هو قلب التشغيل. لاحظ ثلاثة أمور: أسماء الخدمات (<span class="mono">db</span>,
-  <span class="mono">backend</span>, <span class="mono">worker</span>, <span class="mono">frontend</span>)،
-  و<span class="mono">DATABASE_URL</span> الذي يستخدم اسم الخدمة <span class="mono">db</span>،
-  و<span class="mono">depends_on</span> مع فحص الصحة <span class="mono">healthcheck</span> لضمان أن الـ backend
-  لا يبدأ قبل جاهزية قاعدة البيانات.</p>
+  <p>قلب التشغيل. لاحظ: أسماء الخدمات (<span class="mono">db</span>, <span class="mono">backend</span>,
+  <span class="mono">worker</span>, <span class="mono">frontend</span>)، و<span class="mono">DATABASE_URL</span>
+  باستخدام <span class="mono">db</span>، و<span class="mono">depends_on</span> مع
+  <span class="mono">healthcheck</span> حتى لا يبدأ الـ backend قبل جاهزية قاعدة البيانات.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">docker-compose.yml</span><span class="ftag">yaml</span></div>
 <pre>services:
   db:
@@ -5509,13 +5405,12 @@ networks:
 </pre></div>
   <div class="callout tip"><span class="co-title">ترتيب البدء</span>
     <p><span class="mono">depends_on</span> مع <span class="mono">condition: service_healthy</span> يجعل
-    Compose ينتظر حتى تجيب PostgreSQL على فحص <span class="mono">pg_isready</span> قبل تشغيل الـ backend.
-    هذا يمنع أشهر خطأ في النشر المحلي: بدء الـ API قبل جهوزية قاعدة البيانات.</p></div>
+    Compose ينتظر فحص <span class="mono">pg_isready</span> قبل تشغيل الـ backend، فيمنع بدء الـ API قبل
+    جهوزية قاعدة البيانات.</p></div>
 
   <h3>19.10 ملف .env.example الخاص بـ Docker</h3>
-  <p>القيم الحقيقية تُكتب في <span class="mono">.env</span> (وهو مستثنى من Git). ملف
-  <span class="mono">.env.example</span> يُرفع للمستودع ويحتوي قيماً توضيحية فقط، مع ملاحظة أن قاعدة البيانات
-  تُنادى باسم الخدمة <span class="mono">db</span>.</p>
+  <p>القيم الحقيقية في <span class="mono">.env</span> (مستثنى من Git)؛ و<span class="mono">.env.example</span>
+  يُرفع ويحتوي قيماً توضيحية فقط، مع استخدام اسم الخدمة <span class="mono">db</span>.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">text</span></div>
 <pre># Copy to .env and replace every placeholder before running.
 APP_NAME=SafeVision AI
@@ -5602,23 +5497,19 @@ $ curl http://localhost:8000/api/v1/videos
   </table>
   <div class="callout danger"><span class="co-title">تحذير</span>
     <p><span class="mono">docker compose down -v</span> يحذف قاعدة البيانات والفيديوهات وصور الدليل نهائياً.
-    لا يُستخدم إلا عند الرغبة في البدء من الصفر، ولا يُشغَّل أبداً على نسخة فيها نتائج عرض توضيحي.</p></div>
+    لا يُشغَّل أبداً على نسخة فيها نتائج عرض توضيحي.</p></div>
 
   <h3>19.13 حدود دعم GPU في Docker وبديل CPU</h3>
-  <p>تشغيل PyTorch على GPU داخل Docker يحتاج تعريف الحاوية ببطاقة الرسوميات. على Linux يمكن ذلك عبر
-  <span class="en">NVIDIA Container Toolkit</span> وإضافة قسم <span class="mono">deploy.resources</span> في
-  Compose. أمّا على Windows فيعتمد الأمر على إصدار Docker Desktop ووجود WSL2 ودعم البطاقة، وقد لا يتوفّر
-  أصلاً على أجهزة الـ GPU المدمجة. لذلك نتبنّى قاعدة عملية واضحة:</p>
+  <p>تشغيل PyTorch على GPU داخل Docker يحتاج تعريف الحاوية بالبطاقة: على Linux عبر
+  <span class="en">NVIDIA Container Toolkit</span> وقسم <span class="mono">deploy.resources</span>، وعلى
+  Windows يعتمد على Docker Desktop و WSL2 ودعم البطاقة وقد لا يتوفّر. لذلك قاعدتان:</p>
   <ul>
-    <li><strong>وضع GPU:</strong> يضاف قسم الموارد، ويُضبط <span class="mono">MODEL_DEVICE=cuda</span>.
-      يُستخدم على جهاز الفريق الذي يملك بطاقة متوافقة عند الحاجة إلى سرعة أعلى.</li>
-    <li><strong>وضع CPU (الافتراضي للعرض):</strong> يبقى <span class="mono">MODEL_DEVICE=cpu</span>، ويعمل
-      النظام كاملاً بدون أي بطاقة. أبطأ، لكنه يعمل على أي جهاز ولجنة المناقشة.</li>
+    <li><strong>وضع GPU:</strong> يُضبط <span class="mono">MODEL_DEVICE=cuda</span> على جهاز يملك بطاقة متوافقة.</li>
+    <li><strong>وضع CPU (الافتراضي للعرض):</strong> <span class="mono">MODEL_DEVICE=cpu</span>، يعمل على أي جهاز بلا بطاقة.</li>
   </ul>
   <div class="callout warn"><span class="co-title">حدود GPU غير مضمونة</span>
-    <p>لا نضمن توفر GPU على جهاز العرض أو على أي استضافة. الأرقام المتعلقة بالسرعة تُقاس على الجهاز المستخدم
-    فعلاً وتُوثَّق في الفصل 23، ولا نفترض أن الحاوية سترى البطاقة تلقائياً. إن فشل تشغيل CUDA فالحل الآمن هو
-    العودة إلى <span class="mono">MODEL_DEVICE=cpu</span>، وهذا هو وضع العرض الافتراضي في الفصل 28.</p></div>
+    <p>لا نضمن توفر GPU على أي جهاز أو استضافة، ولا نفترض أن الحاوية سترى البطاقة تلقائياً. إن فشل CUDA فالحل
+    الآمن العودة إلى <span class="mono">MODEL_DEVICE=cpu</span>.</p></div>
   <div class="code-wrap"><div class="code-head"><span class="fname">docker-compose.override.yml &mdash; optional GPU block (Linux + NVIDIA)</span><span class="ftag">yaml</span></div>
 <pre># Optional file. Only use it on a machine that really exposes a GPU.
 services:
@@ -5638,10 +5529,8 @@ services:
     <div class="eoc-head">خلاصة الفصل 19</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>غلافنا النظام في أربع حاويات (<span class="mono">db</span>، <span class="mono">backend</span>،
-        <span class="mono">worker</span>، <span class="mono">frontend</span>) على شبكة واحدة، وفهمنا أن
-        الحاويات تتحدّث بأسماء الخدمات لا بـ <span class="mono">localhost</span>، وأن البيانات الدائمة تعيش في
-        الـ volumes. وثبّتنا وضع CPU كافتراضي ووضع GPU كخيار مشروط.</p></div>
+        <p>غلّفنا النظام في أربع حاويات على شبكة واحدة تتخاطب بأسماء الخدمات لا بـ
+        <span class="mono">localhost</span>، مع بيانات دائمة في الـ volumes، ووضع CPU افتراضي ووضع GPU مشروط.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>كتابة <span class="mono">backend/Dockerfile</span> و<span class="mono">frontend/Dockerfile</span>.</li>
@@ -6063,9 +5952,8 @@ jobs:
   </div>
 
   <div class="lead">
-    <p>عبارة "جرّبته وشغّل عندي" لا تكفي أمام لجنة المناقشة. هذا الفصل يحوّل الثقة إلى دليل: اختبارات
-    وحدات للقواعد والحسابات، واختبارات تكامل بين الـ API وقاعدة البيانات، ورحلة كاملة من الطرف للطرف،
-    وجدول حالات اختبار تُملأ خاناته بعد التنفيذ الفعلي. القاعدة: <strong>لا نكتب نتيجة لم تُنفَّذ</strong>.</p>
+    <p>هذا الفصل يحوّل الثقة إلى دليل: اختبارات وحدات، وتكامل بين الـ API وقاعدة البيانات، ورحلة كاملة من
+    الطرف للطرف، وجدول حالات اختبار تُملأ خاناته بعد التنفيذ. القاعدة: <strong>لا نكتب نتيجة لم تُنفَّذ</strong>.</p>
   </div>
 
   <h3>22.1 ثلاثة مستويات من الاختبار</h3>
@@ -6078,25 +5966,25 @@ jobs:
       <tr><td><span class="en">End-to-End Testing</span></td><td>رحلة المستخدم الكاملة من الرفع حتى التقرير</td><td>تشغيل كامل + المتصفح</td><td>دقائق</td></tr>
     </tbody>
   </table>
-  <p><strong>Unit Test (اختبار وحدة):</strong> يفحص أصغر قطعة منطق بمعزل عن غيرها، فلا يحتاج قاعدة بيانات ولا
-  GPU ولا شبكة. و<strong>Integration Test (اختبار تكامل):</strong> يفحص أن قطعتين تعملان معاً بالطريقة
-  الصحيحة، مثل أن يرفع الـ API فيديو فيظهر فعلاً في جدول <span class="mono">videos</span>.</p>
+  <p><strong>Unit Test (اختبار وحدة):</strong> يفحص أصغر قطعة منطق بمعزل، بلا قاعدة بيانات أو GPU أو شبكة.
+  و<strong>Integration Test (اختبار تكامل):</strong> يفحص أن قطعتين تعملان معاً، مثل رفع الـ API فيديو
+  فيظهر في جدول <span class="mono">videos</span>.</p>
 
   <h3>22.2 اختبارات الوحدة: ماذا نغطّي بالضبط</h3>
   <ul>
-    <li>التحقق من الفيديو: امتداد مسموح/مرفوض، حجم أكبر من <span class="mono">MAX_UPLOAD_MB</span>، ملف تالف.</li>
-    <li>خريطة الأصناف: تحويل اسم class من الـ Model إلى نوع واقعة صحيح.</li>
+    <li>التحقق من الفيديو: امتداد مسموح/مرفوض، تجاوز <span class="mono">MAX_UPLOAD_MB</span>، ملف تالف.</li>
+    <li>خريطة الأصناف: اسم class من الـ Model إلى نوع واقعة صحيح.</li>
     <li>فلترة الثقة: كشف أقل من <span class="mono">DETECTION_CONF_THRESHOLD</span> يُستبعد.</li>
-    <li>تقييم القواعد: مخالفة PPE تتطلب عدد إطارات متتالية، والدخان يتطلب عتبة أعلى.</li>
+    <li>تقييم القواعد: مخالفة PPE تتطلب إطارات متتالية، والدخان عتبة أعلى.</li>
     <li>منع تكرار الوقائع: واقعة داخل <span class="mono">INCIDENT_COOLDOWN_SECONDS</span> لا تُنشأ مرتين.</li>
-    <li>حسابات التقارير: تجميع الوقائع يومياً يعطي نفس مجموع المدخلات.</li>
+    <li>حسابات التقارير: تجميع الوقائع يومياً يعطي نفس المجموع.</li>
   </ul>
 
   <h3>22.3 اختبارات التكامل: نقاط الوصل الحرجة</h3>
-  <p>نركّز على الوصلات التي يكثر فيها الخطأ: الـ API مع قاعدة البيانات، الرفع مع التخزين، الـ Job مع الـ AI،
-  مخرجات الـ AI مع سجلات الوقائع، الوقائع مع التقارير، والـ Frontend مع الـ Backend. في كل اختبار نتحقق من
-  رمز الحالة (<span class="mono">201</span>، <span class="mono">202</span>، <span class="mono">200</span>) ومن
-  شكل الاستجابة المطابق للعقد في الفصل 7، ومن أن البيانات وصلت فعلاً للجدول الصحيح.</p>
+  <p>نركّز على وصلات الخطأ الشائعة: API مع قاعدة البيانات، الرفع مع التخزين، Job مع AI، مخرجات الـ AI مع
+  الوقائع، الوقائع مع التقارير، وFrontend مع Backend. في كل اختبار نتحقق من رمز الحالة
+  (<span class="mono">201</span>، <span class="mono">202</span>، <span class="mono">200</span>) ومن شكل
+  الاستجابة المطابق للعقد ومن وصول البيانات للجدول الصحيح.</p>
 
   <h3>22.4 اختبار الرحلة الكاملة (End-to-End)</h3>
   <ol>
@@ -6130,16 +6018,13 @@ jobs:
   </table>
 
   <h3>22.6 الاختبار بدون GPU وفيديو صناعي صغير</h3>
-  <p>الاختبارات الآلية يجب ألا تحتاج GPU ولا ملف فيديو حقيقي. ننشئ <strong>fixture</strong> — وهو بيانات
-  ثابتة تُجهَّز تلقائياً قبل الاختبار — على شكل فيديو صناعي صغير جداً نولّده برمجياً بإطارات ملوّنة، أو حتى
-  صور مصفوفة في الذاكرة. هذا يجعل الاختبار سريعاً وقابلاً للتشغيل في CI على CPU. نضبط في الاختبارات
-  <span class="mono">MODEL_DEVICE=cpu</span> و<span class="mono">AUTH_ENABLED=false</span> لتفادي الـ GPU
-  ولتفادي التعامل مع التوكنات، ونستبدل الـ Model الثقيل بـ <span class="en">stub</span> يعيد كشوفات وهمية
-  ثابتة عند اختبار القواعد فقط.</p>
+  <p>الاختبارات الآلية يجب ألا تحتاج GPU ولا فيديو حقيقي. ننشئ <strong>fixture</strong> — بيانات ثابتة تُجهَّز
+  تلقائياً — على شكل فيديو صناعي صغير جداً نولّده بإطارات ملوّنة، ونضبط
+  <span class="mono">MODEL_DEVICE=cpu</span> و<span class="mono">AUTH_ENABLED=false</span>، ونستبدل الـ Model
+  الثقيل بـ <span class="en">stub</span> يعيد كشوفات ثابتة.</p>
 
   <h3>22.7 ملف الـ fixtures</h3>
-  <p>هذا الملف يجهّز البيانات المشتركة لكل الاختبارات: فيديو صناعي صغير، وعميل HTTP للـ API، وجلسة قاعدة
-  بيانات معاملة تُلغى في النهاية حتى لا تترك أثراً.</p>
+  <p>يجهّز هذا الملف بيانات الاختبار المشتركة: فيديو صناعي صغير، وعميل HTTP، وجلسة قاعدة بيانات تُلغى في النهاية.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/conftest.py</span><span class="ftag">python</span></div>
 <pre>import numpy as np
 import pytest
@@ -6188,8 +6073,8 @@ def db_session():
 </pre></div>
 
   <h3>22.8 اختبار قواعد السلامة</h3>
-  <p>نختبر دالة تقييم القواعد بكشوفات مصنوعة يدوياً، فلا نحتاج Model ولا GPU. الحالة الأولى: مخالفة PPE
-  أقل من عدد الإطارات المطلوب لا تُنتج واقعة. الحالة الثانية: واقعة داخل فترة التهدئة لا تُكرَّر.</p>
+  <p>نختبر تقييم القواعد بكشوفات مصنوعة يدوياً بلا Model أو GPU: مخالفة PPE أقل من الإطارات المطلوبة لا
+  تُنتج واقعة، وواقعة داخل فترة التهدئة لا تُكرَّر.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/test_rules.py</span><span class="ftag">python</span></div>
 <pre>from app.ai.rules import evaluate_ppe_violation, should_create_incident
 
@@ -6227,9 +6112,8 @@ def test_cooldown_blocks_duplicate_incident():
 </pre></div>
 
   <h3>22.9 اختبار تكامل الـ API مع قاعدة البيانات</h3>
-  <p>هذا الاختبار يمرّ عبر الـ API الحقيقي ويتحقق من رمز الحالة ومن شكل الاستجابة ومن أن الحالة تتغيّر
-  فعلاً. نستخدم <span class="mono">TestClient</span> الموجود داخل FastAPI، ويمكن استبداله بـ
-  <span class="mono">httpx.AsyncClient</span> عند اختبار endpoints غير متزامنة.</p>
+  <p>يمرّ هذا الاختبار عبر الـ API الحقيقي ويتحقق من رمز الحالة وشكل الاستجابة وتغيّر الحالة. نستخدم
+  <span class="mono">TestClient</span> أو <span class="mono">httpx.AsyncClient</span> للـ endpoints غير المتزامنة.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/tests/test_api_incidents.py</span><span class="ftag">python</span></div>
 <pre>def test_list_incidents_returns_pagination_envelope(client):
     response = client.get("/api/v1/incidents")
@@ -6260,8 +6144,8 @@ def test_reject_invalid_status_value(client):
 </pre></div>
 
   <h3>22.10 اختبار الواجهة بـ Vitest</h3>
-  <p>على جهة الـ Frontend نستخدم <strong>Vitest</strong> لاختبار الدوال النقية: تنسيق الأرقام، التحقق من
-  الامتداد قبل الرفع، وتحويل قيم الـ enums إلى نصوص عربية للعرض. لا نختبر الـ API نفسه هنا، بل المنطق فقط.</p>
+  <p>على الـ Frontend نستخدم <strong>Vitest</strong> لاختبار الدوال النقية: تنسيق الأرقام، والتحقق من
+  الامتداد قبل الرفع، وتحويل قيم الـ enums إلى نصوص للعرض.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">frontend/src/utils/format.test.ts</span><span class="ftag">typescript</span></div>
 <pre>import { describe, expect, it } from "vitest";
 import { formatProgress, isAllowedVideo } from "./format";
@@ -6281,19 +6165,19 @@ describe("formatProgress", () =&gt; {
 </pre></div>
   <div class="callout tip"><span class="co-title">أوامر التشغيل</span>
     <p>الـ Backend: <span class="mono">pytest backend/tests -q</span>. الـ Frontend:
-    <span class="mono">npm run test -- --run</span>. شغّل الأمرين محلياً قبل كل push، لأن ذلك أسرع من انتظار CI.</p></div>
+    <span class="mono">npm run test -- --run</span>. شغّلهما محلياً قبل كل push؛ أسرع من انتظار CI.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 22</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>قسّمنا الاختبارات إلى وحدة وتكامل ورحلة كاملة، وحدّدنا ما نغطّيه في كل مستوى، وجهّزنا فيديو صناعياً
-        صغيراً يعمل بدون GPU، وربطنا كل اختبار برمز الحالة وشكل الاستجابة في العقد.</p></div>
+        <p>قسّمنا الاختبارات إلى وحدة وتكامل ورحلة كاملة، وجهّزنا فيديو صناعياً يعمل بدون GPU، وربطنا كل اختبار
+        برمز الحالة وشكل الاستجابة في العقد.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>كتابة <span class="mono">backend/tests/conftest.py</span> بالـ fixtures.</li>
-          <li>كتابة اختبارات القواعد والـ API وتشغيلها بنجاح محلياً.</li>
-          <li>تعبئة جدول حالات الاختبار بعد تنفيذ فعلي حقيقي.</li>
+          <li>كتابة اختبارات القواعد والـ API وتشغيلها محلياً.</li>
+          <li>تعبئة جدول حالات الاختبار بعد تنفيذ فعلي.</li>
           <li>إضافة Vitest لاختبار دوال الواجهة.</li>
         </ul></div>
       <div class="eoc-row"><h4>المخرجات المتوقعة</h4>
@@ -6324,23 +6208,20 @@ describe("formatProgress", () =&gt; {
   </div>
 
   <div class="lead">
-    <p>هذا الفصل يحدّد كيف نقيس الجودة، وما هي المقاييس التي تُقنع لجنة المناقشة. القاعدة الأولى: نفصل
-    تقييم الـ <strong>Model</strong> (هل الكشف نفسه دقيق؟) عن تقييم <strong>التطبيق</strong> (هل النظام
-    يُنتج وقائع مفيدة؟). القاعدة الثانية والأهم: <strong>لا نكتب أي رقم لم نقِسه فعلاً</strong>؛ كل الجداول
-    هنا فارغة وموسومة (يُملأ بعد التجربة).</p>
+    <p>نفصل تقييم الـ <strong>Model</strong> (هل الكشف دقيق؟) عن تقييم <strong>التطبيق</strong> (هل يُنتج
+    وقائع مفيدة؟)، ونثبّت قاعدة صارمة: <strong>لا نكتب أي رقم لم نقِسه فعلاً</strong>؛ كل الجداول هنا فارغة
+    وموسومة (يُملأ بعد التجربة).</p>
   </div>
 
   <h3>23.1 لماذا نفصل تقييم الـ Model عن تقييم النظام</h3>
-  <p>الـ Model يرى إطارات ويعيد صناديق وفئات. لكن المستخدم لا يرى الصناديق، بل يرى <strong>واقعة</strong>
-  لها وقت ودرجة خطورة وحالة مراجعة. بينهما قواعد السلامة (عدد الإطارات المتتالية، فترة التهدئة، منطقة
-  الخطر) والتتبّع واقتطاع الدليل. لذلك قد يكون الـ Model ممتازاً على مستوى الكشف، ومع ذلك ينتج نظاماً
-  مزعجاً لكثرة الوقائع المكرّرة أو المفقودة.</p>
+  <p>الـ Model يرى إطارات ويعيد صناديق وفئات، أمّا المستخدم فيرى <strong>واقعة</strong> لها وقت وخطورة
+  وحالة مراجعة. بينهما قواعد السلامة (الإطارات المتتالية، فترة التهدئة، منطقة الخطر) والتتبّع واقتطاع
+  الدليل؛ لذلك قد يكون الـ Model ممتازاً في الكشف ومع ذلك ينتج نظاماً مزعجاً لكثرة الوقائع المكرّرة أو المفقودة.</p>
 
   <h3>23.2 مقاييس الكشف: Precision و Recall و F1</h3>
-  <p><strong>Precision (الدقة):</strong> من بين كل ما كشفه الـ Model، ما نسبة ما كان صحيحاً فعلاً؟
-  <strong>Recall (الاستدعاء):</strong> من بين كل الأهداف الحقيقية، ما نسبة ما نجح في كشفها؟ و
-  <strong>F1</strong> هو المتوسط التوافقي بينهما ويعطي رقماً واحداً متوازناً. وفي سياق السلامة، الـ Recall
-  غالباً أهم، لأن تفويت حادث أخطر من إنذار زائد.</p>
+  <p><strong>Precision (الدقة):</strong> نسبة الكشوفات الصحيحة. <strong>Recall (الاستدعاء):</strong> نسبة
+  الأهداف المكتشفة. <strong>F1</strong> المتوسط التوافقي بينهما. وفي السلامة الـ Recall غالباً أهم، لأن تفويت
+  حادث أخطر من إنذار زائد.</p>
   <table class="tbl">
     <caption>جدول 23-1: المقاييس ومعناها وما يمثّله الخطأ فيها</caption>
     <thead><tr><th>المقياس</th><th>المعنى</th><th>الخطأ المقابل</th></tr></thead>
@@ -6353,10 +6234,9 @@ describe("formatProgress", () =&gt; {
   </table>
 
   <h3>23.3 Confusion Matrix و mAP</h3>
-  <p><strong>Confusion Matrix (مصفوفة الالتباس):</strong> جدول يقارن التنبؤ بالحقيقة، ويُظهر أين يخطئ الـ Model:
-  هل يخلط بين "خوذة" و"بدون خوذة"؟ أم يفشل في كشف الدخان؟ هذا الجدول أنفع من رقم واحد لأن كل خطأ له وزن
-  مختلف في السلامة. أمّا <strong>mAP</strong> فهو مقياس قياسي للكشف يجمع الدقة عبر عتبات الثقة، ويُستخدم
-  لمقارنة نسختين من الـ Model على نفس مجموعة الاختبار.</p>
+  <p><strong>Confusion Matrix (مصفوفة الالتباس):</strong> جدول يقارن التنبؤ بالحقيقة ويُظهر أين يخطئ الـ Model
+  (خلط بين "خوذة" و"بدون خوذة"، أو تفويت الدخان)؛ وهو أنفع من رقم واحد لأن كل خطأ له وزن مختلف في السلامة.
+  أمّا <strong>mAP</strong> فيجمع الدقة عبر عتبات الثقة ويُستخدم لمقارنة نسختين على نفس مجموعة الاختبار.</p>
 
   <h3>23.4 مقاييس التتبّع (Tracking)</h3>
   <ul>
@@ -6364,14 +6244,13 @@ describe("formatProgress", () =&gt; {
     <li><strong>Track fragmentation:</strong> انقطاع مسار شخص ثم بدؤه من جديد بنفس المعرّف أو بمعرّف آخر.</li>
     <li><strong>Track continuity:</strong> نسبة الإطارات التي بقي فيها المسار متصلاً.</li>
   </ul>
-  <p>هذه المقاييس مهمة لأن خطأ التتبّع يفسد قواعد "عدد الإطارات المتتالية"، فقد تُدمج واقعتان أو تتكرّر
-  واقعة واحدة عدة مرات بسبب انقطاع المسار.</p>
+  <p>خطأ التتبّع يفسد قواعد "الإطارات المتتالية"، فقد تُدمج واقعتان أو تتكرّر واقعة بسبب انقطاع المسار.</p>
 
   <h3>23.5 التقييم على مستوى الواقعة</h3>
-  <p>هنا نقيس ما يراه المستخدم فعلاً: هل أنشأ النظام واقعة عند حدوث المخالفة؟ هل فقد واقعة؟ هل كرّرها؟ نُعطي
-  كل واقعة حقيقية في الفيديو صفة مرجعية يدوياً، ثم نقارنها بمخرجات النظام بعد قواعد السلامة. النتيجة
-  ثلاث فئات: واقعة صحيحة (<span class="en">true incident</span>)، واقعة زائفة (<span class="en">false incident</span>)،
-  وواقعة مفقودة (<span class="en">missed incident</span>). هذا هو المقياس الذي يهم مسؤول السلامة، وليس mAP.</p>
+  <p>نقيس ما يراه المستخدم: هل أُنشئت واقعة عند المخالفة؟ هل فُقدت أو تكرّرت؟ نُعطي كل واقعة حقيقية صفة
+  مرجعية يدوياً ثم نقارنها بالمخرجات بعد قواعد السلامة، فتكون النتيجة: صحيحة
+  (<span class="en">true incident</span>)، زائفة (<span class="en">false incident</span>)، ومفقودة
+  (<span class="en">missed incident</span>). هذا ما يهم مسؤول السلامة، وليس mAP.</p>
 
   <h3>23.6 مقاييس أداء النظام</h3>
   <table class="tbl">
@@ -6387,21 +6266,19 @@ describe("formatProgress", () =&gt; {
   </table>
 
   <h3>23.7 لماذا لا تضمن mAP العالية نظام إدارة وقائع مفيداً</h3>
-  <p>هذا سؤال تتوقّعه اللجنة، والإجابة يجب أن تكون واضحة. الـ mAP يقيس الكشف على مجموعة اختبار ثابتة
-  بإعدادات مثالية، لكن النظام الحقيقي يختلف في عدة أمور:</p>
+  <p>الـ mAP يقيس الكشف على مجموعة اختبار ثابتة بإعدادات مثالية، لكن النظام الحقيقي يختلف:</p>
   <ul>
-    <li><strong>العتبات:</strong> عتبة ثقة منخفضة ترفع الـ Recall وتغرق المراجع في إنذارات كاذبة، والعكس صحيح.</li>
-    <li><strong>القواعد الزمنية:</strong> عدد الإطارات المتتالية وفترة التهدئة يحدّدان إن كانت الواقعة تُنشأ أم تُدمج أو تُكرّر.</li>
+    <li><strong>العتبات:</strong> عتبة منخفضة ترفع الـ Recall وتغرق المراجع في إنذارات كاذبة، والعكس صحيح.</li>
+    <li><strong>القواعد الزمنية:</strong> الإطارات المتتالية وفترة التهدئة تحدّدان إن كانت الواقعة تُنشأ أم تُدمج أو تُكرّر.</li>
     <li><strong>التتبّع:</strong> انقطاع المسار أو قفز المعرّف يفسد ربط الإطارات في واقعة واحدة.</li>
-    <li><strong>التوزيع الحقيقي:</strong> بيانات المصنع الحقيقية قد تختلف كثيراً عن بيانات الاختبار (إضاءة، زوايا، ازدحام).</li>
-    <li><strong>جودة الدليل:</strong> واقعة صحيحة بلا صورة دليل واضحة أقل فائدة للمراجع من واقعة مع دليل واضح.</li>
+    <li><strong>التوزيع الحقيقي:</strong> بيانات المصنع تختلف عن بيانات الاختبار (إضاءة، زوايا، ازدحام).</li>
+    <li><strong>جودة الدليل:</strong> واقعة صحيحة بلا دليل واضح أقل فائدة من واقعة مع دليل واضح.</li>
   </ul>
-  <p>لذلك نعرض دائماً مقياسين معاً: mAP للـ Model، وتقييم على مستوى الواقعة للنظام ككل.</p>
+  <p>لذلك نعرض دائماً mAP للـ Model مع تقييم الواقعة للنظام ككل.</p>
 
   <h3>23.8 خطة تقييم خط الأنابيب الكامل</h3>
-  <p>نقيّم النظام على مقاطع مصنّفة حسب الظرف: إضاءة عادية وضعيفة، حجب جزئي (<span class="en">occlusion</span>)،
-  زوايا كاميرا مختلفة، مشاهد مزدحمة بعدة عمال، وحالات صعبة (خوذة قريبة من نفس لون الخلفية). لكل ظرف
-  نُسجّل نفس المقاييس، لأن ضعف الأداء غالباً يظهر في ظرف واحد فقط.</p>
+  <p>نقيّم النظام على مقاطع حسب الظرف: إضاءة عادية وضعيفة، حجب جزئي (<span class="en">occlusion</span>)،
+  زوايا مختلفة، مشاهد مزدحمة، وحالات صعبة. نُسجّل نفس المقاييس لكل ظرف لأن الضعف غالباً يظهر في ظرف واحد.</p>
   <table class="tbl">
     <caption>جدول 23-3: نتائج تقييم الـ Model (يُملأ بعد التجربة)</caption>
     <thead><tr><th>الـ Model / الصنف</th><th>Precision</th><th>Recall</th><th>F1</th><th>mAP</th><th>ملاحظات</th></tr></thead>
@@ -6435,9 +6312,8 @@ describe("formatProgress", () =&gt; {
   </table>
 
   <h3>23.9 سكربت التقييم</h3>
-  <p>هذا السكربت يقرأ ملف الحقيقة المرجعية (<span class="mono">ground_truth.json</span>) وملف تنبؤات
-  النظام، ثم يحسب المقاييس ويطبعها. مخرجاته <strong>شكلية فقط</strong> كما يظهر في التعليقات: لا يحتوي على
-  أي رقم حقيقي لأن الأرقام تأتي من التشغيل الفعلي.</p>
+  <p>يقرأ السكربت الحقيقة المرجعية (<span class="mono">ground_truth.json</span>) وتنبؤات النظام ثم يحسب
+  المقاييس. مخرجاته <strong>شكلية فقط</strong>: لا رقم حقيقي فيها لأن الأرقام تأتي من التشغيل الفعلي.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">scripts/evaluate_model.py</span><span class="ftag">python</span></div>
 <pre>"""Compute detection metrics from ground truth and system predictions.
 
@@ -6522,16 +6398,15 @@ if __name__ == "__main__":
     main()
 </pre></div>
   <div class="callout warn"><span class="co-title">قاعدة صارمة</span>
-    <p>لا تُنسخ أي قيمة من مخرجات هذا السكربت إلى التقارير أو العرض إلا إذا جاءت من تشغيل فعلي موثّق
-    (الفيديو، التاريخ، الجهاز، الإعدادات). أي رقم بلا مصدر قياس يُحذف.</p></div>
+    <p>لا تُنسخ أي قيمة إلى التقارير أو العرض إلا من تشغيل فعلي موثّق (الفيديو، التاريخ، الجهاز، الإعدادات).
+    أي رقم بلا مصدر قياس يُحذف.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 23</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
         <p>فرّقنا بين مقاييس الـ Model (Precision, Recall, F1, mAP, Confusion Matrix) ومقاييس التتبّع
-        ومقاييس النظام، وثبّتنا أن التقييم الحقيقي يحدث على مستوى الواقعة. وشرحنا لماذا لا تضمن mAP عالية
-        نظام إدارة وقائع مفيداً.</p></div>
+        والنظام، وثبّتنا أن التقييم الحقيقي على مستوى الواقعة، وشرحنا لماذا لا تضمن mAP عالية نظاماً مفيداً.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>تجهيز ملف الحقيقة المرجعية لفيديو التقييم.</li>
@@ -6549,7 +6424,7 @@ if __name__ == "__main__":
         <li>التمييز واضح بين mAP وبين مقياس الواقعة.</li></ul></div>
       <div class="eoc-row"><h4>أخطاء شائعة</h4>
         <ul><li>عرض mAP فقط وإغفال تقييم الواقعة.</li>
-        <li>قياس الأداء على جهاز GPU وإعلانه كنتيجة عامة.</li>
+        <li>إعلان نتيجة GPU كنتيجة عامة.</li>
         <li>مقارنة نتائج من مجموعات اختبار مختلفة.</li>
         <li>كتابة أرقام متوقّعة قبل التشغيل.</li></ul></div>
     </div>
@@ -6957,24 +6832,22 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
   </div>
 
   <div class="lead">
-    <p>الخطة ليست وعداً، بل أداة لتوزيع الوقت وكشف التعطّل مبكراً. هذا الفصل يقسّم المشروع إلى عشر مراحل
-    واضحة، لكل مرحلة مدة ومهام واعتماديات ومخرجات ومعايير قبول ومخاطر. المدد هنا تقديرية ويمكن تعديلها حسب
-    إيقاع الفريق، لكن ترتيب الاعتماديات لا يتغيّر.</p>
+    <p>الخطة أداة لتوزيع الوقت وكشف التعطّل. يقسّم الفصل المشروع إلى عشر مراحل بمدد ومهام واعتماديات
+    ومعايير قبول ومخاطر؛ وترتيب الاعتماديات ثابت.</p>
   </div>
 
   <h3>26.1 نظرة عامة</h3>
-  <p>نفترض خطة من <strong>عشرة أسابيع</strong>، قابلة للضغط إلى ثمانية أو التمديد قليلاً. الأسبوع الأول
-  للتثبيت والاتفاق، والأسابيع من الثاني إلى الثامن للتنفيذ المتوازي والتكامل المستمر، والأسبوعان الأخيران
-  للتجميد والاختبار والعرض. القاعدة الذهبية: <strong>لا نؤجّل التكامل إلى النهاية</strong>، بل ندمج كل أسبوع.</p>
+  <p>خطة من <strong>عشرة أسابيع</strong> قابلة للضغط إلى ثمانية: الأول للتثبيت، والثاني إلى الثامن للتنفيذ
+  المتوازي، والأخيران للتجميد والعرض. <strong>لا نؤجّل التكامل إلى النهاية</strong>.</p>
   <table class="tbl">
     <caption>جدول 26-1: توزيع الأسابيع على المحاور</caption>
     <thead><tr><th>الأسابيع</th><th>التركيز الأساسي</th><th>المخرج الرئيسي</th></tr></thead>
     <tbody>
-      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع والبيئة</td><td>مستودع يعمل واتفاق على عقد الـ API</td></tr>
-      <tr><td class="c">2&ndash;4</td><td>قاعدة البيانات، الـ Backend، دمج الـ inference</td><td>رفع فيديو ومعالجة أولية تنتج كشوفات</td></tr>
+      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع</td><td>مستودع يعمل وعقد API متفق عليه</td></tr>
+      <tr><td class="c">2&ndash;4</td><td>قاعدة البيانات، الـ Backend، دمج الـ inference</td><td>رفع فيديو ومعالجة أولية</td></tr>
       <tr><td class="c">5&ndash;7</td><td>خط الوقائع والدليل، لوحة التحكم، التقارير</td><td>دورة كاملة من الرفع إلى التقرير</td></tr>
-      <tr><td class="c">8&ndash;9</td><td>التكامل والاختبارات والتغليف بـ Docker</td><td>نظام يعمل بأمر واحد ومُختبر</td></tr>
-      <tr><td class="c">10</td><td>تجميد، تدريب على العرض، قائمة التحقق النهائية</td><td>عرض توضيحي جاهز ومُختبر</td></tr>
+      <tr><td class="c">8&ndash;9</td><td>التكامل والاختبارات وDocker</td><td>نظام يعمل بأمر واحد ومُختبر</td></tr>
+      <tr><td class="c">10</td><td>تجميد وتدريب على العرض</td><td>عرض توضيحي جاهز ومُختبر</td></tr>
     </tbody>
   </table>
 
@@ -6986,27 +6859,27 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
       <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع</td><td class="c">أسبوع 1</td>
         <td>جدول النطاق، عقد الـ API، <span class="mono">.gitignore</span>، <span class="mono">.env.example</span></td>
         <td>لا شيء</td><td><span class="mono">docs/SCOPE.md</span> و<span class="mono">docs/API_CHANGELOG.md</span></td>
-        <td>كل عضو يستطيع تشغيل المستودع</td><td>توسّع النطاق</td></tr>
+        <td>كل عضو يشغّل المستودع</td><td>توسّع النطاق</td></tr>
       <tr><td class="c">2</td><td>بيئة التطوير وعقد الـ API</td><td class="c">أسبوع 1&ndash;2</td>
-        <td>venv، Node، PostgreSQL، Swagger، تثبيت الهياكل</td>
+        <td>venv، Node، PostgreSQL، Swagger، الهياكل</td>
         <td>المرحلة 1</td><td>Backend وFrontend يعملان ويتحدثان</td>
         <td>طلب <span class="mono">GET /api/v1/health</span> ينجح من الواجهة</td><td>اختلاف الإصدارات</td></tr>
       <tr><td class="c">3</td><td>قاعدة البيانات وأساس الـ Backend</td><td class="c">أسبوع 2&ndash;3</td>
         <td>الجداول، ترحيلات <span class="mono">Alembic</span>، الراوترات، الـ Repository</td>
-        <td>المرحلة 2</td><td>قاعدة بيانات مهاجَرة ومسارات رفع/قائمة</td>
-        <td>رفع فيديو وحفظ بياناته الوصفية</td><td>تغيّر المخطط دون ترحيل</td></tr>
+        <td>المرحلة 2</td><td>قاعدة بيانات مهاجَرة ومسارات رفع</td>
+        <td>رفع فيديو وحفظ بياناته</td><td>تغيّر المخطط دون ترحيل</td></tr>
       <tr><td class="c">4</td><td>دمج الـ inference</td><td class="c">أسبوع 3&ndash;4</td>
         <td>تحميل الـ checkpoints، المخرج الموحّد، التتبّع</td>
         <td>المرحلة 1 للنطاق</td><td>وحدة <span class="mono">app/ai/</span> تعمل على فيديو</td>
-        <td>مخرج موحّد صالح لكل إطار معالج</td><td>نقص بيانات/أوزان</td></tr>
+        <td>مخرج موحّد صالح لكل إطار</td><td>نقص بيانات/أوزان</td></tr>
       <tr><td class="c">5</td><td>معالجة الفيديو والـ jobs</td><td class="c">أسبوع 4&ndash;5</td>
         <td>الـ worker، طابور المهام، التقدّم، <span class="mono">polling</span></td>
         <td>المراحل 3 و4</td><td>job من <span class="mono">queued</span> إلى <span class="mono">completed</span></td>
-        <td>تحديث نسبة التقدّم أثناء التشغيل</td><td>تعليق الـ worker</td></tr>
+        <td>تحديث التقدّم</td><td>تعليق الـ worker</td></tr>
       <tr><td class="c">6</td><td>خط الوقائع والدليل</td><td class="c">أسبوع 5&ndash;6</td>
         <td>محرّك القواعد، إنشاء الـ incidents، حفظ الصور</td>
         <td>المرحلة 5</td><td>جدولا <span class="mono">incidents</span> و<span class="mono">evidence</span></td>
-        <td>واقعة واحدة على الأقل لكل نوع من فيديو حقيقي</td><td>تكرار الوقائع</td></tr>
+        <td>واقعة لكل نوع من فيديو حقيقي</td><td>تكرار الوقائع</td></tr>
       <tr><td class="c">7</td><td>لوحة التحكم</td><td class="c">أسبوع 6&ndash;7</td>
         <td>صفحات الرفع والتقدّم والوقائع والمراجعة والتحليلات</td>
         <td>المرحلة 3 (العقد)</td><td>واجهة React متصلة بالـ API</td>
@@ -7014,10 +6887,10 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
       <tr><td class="c">8</td><td>التقارير والمراجعة</td><td class="c">أسبوع 7&ndash;8</td>
         <td>التحليلات، التصدير <span class="mono">CSV</span>، إجراءات المراجعة</td>
         <td>المرحلتان 6 و7</td><td><span class="mono">/api/v1/reports/export</span> يعمل</td>
-        <td>تقرير يُصدَّر من سجلات حقيقية</td><td>حساب مؤشرات من بيانات وهمية</td></tr>
+        <td>تقرير من سجلات حقيقية</td><td>حساب مؤشرات من بيانات وهمية</td></tr>
       <tr><td class="c">9</td><td>التكامل والاختبارات</td><td class="c">أسبوع 8&ndash;9</td>
         <td>اختبارات الوحدة والتكامل، إصلاح الأخطاء، إدارة الفروع</td>
-        <td>كل المراحل السابقة</td><td>نسخة مستقرة ومسار اختبار</td>
+        <td>كل المراحل السابقة</td><td>نسخة مستقرة واختبار</td>
         <td>اجتياز سيناريو العرض بلا أخطاء حاجبة</td><td>أخطاء دمج متأخرة</td></tr>
       <tr><td class="c">10</td><td>Docker والعرض التوضيحي</td><td class="c">أسبوع 9&ndash;10</td>
         <td>التغليف، <span class="mono">docker-compose</span>، فيديو العرض، التدريب</td>
@@ -7027,20 +6900,19 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
   </table>
 
   <h3>26.3 ما يمكن تنفيذه بالتوازي</h3>
-  <p>التوازي هو ما يحمي الخطة من التأخير، لكنه مشروط بأن يكون عقد الـ API مثبّتاً. نعرض المسارات المتوازية:</p>
+  <p>التوازي مشروط بتثبيت عقد الـ API:</p>
   <div class="grid2">
-    <div class="card teal"><h5>مسار متوازٍ A (بعد الأسبوع 1)</h5>
-      <ul><li><span class="mono">M3</span> يبني الـ Backend والجداول.</li>
-      <li><span class="mono">M4</span> يبني الواجهة على بيانات وهمية مطابقة للعقد.</li>
-      <li><span class="mono">M1</span> يجهّز النماذج بمعزل عن الـ Backend.</li></ul></div>
-    <div class="card green"><h5>مسار متوازٍ B (بعد الأسبوع 3)</h5>
-      <ul><li><span class="mono">M2</span> يربط القواعد بمخرج <span class="mono">M1</span>.</li>
-      <li><span class="mono">M5</span> يبني سكربتات الاختبار و<span class="mono">Docker</span> مبكراً.</li>
-      <li><span class="mono">M4</span> يبدّل mock بعنوان الـ API الحقيقي.</li></ul></div>
+    <div class="card teal"><h5>مسار A (بعد الأسبوع 1)</h5>
+      <ul><li><span class="mono">M3</span>: الـ Backend والجداول.</li>
+      <li><span class="mono">M4</span>: الواجهة على بيانات وهمية مطابقة للعقد.</li>
+      <li><span class="mono">M1</span>: تجهيز النماذج بمعزل.</li></ul></div>
+    <div class="card green"><h5>مسار B (بعد الأسبوع 3)</h5>
+      <ul><li><span class="mono">M2</span>: ربط القواعد بمخرج <span class="mono">M1</span>.</li>
+      <li><span class="mono">M5</span>: الاختبار و<span class="mono">Docker</span> مبكراً.</li>
+      <li><span class="mono">M4</span>: تبديل mock بعنوان الـ API.</li></ul></div>
   </div>
   <div class="callout info"><span class="co-title">ما لا يمكن توازيه</span>
-    <p>لا يمكن بناء خط الوقائع قبل توفر مخرج الكشف، ولا بناء التحليلات قبل وجود وقائع حقيقية. لذلك هذه المهام
-    تبقى متسلسلة، وما عداها يعمل بالتوازي.</p></div>
+    <p>لا يمكن بناء خط الوقائع قبل مخرج الكشف، ولا التحليلات قبل وقائع حقيقية؛ هذه المهام متسلسلة وما عداها متوازٍ.</p></div>
 
   <h3>26.4 المخطط الزمني المبسّط</h3>
   <div class="fig">
@@ -7062,16 +6934,16 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
 
   <h3>26.5 قائمة تحقق المراحل</h3>
   <ul class="checklist">
-    <li>المرحلة 1: عقد الـ API مثبّت و<span class="mono">.env.example</span> موجود بلا أسرار.</li>
-    <li>المرحلة 2: الـ Frontend يقرأ <span class="mono">/api/v1/health</span> بنجاح.</li>
-    <li>المرحلة 3: ترحيل <span class="mono">Alembic</span> ينشئ كل الجداول على قاعدة نظيفة.</li>
-    <li>المرحلة 4: المخرج الموحّد صالح على فيديو اختبار قصير.</li>
-    <li>المرحلة 5: job يصل إلى <span class="mono">completed</span> مع نسبة تقدّم حقيقية.</li>
-    <li>المرحلة 6: واقعة واحدة على الأقل لكل نوع مع صورة دليل.</li>
-    <li>المرحلة 7: دورة كاملة من الرفع إلى المراجعة من المتصفح.</li>
-    <li>المرحلة 8: تصدير <span class="mono">CSV</span> من سجلات حقيقية.</li>
-    <li>المرحلة 9: سيناريو العرض يمر بلا أخطاء حاجبة.</li>
-    <li>المرحلة 10: تشغيل بأمر واحد على جهاز نظيف.</li>
+    <li>عقد الـ API مثبّت و<span class="mono">.env.example</span> بلا أسرار.</li>
+    <li>الـ Frontend يقرأ <span class="mono">/api/v1/health</span>.</li>
+    <li>ترحيل <span class="mono">Alembic</span> ينشئ كل الجداول.</li>
+    <li>المخرج الموحّد صالح على فيديو قصير.</li>
+    <li>job يصل إلى <span class="mono">completed</span> بتقدّم حقيقي.</li>
+    <li>واقعة لكل نوع مع صورة دليل.</li>
+    <li>دورة كاملة من الرفع إلى المراجعة.</li>
+    <li>تصدير <span class="mono">CSV</span> من سجلات حقيقية.</li>
+    <li>سيناريو العرض يمر بلا أخطاء حاجبة.</li>
+    <li>تشغيل بأمر واحد على جهاز نظيف.</li>
   </ul>
 
   <div class="eoc">
@@ -7481,14 +7353,12 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
   </div>
 
   <div class="lead">
-    <p>هذا الفصل مرجع ختامي يجمع كل ما يحتاجه الفريق بعد قراءة الدليل: روابط التوثيق الرسمي، وقاموس مصطلحات،
-    وقائمة كاملة بمتغيرات البيئة، وملخص هيكل المستودع وعقد الـ API، وخريطة الاعتماديات النهائية. نستخدم فقط
-    جذور الروابط الرسمية الموثوقة، ونكتب ملاحظة أن أي رابط لم يُتحقق منه يدوياً يجب فحصه قبل الاعتماد عليه.</p>
+    <p>مرجع ختامي يجمع روابط التوثيق الرسمي، وقاموس مصطلحات، وقائمة متغيرات البيئة، وملخص الهيكل وعقد الـ API،
+    وخريطة الاعتماديات. نستخدم جذور الروابط الرسمية فقط؛ وأي رابط لم يُتحقق منه يدوياً يجب فحصه.</p>
   </div>
 
   <h3>30.1 روابط التوثيق الرسمي</h3>
-  <p>هذه روابط جذور رسمية عامة، لا روابط لصفحات قد تتغيّر. عمود "يحتاج تحققاً يدوياً" يعني أن الفريق لم يفتح
-  الرابط ويؤكد أنه ما زال صالحاً وقت كتابة الدليل.</p>
+  <p>روابط جذور رسمية عامة، لا صفحات داخلية قد تتغيّر. عمود "يحتاج تحققاً يدوياً" يعني أنه لم يُفتح ويُتأكد منه بعد.</p>
   <table class="tbl">
     <caption>جدول 30-1: روابط التوثيق الرسمي</caption>
     <thead><tr><th>الأداة</th><th>الرابط الرسمي</th><th class="c">يحتاج تحققاً يدوياً</th></tr></thead>
@@ -7516,116 +7386,116 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
     </tbody>
   </table>
   <div class="callout warn"><span class="co-title">تحقق يدوي إلزامي</span>
-    <p>لم يُفتح كل رابط أعلاه وتم التأكد منه في لحظة كتابة هذا الدليل. المطلوب من الفريق: فتح كل رابط، وتأكيد
-    صحته، ثم تغيير "نعم" إلى "تم التحقق" مع التاريخ. أي رابط لا يعمل يُستبدل بجذر رسمي آخر.</p></div>
+    <p>لم يُفتح كل رابط أعلاه ويُتأكد منه. على الفريق فتح كل رابط وتغيير "نعم" إلى "تم التحقق" مع التاريخ،
+    واستبدال أي رابط لا يعمل بجذر رسمي آخر.</p></div>
 
   <h3>30.2 قاموس المصطلحات</h3>
   <table class="tbl">
     <caption>جدول 30-2: مصطلحات المشروع (إنجليزي + شرح عربي)</caption>
     <thead><tr><th>المصطلح</th><th>النطق/الاختصار</th><th>الشرح بالعربية</th></tr></thead>
     <tbody>
-      <tr><td class="mono">Backend</td><td>باك-إند</td><td>الجزء الخلفي الذي يستقبل الطلبات ويدير البيانات والمنطق.</td></tr>
-      <tr><td class="mono">Frontend</td><td>فرونت-إند</td><td>الواجهة التي يراها المستخدم في المتصفح.</td></tr>
-      <tr><td class="mono">API</td><td>إيه-بي-آي</td><td>واجهة برمجية يتبادل بها الـ Frontend البيانات مع الـ Backend.</td></tr>
-      <tr><td class="mono">Endpoint</td><td>إند-بوينت</td><td>مسار محدد في الـ API ينفّذ عملية واحدة.</td></tr>
+      <tr><td class="mono">Backend</td><td>باك-إند</td><td>الجزء الذي يستقبل الطلبات ويدير البيانات والمنطق.</td></tr>
+      <tr><td class="mono">Frontend</td><td>فرونت-إند</td><td>الواجهة التي يراها المستخدم.</td></tr>
+      <tr><td class="mono">API</td><td>إيه-بي-آي</td><td>واجهة يتبادل بها الـ Frontend البيانات مع الـ Backend.</td></tr>
+      <tr><td class="mono">Endpoint</td><td>إند-بوينت</td><td>مسار في الـ API ينفّذ عملية واحدة.</td></tr>
       <tr><td class="mono">REST</td><td>رست</td><td>نمط تصميم يعتمد على الموارد وأفعال HTTP.</td></tr>
-      <tr><td class="mono">Schema</td><td>سكيما</td><td>تعريف شكل البيانات وحقولها وأنواعها.</td></tr>
-      <tr><td class="mono">Migration</td><td>مايقريشن</td><td>تغيير منظّم في بنية قاعدة البيانات يمكن تطبيقه والتراجع عنه.</td></tr>
-      <tr><td class="mono">ORM</td><td>أو-آر-إم</td><td>وسيط يحوّل الجداول إلى كائنات برمجية والعكس.</td></tr>
-      <tr><td class="mono">Repository</td><td>ريبوزيتوري</td><td>طبقة مسؤولة عن الوصول لقاعدة البيانات.</td></tr>
-      <tr><td class="mono">Service</td><td>سيرفس</td><td>طبقة تحمل منطق العمل وتستخدم الـ Repository.</td></tr>
-      <tr><td class="mono">Job</td><td>جوب</td><td>مهمة طويلة تُنفَّذ في الخلفية خارج دورة الطلب.</td></tr>
-      <tr><td class="mono">Worker</td><td>ووركر</td><td>عملية مستقلة تسحب المهام من الطابور وتنفّذها.</td></tr>
-      <tr><td class="mono">Polling</td><td>بولينج</td><td>تكرار سؤال الـ Frontend عن حالة الـ job كل فترة.</td></tr>
-      <tr><td class="mono">Inference</td><td>إنفيرنس</td><td>تشغيل النموذج المدرب لإنتاج تنبؤات على بيانات جديدة.</td></tr>
-      <tr><td class="mono">Checkpoint</td><td>تشيك-بوينت</td><td>ملف أوزان النموذج المحفوظ بعد التدريب.</td></tr>
-      <tr><td class="mono">Detection</td><td>ديتكشن</td><td>كشف عنصر في إطار: فئة وثقة وصندوق.</td></tr>
-      <tr><td class="mono">Bounding Box</td><td>باوندينج بوكس</td><td>مستطيل يحيط بالعنصر المكتشف في الإطار.</td></tr>
-      <tr><td class="mono">Confidence</td><td>كونفيدنس</td><td>درجة ثقة النموذج في كشف معيّن.</td></tr>
-      <tr><td class="mono">Tracking</td><td>تراكينج</td><td>متابعة العنصر نفسه عبر الإطارات برقم ثابت.</td></tr>
-      <tr><td class="mono">ByteTrack</td><td>بايت-تراك</td><td>خوارزمية تتبّع تربط الكشوفات بين الإطارات.</td></tr>
+      <tr><td class="mono">Schema</td><td>سكيما</td><td>تعريف شكل البيانات وحقولها.</td></tr>
+      <tr><td class="mono">Migration</td><td>مايقريشن</td><td>تغيير منظّم في بنية قاعدة البيانات قابل للتطبيق والتراجع.</td></tr>
+      <tr><td class="mono">ORM</td><td>أو-آر-إم</td><td>وسيط يحوّل الجداول إلى كائنات والعكس.</td></tr>
+      <tr><td class="mono">Repository</td><td>ريبوزيتوري</td><td>طبقة الوصول إلى قاعدة البيانات.</td></tr>
+      <tr><td class="mono">Service</td><td>سيرفس</td><td>طبقة منطق العمل التي تستخدم الـ Repository.</td></tr>
+      <tr><td class="mono">Job</td><td>جوب</td><td>مهمة طويلة تُنفَّذ في الخلفية.</td></tr>
+      <tr><td class="mono">Worker</td><td>ووركر</td><td>عملية تسحب المهام من الطابور وتنفّذها.</td></tr>
+      <tr><td class="mono">Polling</td><td>بولينج</td><td>تكرار سؤال الـ Frontend عن حالة الـ job.</td></tr>
+      <tr><td class="mono">Inference</td><td>إنفيرنس</td><td>تشغيل النموذج المدرب على بيانات جديدة.</td></tr>
+      <tr><td class="mono">Checkpoint</td><td>تشيك-بوينت</td><td>ملف أوزان النموذج بعد التدريب.</td></tr>
+      <tr><td class="mono">Detection</td><td>ديتكشن</td><td>كشف عنصر: فئة وثقة وصندوق.</td></tr>
+      <tr><td class="mono">Bounding Box</td><td>باوندينج بوكس</td><td>مستطيل يحيط بالعنصر المكتشف.</td></tr>
+      <tr><td class="mono">Confidence</td><td>كونفيدنس</td><td>درجة ثقة النموذج في الكشف.</td></tr>
+      <tr><td class="mono">Tracking</td><td>تراكينج</td><td>متابعة العنصر عبر الإطارات برقم ثابت.</td></tr>
+      <tr><td class="mono">ByteTrack</td><td>بايت-تراك</td><td>خوارزمية تربط الكشوفات بين الإطارات.</td></tr>
       <tr><td class="mono">Frame</td><td>فريم</td><td>صورة واحدة داخل الفيديو.</td></tr>
       <tr><td class="mono">FPS</td><td>إف-بي-إس</td><td>عدد الإطارات في الثانية.</td></tr>
-      <tr><td class="mono">PPE</td><td>بي-بي-إي</td><td>معدات الوقاية الشخصية مثل الخوذة والسترة.</td></tr>
+      <tr><td class="mono">PPE</td><td>بي-بي-إي</td><td>معدات الوقاية الشخصية (خوذة، سترة).</td></tr>
       <tr><td class="mono">Incident</td><td>إنسيدنت</td><td>واقعة سلامة مسجَّلة لها نوع وخطورة وحالة.</td></tr>
-      <tr><td class="mono">Evidence</td><td>إفيدنس</td><td>الدليل المحفوظ من الإطار الذي وقعت فيه الواقعة.</td></tr>
+      <tr><td class="mono">Evidence</td><td>إفيدنس</td><td>الدليل المحفوظ من إطار الواقعة.</td></tr>
       <tr><td class="mono">Severity</td><td>سيفيريتي</td><td>درجة خطورة الواقعة.</td></tr>
       <tr><td class="mono">Rule</td><td>رول</td><td>شرط منطقي يحوّل الكشوفات إلى واقعة.</td></tr>
-      <tr><td class="mono">Zone</td><td>زون</td><td>منطقة داخل الإطار تُعرَّف لمنطق السلامة.</td></tr>
+      <tr><td class="mono">Zone</td><td>زون</td><td>منطقة داخل الإطار لمنطق السلامة.</td></tr>
       <tr><td class="mono">Analytics</td><td>أناليتكس</td><td>مؤشرات ورسوم مبنية على الوقائع.</td></tr>
-      <tr><td class="mono">CSV</td><td>سي-إس-في</td><td>صيغة ملف نصي جدولي للتصدير.</td></tr>
-      <tr><td class="mono">JWT</td><td>جوت</td><td>رمز مصادقة موقّع يُستخدم عند تفعيل الدخول.</td></tr>
-      <tr><td class="mono">CORS</td><td>كورس</td><td>سياسة تسمح للمتصفح بالاتصال بالـ API من أصل آخر.</td></tr>
-      <tr><td class="mono">Docker Compose</td><td>دوكر كومبوز</td><td>أداة تشغّل عدة حاويات معاً بأمر واحد.</td></tr>
-      <tr><td class="mono">Volume</td><td>فوليوم</td><td>تخزين دائم يبقى بعد إعادة تشغيل الحاوية.</td></tr>
-      <tr><td class="mono">Environment Variable</td><td>إنفايرونمنت فاريابل</td><td>قيمة إعداد تُقرأ من البيئة لا من الكود.</td></tr>
-      <tr><td class="mono">Placeholder</td><td>بليس-هولدر</td><td>قيمة مؤقتة تُكتب بصيغة &lt;...&gt; حتى تُعرف القيمة الحقيقية.</td></tr>
+      <tr><td class="mono">CSV</td><td>سي-إس-في</td><td>صيغة ملف جدولي للتصدير.</td></tr>
+      <tr><td class="mono">JWT</td><td>جوت</td><td>رمز مصادقة موقّع عند تفعيل الدخول.</td></tr>
+      <tr><td class="mono">CORS</td><td>كورس</td><td>سياسة تسمح للمتصفح بالاتصال بالـ API.</td></tr>
+      <tr><td class="mono">Docker Compose</td><td>دوكر كومبوز</td><td>أداة تشغّل عدة حاويات بأمر واحد.</td></tr>
+      <tr><td class="mono">Volume</td><td>فوليوم</td><td>تخزين دائم يبقى بعد إعادة التشغيل.</td></tr>
+      <tr><td class="mono">Environment Variable</td><td>إنفايرونمنت فاريابل</td><td>قيمة إعداد تُقرأ من البيئة.</td></tr>
+      <tr><td class="mono">Placeholder</td><td>بليس-هولدر</td><td>قيمة مؤقتة بصيغة &lt;...&gt; حتى تُعرف الحقيقة.</td></tr>
     </tbody>
   </table>
 
   <h3>30.3 قائمة متغيرات البيئة</h3>
-  <p>هذه القائمة كاملة من <span class="mono">SPEC.md</span>. القيم هنا Placeholder فقط، والقيمة الحقيقية تُوضع
-  في ملف <span class="mono">.env</span> غير المرفوع إلى Git.</p>
+  <p>القائمة كاملة من <span class="mono">SPEC.md</span>. القيم هنا Placeholder، والحقيقية في
+  <span class="mono">.env</span> غير المرفوع.</p>
   <table class="tbl">
     <caption>جدول 30-3: متغيرات البيئة كاملة (الاسم، الوصف، قيمة Placeholder، الإلزامية)</caption>
     <thead><tr><th>الاسم</th><th>الوصف</th><th>قيمة Placeholder</th><th class="c">إلزامي/اختياري</th></tr></thead>
     <tbody>
-      <tr><td class="mono">APP_NAME</td><td>اسم التطبيق الظاهر في التوثيق والسجلات</td><td class="mono">SafeVision AI</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">APP_NAME</td><td>اسم التطبيق</td><td class="mono">SafeVision AI</td><td class="c">إلزامي</td></tr>
       <tr><td class="mono">APP_ENV</td><td>بيئة التشغيل</td><td class="mono">development</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">APP_DEBUG</td><td>تشغيل وضع التطوير</td><td class="mono">true</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">API_V1_PREFIX</td><td>بادئة مسارات الـ API</td><td class="mono">/api/v1</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">APP_DEBUG</td><td>وضع التطوير</td><td class="mono">true</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">API_V1_PREFIX</td><td>بادئة الـ API</td><td class="mono">/api/v1</td><td class="c">إلزامي</td></tr>
       <tr><td class="mono">AUTH_ENABLED</td><td>تفعيل المصادقة</td><td class="mono">false</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">SECRET_KEY</td><td>مفتاح توقيع الرموز</td><td class="mono">&lt;SECRET_KEY&gt;</td><td class="c">إلزامي عند تفعيل المصادقة</td></tr>
-      <tr><td class="mono">JWT_ALGORITHM</td><td>خوارزمية توقيع الـ JWT</td><td class="mono">HS256</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">ACCESS_TOKEN_EXPIRE_MINUTES</td><td>مدة صلاحية الرمز بالدقائق</td><td class="mono">60</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">CORS_ORIGINS</td><td>الأصول المسموح لها بالاتصال</td><td class="mono">http://localhost:5173</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">POSTGRES_USER</td><td>مستخدم قاعدة البيانات</td><td class="mono">&lt;POSTGRES_USER&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">POSTGRES_PASSWORD</td><td>كلمة مرور قاعدة البيانات</td><td class="mono">&lt;POSTGRES_PASSWORD&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">POSTGRES_DB</td><td>اسم قاعدة البيانات</td><td class="mono">safevision</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">POSTGRES_HOST</td><td>مضيف قاعدة البيانات</td><td class="mono">localhost</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">POSTGRES_PORT</td><td>منفذ قاعدة البيانات</td><td class="mono">5432</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">DATABASE_URL</td><td>عنوان الاتصال الكامل بقاعدة البيانات</td><td class="mono">postgresql+psycopg://&hellip;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">SECRET_KEY</td><td>مفتاح التوقيع</td><td class="mono">&lt;SECRET_KEY&gt;</td><td class="c">إلزامي عند تفعيل المصادقة</td></tr>
+      <tr><td class="mono">JWT_ALGORITHM</td><td>خوارزمية الـ JWT</td><td class="mono">HS256</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">ACCESS_TOKEN_EXPIRE_MINUTES</td><td>صلاحية الرمز (دقائق)</td><td class="mono">60</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">CORS_ORIGINS</td><td>الأصول المسموح بها</td><td class="mono">http://localhost:5173</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_USER</td><td>مستخدم القاعدة</td><td class="mono">&lt;POSTGRES_USER&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_PASSWORD</td><td>كلمة مرور القاعدة</td><td class="mono">&lt;POSTGRES_PASSWORD&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_DB</td><td>اسم القاعدة</td><td class="mono">safevision</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_HOST</td><td>مضيف القاعدة</td><td class="mono">localhost</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">POSTGRES_PORT</td><td>منفذ القاعدة</td><td class="mono">5432</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DATABASE_URL</td><td>اتصال قاعدة البيانات</td><td class="mono">postgresql+psycopg://&hellip;</td><td class="c">إلزامي</td></tr>
       <tr><td class="mono">STORAGE_BACKEND</td><td>نوع التخزين</td><td class="mono">local</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">LOCAL_STORAGE_ROOT</td><td>الجذر المحلي للتخزين</td><td class="mono">./storage</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">UPLOAD_DIR</td><td>مجلد الفيديوهات المرفوعة</td><td class="mono">storage/uploads</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">EVIDENCE_DIR</td><td>مجلد صور الدليل</td><td class="mono">storage/evidence</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">REPORT_DIR</td><td>مجلد التقارير المولَّدة</td><td class="mono">storage/reports</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">S3_ENDPOINT_URL</td><td>عنوان خدمة التخزين الكائني</td><td class="mono">&lt;S3_ENDPOINT_URL&gt;</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">S3_BUCKET</td><td>اسم الحاوية الكائنية</td><td class="mono">&lt;S3_BUCKET&gt;</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">S3_ACCESS_KEY_ID</td><td>معرّف مفتاح الوصول</td><td class="mono">&lt;S3_ACCESS_KEY_ID&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">LOCAL_STORAGE_ROOT</td><td>جذر التخزين</td><td class="mono">./storage</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">UPLOAD_DIR</td><td>مجلد الفيديوهات</td><td class="mono">storage/uploads</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">EVIDENCE_DIR</td><td>مجلد الدليل</td><td class="mono">storage/evidence</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">REPORT_DIR</td><td>مجلد التقارير</td><td class="mono">storage/reports</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">S3_ENDPOINT_URL</td><td>عنوان التخزين الكائني</td><td class="mono">&lt;S3_ENDPOINT_URL&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_BUCKET</td><td>اسم الحاوية</td><td class="mono">&lt;S3_BUCKET&gt;</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">S3_ACCESS_KEY_ID</td><td>معرّف الوصول</td><td class="mono">&lt;S3_ACCESS_KEY_ID&gt;</td><td class="c">اختياري</td></tr>
       <tr><td class="mono">S3_SECRET_ACCESS_KEY</td><td>المفتاح السري</td><td class="mono">&lt;S3_SECRET_ACCESS_KEY&gt;</td><td class="c">اختياري</td></tr>
       <tr><td class="mono">S3_REGION</td><td>منطقة الخدمة</td><td class="mono">&lt;S3_REGION&gt;</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">MAX_UPLOAD_MB</td><td>أقصى حجم للفيديو بالميغابايت</td><td class="mono">500</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">ALLOWED_VIDEO_EXTENSIONS</td><td>الامتدادات المسموح رفعها</td><td class="mono">mp4,mov,avi</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">UPLOAD_CHUNK_MB</td><td>حجم قطعة الرفع بالميغابايت</td><td class="mono">8</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">MODEL_DIR</td><td>مجلد ملفات الأوزان</td><td class="mono">./models</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">PPE_MODEL_PATH</td><td>مسار أوزان كشف معدات الوقاية</td><td class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">FIRE_SMOKE_MODEL_PATH</td><td>مسار أوزان كشف الحريق والدخان</td><td class="mono">&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">PERSON_TRACKER_PATH</td><td>مسار أوزان تتبّع الأشخاص</td><td class="mono">&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">MODEL_DEVICE</td><td>جهاز تشغيل النموذج</td><td class="mono">cpu</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">DETECTION_CONF_THRESHOLD</td><td>عتبة ثقة الكشف العامة</td><td class="mono">0.25</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">NMS_IOU_THRESHOLD</td><td>عتبة دمج الصناديق المتراكبة</td><td class="mono">0.45</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">INFERENCE_IMG_SIZE</td><td>حجم الصورة عند الاستدلال</td><td class="mono">640</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">PERSIST_ALL_DETECTIONS</td><td>حفظ كل الكشوفات لكل إطار</td><td class="mono">false</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">MAX_UPLOAD_MB</td><td>أقصى حجم للفيديو (MB)</td><td class="mono">500</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">ALLOWED_VIDEO_EXTENSIONS</td><td>الامتدادات المسموحة</td><td class="mono">mp4,mov,avi</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">UPLOAD_CHUNK_MB</td><td>حجم قطعة الرفع (MB)</td><td class="mono">8</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">MODEL_DIR</td><td>مجلد الأوزان</td><td class="mono">./models</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PPE_MODEL_PATH</td><td>مسار أوزان معدات الوقاية</td><td class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">FIRE_SMOKE_MODEL_PATH</td><td>مسار أوزان الحريق والدخان</td><td class="mono">&lt;FIRE_SMOKE_MODEL_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PERSON_TRACKER_PATH</td><td>مسار أوزان التتبّع</td><td class="mono">&lt;PERSON_TRACKER_CHECKPOINT_PATH&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">MODEL_DEVICE</td><td>جهاز النموذج</td><td class="mono">cpu</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DETECTION_CONF_THRESHOLD</td><td>عتبة ثقة الكشف</td><td class="mono">0.25</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">NMS_IOU_THRESHOLD</td><td>عتبة دمج الصناديق</td><td class="mono">0.45</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">INFERENCE_IMG_SIZE</td><td>حجم صورة الاستدلال</td><td class="mono">640</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PERSIST_ALL_DETECTIONS</td><td>حفظ كل الكشوفات</td><td class="mono">false</td><td class="c">اختياري</td></tr>
       <tr><td class="mono">FRAME_SAMPLE_EVERY_N</td><td>تحليل إطار كل N إطار</td><td class="mono">5</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">MAX_FRAMES_PER_JOB</td><td>أقصى عدد إطارات للمهمة</td><td class="mono">20000</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">INCIDENT_CONFIRM_FRAMES</td><td>عدد الإطارات لتأكيد الواقعة</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">INCIDENT_COOLDOWN_SECONDS</td><td>مدة منع تكرار الواقعة</td><td class="mono">10</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">PPE_CONF_THRESHOLD</td><td>عتبة ثقة كشف معدات الوقاية</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">FIRE_CONF_THRESHOLD</td><td>عتبة ثقة كشف الحريق</td><td class="mono">0.40</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">SMOKE_CONF_THRESHOLD</td><td>عتبة ثقة كشف الدخان</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">PROXIMITY_MIN_OVERLAP</td><td>أدنى تداخل لاعتبار التقارب خطراً</td><td class="mono">0.15</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">DANGER_ZONE_CONFIG</td><td>إعداد مناطق الخطر</td><td class="mono">&lt;DANGER_ZONE_CONFIG&gt;</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">WORKER_POLL_INTERVAL_SECONDS</td><td>فترة سؤال الـ worker للطابور</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">WORKER_ID</td><td>معرّف نسخة الـ worker</td><td class="mono">worker-1</td><td class="c">اختياري</td></tr>
-      <tr><td class="mono">WORKER_CONCURRENCY</td><td>عدد المهام المتزامنة للـ worker</td><td class="mono">1</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">JOB_MAX_RETRIES</td><td>أقصى عدد محاولات إعادة المهمة</td><td class="mono">2</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">MAX_FRAMES_PER_JOB</td><td>أقصى إطارات للمهمة</td><td class="mono">20000</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">INCIDENT_CONFIRM_FRAMES</td><td>إطارات التأكيد</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">INCIDENT_COOLDOWN_SECONDS</td><td>منع تكرار الواقعة</td><td class="mono">10</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PPE_CONF_THRESHOLD</td><td>عتبة ثقة معدات الوقاية</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">FIRE_CONF_THRESHOLD</td><td>عتبة ثقة الحريق</td><td class="mono">0.40</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">SMOKE_CONF_THRESHOLD</td><td>عتبة ثقة الدخان</td><td class="mono">0.35</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">PROXIMITY_MIN_OVERLAP</td><td>أدنى تداخل للتقارب</td><td class="mono">0.15</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">DANGER_ZONE_CONFIG</td><td>مناطق الخطر</td><td class="mono">&lt;DANGER_ZONE_CONFIG&gt;</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">WORKER_POLL_INTERVAL_SECONDS</td><td>فترة سؤال الطابور</td><td class="mono">3</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">WORKER_ID</td><td>معرّف الـ worker</td><td class="mono">worker-1</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">WORKER_CONCURRENCY</td><td>مهام الـ worker المتزامنة</td><td class="mono">1</td><td class="c">إلزامي</td></tr>
+      <tr><td class="mono">JOB_MAX_RETRIES</td><td>أقصى محاولات الإعادة</td><td class="mono">2</td><td class="c">اختياري</td></tr>
       <tr><td class="mono">VITE_API_BASE_URL</td><td>عنوان الـ API للواجهة</td><td class="mono">http://localhost:8000/api/v1</td><td class="c">إلزامي</td></tr>
-      <tr><td class="mono">VITE_ENABLE_AUTH</td><td>تفعيل المصادقة في الواجهة</td><td class="mono">false</td><td class="c">اختياري</td></tr>
+      <tr><td class="mono">VITE_ENABLE_AUTH</td><td>تفعيل المصادقة بالواجهة</td><td class="mono">false</td><td class="c">اختياري</td></tr>
     </tbody>
   </table>
-  <p class="small">القيم الرقمية أعلاه أمثلة بداية فقط، ويجب معايرتها بعد التجربة. الـ Placeholders مثل
-  <span class="mono">&lt;SECRET_KEY&gt;</span> و<span class="mono">&lt;S3_*&gt;</span> تُملأ بقيم حقيقية لا تُرفع إلى Git.</p>
+  <p class="small">القيم الرقمية أمثلة بداية تُعاير بعد التجربة؛ والـ Placeholders مثل
+  <span class="mono">&lt;SECRET_KEY&gt;</span> تُملأ بقيم حقيقية لا تُرفع إلى Git.</p>
 
   <h3>30.4 ملخص هيكل المستودع</h3>
   <table class="tbl">
@@ -7634,37 +7504,37 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
     <tbody>
       <tr><td class="mono">backend/</td><td>تطبيق FastAPI (الحزمة <span class="mono">app</span>، الترحيلات، الاختبارات)</td><td class="c">نعم</td></tr>
       <tr><td class="mono">frontend/</td><td>تطبيق React + TypeScript + Vite</td><td class="c">نعم</td></tr>
-      <tr><td class="mono">models/</td><td>ملفات أوزان النماذج</td><td class="c">لا</td></tr>
-      <tr><td class="mono">data/</td><td>بيانات خام ومعالجة وعيّنات</td><td class="c">جزئياً</td></tr>
+      <tr><td class="mono">models/</td><td>أوزان النماذج</td><td class="c">لا</td></tr>
+      <tr><td class="mono">data/</td><td>بيانات خام ومعالجة</td><td class="c">جزئياً</td></tr>
       <tr><td class="mono">storage/</td><td>الفيديوهات والدليل والتقارير</td><td class="c">لا</td></tr>
       <tr><td class="mono">docs/</td><td>التوثيق والقرارات</td><td class="c">نعم</td></tr>
-      <tr><td class="mono">scripts/</td><td>سكربتات التشغيل والصيانة</td><td class="c">نعم</td></tr>
-      <tr><td class="mono">docker-compose.yml</td><td>تعريف الخدمات للتشغيل الموحّد</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">scripts/</td><td>سكربتات التشغيل</td><td class="c">نعم</td></tr>
+      <tr><td class="mono">docker-compose.yml</td><td>تعريف الخدمات الموحّد</td><td class="c">نعم</td></tr>
       <tr><td class="mono">.env.example</td><td>قالب المتغيرات بقيم Placeholder</td><td class="c">نعم</td></tr>
     </tbody>
   </table>
 
   <h3>30.5 ملخص عقد الـ API</h3>
-  <p>البادئة الموحّدة <span class="mono">/api/v1</span>. عمود المصادقة يعني أنها تُفرض فقط عند
-  <span class="mono">AUTH_ENABLED=true</span>، وفي وضع العرض تكون كأن مستخدماً افتراضياً
-  <span class="mono">safety_officer</span> مسجَّل.</p>
+  <p>البادئة الموحّدة <span class="mono">/api/v1</span>. المصادقة تُفرض فقط عند
+  <span class="mono">AUTH_ENABLED=true</span>؛ وفي وضع العرض يكون مستخدم افتراضي
+  <span class="mono">safety_officer</span> مسجَّلاً.</p>
   <table class="tbl">
     <caption>جدول 30-5: مسارات الـ API الأساسية</caption>
     <thead><tr><th class="c">Method</th><th>Endpoint</th><th>الغرض</th><th class="c">Auth</th></tr></thead>
     <tbody>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/health</td><td>فحص صحة الخدمة والمكوّنات</td><td class="c">لا</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/health</td><td>فحص صحة الخدمة</td><td class="c">لا</td></tr>
       <tr><td class="c mono">POST</td><td class="mono">/api/v1/videos</td><td>رفع فيديو</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos</td><td>قائمة الفيديوهات مع ترقيم</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos/{video_id}</td><td>فيديو واحد مع آخر مهمة</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">DELETE</td><td class="mono">/api/v1/videos/{video_id}</td><td>حذف آمن للفيديو وملفاته</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos</td><td>قائمة الفيديوهات</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/videos/{video_id}</td><td>فيديو مع آخر مهمة</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">DELETE</td><td class="mono">/api/v1/videos/{video_id}</td><td>حذف الفيديو وملفاته</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">POST</td><td class="mono">/api/v1/videos/{video_id}/process</td><td>إنشاء مهمة معالجة</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/jobs/{job_id}</td><td>حالة المهمة وتقدّمها</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/jobs</td><td>قائمة المهام مع فلترة</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents</td><td>قائمة الوقائع مع فلترة وترقيم</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/jobs</td><td>قائمة المهام</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents</td><td>قائمة الوقائع</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents/{incident_id}</td><td>تفاصيل واقعة</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">PATCH</td><td class="mono">/api/v1/incidents/{incident_id}</td><td>مراجعة أو تغيير حالة</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/incidents/{incident_id}/evidence</td><td>قائمة أدلة الواقعة</td><td class="c">نعم*</td></tr>
-      <tr><td class="c mono">GET</td><td class="mono">/api/v1/evidence/{evidence_id}/file</td><td>بثّ صورة/مقطع الدليل</td><td class="c">نعم*</td></tr>
+      <tr><td class="c mono">GET</td><td class="mono">/api/v1/evidence/{evidence_id}/file</td><td>بثّ الدليل</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/analytics/overview</td><td>مؤشرات لوحة التحكم</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/analytics/timeseries</td><td>الوقائع لكل يوم</td><td class="c">نعم*</td></tr>
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/reports/daily</td><td>ملخص يومي</td><td class="c">نعم*</td></tr>
@@ -7673,7 +7543,7 @@ def should_retry(error: Exception, attempt: int, max_retries: int) -&gt; bool:
       <tr><td class="c mono">GET</td><td class="mono">/api/v1/auth/me</td><td>المستخدم الحالي</td><td class="c">نعم</td></tr>
     </tbody>
   </table>
-  <p class="small">* تُفرض المصادقة فقط عند <span class="mono">AUTH_ENABLED=true</span>.</p>
+  <p class="small">* تُفرض عند <span class="mono">AUTH_ENABLED=true</span>.</p>
 
   <h3>30.6 خريطة الاعتماديات النهائية بين المكوّنات</h3>
   <div class="fig">

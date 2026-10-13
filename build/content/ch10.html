@@ -8,22 +8,17 @@
     </div>
   </div>
 
-  <div class="lead"><p>في هذا الفصل لا نصمّم Models جديدة ولا نعيد التدريب. المهمة هي <strong>الدمج</strong>: كيف يُحمَّل
-  كل <span class="en">checkpoint</span> متفق عليه، وكيف تُترجم مخرجاته المختلفة إلى صيغة كشف واحدة يفهمها
-  باقي النظام. الصيغة الموحّدة هي العقد الذي يربط الفصل 11 و 12 و 13 ببعضها.</p></div>
+  <div class="lead"><p>لا نصمّم Models جديدة ولا نعيد التدريب؛ المهمة هي <strong>الدمج</strong>: تحميل كل
+  <span class="en">checkpoint</span> وتحويل مخرجاته إلى صيغة كشف واحدة تربط الفصول 11 و 12 و 13.</p></div>
 
   <h3>10.1 مبدأ أساسي: لا نعيد تصميم الـ Models</h3>
-  <p>الـ Models المتفق عليها (كشف معدات الوقاية، وكشف الحرائق والدخان، وتتبّع الأشخاص) تمّ اختيارها في مرحلة
-  سابقة. دورنا هنا أن نغلّفها بمحوّل (<span class="en">adapter</span>) يوحّد شكل مخرجاتها. أي محاولة لتغيير
-  المعمارية أو إعادة التدريب أثناء التكامل هي خارج النطاق وتؤجّل المشروع.</p>
+  <p>الـ Models الثلاثة (PPE، الحرائق والدخان، تتبّع الأشخاص) اختيرت سابقاً؛ دورنا أن نغلّفها بمحوّل
+  (<span class="en">adapter</span>) يوحّد مخرجاتها. تغيير المعمارية أو إعادة التدريب خارج النطاق.</p>
   <div class="callout danger"><span class="co-title">قاعدة صارمة</span>
-    <p>لا نغيّر أوزاناً ولا نعيد تدريباً. إن لم يعمل الـ Model، نسجّل الخطأ ونعالجه، ولا نستبدله بـ Model آخر
-    في منتصف المشروع.</p></div>
+    <p>لا نغيّر أوزاناً ولا نعيد تدريباً. إن لم يعمل الـ Model نسجّل الخطأ ونعالجه، ولا نستبدله في منتصف المشروع.</p></div>
 
   <h3>10.2 مسارات الـ checkpoints وكيف نستبدل الـ Placeholders</h3>
-  <p>كل مسار يُقرأ من متغيّر بيئة، وقيمته الافتراضية الآن <span class="en">placeholder</span>. القاعدة:
-  نستبدل كل <span class="en">placeholder</span> بمسار حقيقي بمجرد أن يسلّم مسؤول الـ Models الملف، دون تعديل
-  أي سطر كود.</p>
+  <p>كل مسار من متغيّر بيئة وقيمته الافتراضية <span class="en">placeholder</span>؛ نستبدله بمسار حقيقي بمجرد تسليم الملف، دون تعديل كود.</p>
   <table class="tbl">
     <caption>جدول 10-1: الـ Placeholders وكيف تُستبدل</caption>
     <thead><tr><th class="w33">الـ Placeholder</th><th class="w24">المتغيّر</th><th>كيف نستبدله</th></tr></thead>
@@ -36,10 +31,9 @@
   </table>
 
   <h3>10.3 اختيار الجهاز: CPU أم GPU</h3>
-  <p>يتحكّم المتغيّر <span class="mono">MODEL_DEVICE</span> في الجهاز: <span class="mono">cpu</span> أو
-  <span class="mono">cuda</span>. القاعدة العملية: نطوّر ونجرّب على <span class="mono">cpu</span> لأنه متاح
-  للجميع، ونستخدم <span class="mono">cuda</span> عند توفّر كرت رسومي لتقليل زمن المعالجة. الكود نفسه لا يتغيّر
-  بين الحالتين.</p>
+  <p>المتغيّر <span class="mono">MODEL_DEVICE</span> يحدّد <span class="mono">cpu</span> أو
+  <span class="mono">cuda</span>: نطوّر على <span class="mono">cpu</span> للجميع، ونستخدم
+  <span class="mono">cuda</span> عند توفّر كرت لتقليل الزمن. الكود لا يتغيّر.</p>
   <div class="callout warn"><span class="co-title">ذاكرة الـ GPU</span>
     <p>إذا نفدت ذاكرة كرت الرسوم، نُصغّر <span class="mono">INFERENCE_IMG_SIZE</span> أو نعود إلى
     <span class="mono">cpu</span>. لا نُشغّل عدّة عمليات inference ثقيلة في نفس الوقت على نفس الجهاز.</p></div>
@@ -68,21 +62,18 @@
 
 settings = <span class="fn">Settings</span>()
 </pre></div>
-  <p>المعنى: <span class="mono">INFERENCE_IMG_SIZE</span> هو الحجم الذي يُصغَّر إليه الإطار قبل الـ Model،
-  و<span class="mono">NMS_IOU_THRESHOLD</span> يحذف الصناديق المتداخلة (<span class="en">Non-Maximum
-  Suppression</span>)، و<span class="mono">DETECTION_CONF_THRESHOLD</span> هو الحد العام للثقة. توجد أيضاً عتبات
-  أدق لكل نوع (<span class="mono">PPE_CONF_THRESHOLD</span> و <span class="mono">FIRE_CONF_THRESHOLD</span>
-  و <span class="mono">SMOKE_CONF_THRESHOLD</span>) لأن كل Model له سلوك مختلف.</p>
+  <p><span class="mono">INFERENCE_IMG_SIZE</span> حجم الإطار قبل الـ Model، و<span class="mono">NMS_IOU_THRESHOLD</span>
+  يحذف الصناديق المتداخلة (<span class="en">Non-Maximum Suppression</span>)، و<span class="mono">DETECTION_CONF_THRESHOLD</span>
+  حدّ الثقة العام. ولأن كل Model مختلف، توجد عتبات أدق لكل نوع (<span class="mono">PPE_CONF_THRESHOLD</span>،
+  <span class="mono">FIRE_CONF_THRESHOLD</span>، <span class="mono">SMOKE_CONF_THRESHOLD</span>).</p>
 
   <h3>10.5 خريطة أسماء الأصناف</h3>
-  <p>كل <span class="en">checkpoint</span> يعيد أسماء أصناف خاصة به (قد تكون إنجليزية أو مختصرة). نخريطها
-  (<span class="en">class map</span>) إلى أسماء داخلية واحدة، فيتعامل الفصل 12 مع أسماء ثابتة. إذا وُجد صنف
-  غير معروف في الخريطة نُبقيه باسمه الأصلي ولا نخترع له معنى.</p>
+  <p>كل <span class="en">checkpoint</span> يعيد أسماء أصناف خاصة به، نخريطها (<span class="en">class map</span>)
+  إلى أسماء داخلية واحدة ليتعامل معها الفصل 12. الصنف غير المعروف نُبقيه باسمه الأصلي.</p>
 
   <h3>10.6 الصيغة الموحّدة للكشف</h3>
-  <p>هذا هو العقد الداخلي: كل محوّل يعيد قائمة من كائنات <span class="mono">Detection</span> بنفس الحقول تماماً
-  المذكورة في المواصفة (الفصل 4). الواجهة <span class="mono">DetectionModel</span> تفرض على كل الـ Models نفس
-  الدوال: <span class="mono">load</span> و <span class="mono">predict</span>.</p>
+  <p>العقد الداخلي: كل محوّل يعيد قائمة <span class="mono">Detection</span> بنفس حقول المواصفة (الفصل 4)،
+  والواجهة <span class="mono">DetectionModel</span> تفرض <span class="mono">load</span> و <span class="mono">predict</span>.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/base.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/base.py</span>
 <span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
@@ -174,8 +165,7 @@ PPE_CLASS_MAP = {
 </pre></div>
 
   <h3>10.9 سجل الـ Models <span class="mono">model_registry</span></h3>
-  <p>لتفادي تحميل الـ checkpoint أكثر من مرة (وهو عملية بطيئة وثقيلة على الذاكرة)، نبني سجلاً يضمن نسخة واحدة
-  من كل خدمة عبر <span class="mono">lru_cache</span>.</p>
+  <p>لتفادي تحميل ثقيل متكرّر، يضمن السجل نسخة واحدة من كل خدمة عبر <span class="mono">lru_cache</span>.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/ai/model_registry.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/model_registry.py</span>
 <span class="kw">from</span> functools <span class="kw">import</span> lru_cache
@@ -207,9 +197,8 @@ PPE_CLASS_MAP = {
 </pre></div>
 
   <h3>10.10 المحوّل التجريبي <span class="mono">demo_adapter</span> <span class="badge opt">للاختبار فقط</span></h3>
-  <p>أحياناً نريد اختبار خط المعالجة كاملاً قبل توفّر الـ checkpoints. لهذا نكتب محوّلاً وهمياً يعيد صناديق
-  ثابتة دون تشغيل أي Model. هذا المحوّل <strong>وهمي صراحةً</strong> ولا يمثّل مخرجات Model حقيقي، ولا يجوز
-  استخدامه في العرض النهائي ولا في أي قياس دقة.</p>
+  <p>لاختبار خط المعالجة قبل توفّر الـ checkpoints نكتب محوّلاً وهمياً يعيد صناديق ثابتة دون تشغيل أي Model.
+  هذا المحوّل <strong>وهمي صراحةً</strong> ولا يُستخدم في العرض النهائي ولا في أي قياس دقة.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/app/ai/demo_adapter.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/ai/demo_adapter.py</span>
 <span class="cmt"># WARNING: this adapter is FAKE. It runs no model and returns fixed boxes.</span>
@@ -236,18 +225,15 @@ PPE_CLASS_MAP = {
             model_name=self.name, model_version=self.version, track_id=<span class="num">1</span>)]
 </pre></div>
   <div class="callout danger"><span class="co-title">خطر الخلط</span>
-    <p>لا تُبِت أبداً بترك <span class="mono">demo_adapter</span> يعمل في وضع غير الاختبار. يجب أن يكون تبديله
-    صريحاً عبر الإعدادات، ويجب أن يظهر في سجلّ التشغيل أن الـ Model المستخدم وهمي.</p></div>
+    <p>لا تترك <span class="mono">demo_adapter</span> يعمل خارج وضع الاختبار؛ يجب أن يكون تبديله صريحاً عبر
+    الإعدادات وأن يظهر في السجل أن الـ Model وهمي.</p></div>
 
   <h3>10.11 الأداء والموارد ومعالجة الأخطاء</h3>
   <ul>
-    <li><strong>المعالجة بالإطار مقابل الدفعات:</strong> فيديو CCTV يُقرأ إطاراً بإطار؛ نجمع عدّة إطارات في
-    دفعة (<span class="en">batch</span>) عند الإمكان لتسريع الـ inference، ونعود إلى الإطار المفرد عند ضيق الذاكرة.</li>
-    <li><strong>التسخين <span class="en">warm-up</span>:</strong> نُشغّل الـ Model مرة على إطار وهمي عند التحميل
-    لتفادي بطء أول إطار حقيقي.</li>
-    <li><strong>إدارة الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة عبر السجل، ويُعاد استخدامه لكل الوظائف.</li>
-    <li><strong>معالجة الأخطاء:</strong> كل استدعاء <span class="mono">predict</span> داخل
-    <span class="mono">try/except</span>؛ خطأ إطار واحد لا يُسقط الوظيفة كلها، بل يُسجَّل ويُكمَل.</li>
+    <li><strong>الدفعات:</strong> نجمع عدّة إطارات في دفعة (<span class="en">batch</span>) لتسريع الـ inference، ونعود للإطار المفرد عند ضيق الذاكرة.</li>
+    <li><strong>التسخين <span class="en">warm-up</span>:</strong> تشغيل الـ Model على إطار وهمي عند التحميل لتفادي بطء أول إطار.</li>
+    <li><strong>الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة عبر السجل ويُعاد استخدامه.</li>
+    <li><strong>الأخطاء:</strong> كل <span class="mono">predict</span> داخل <span class="mono">try/except</span>؛ خطأ إطار لا يُسقط الوظيفة.</li>
   </ul>
 
   <h3>10.12 حالات الفشل الشائعة وكيف نعالجها</h3>
@@ -264,10 +250,9 @@ PPE_CLASS_MAP = {
   </table>
 
   <h3>10.13 تسجيل الإصدار وإعادة الإنتاج، والدقة</h3>
-  <p>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>، ويُسجَّل
-  إصدار الحزمة في <span class="mono">processing_jobs.model_bundle_version</span>. هذا يجعل نتائج أي وظيفة قابلة
-  للتفسير لاحقاً: نعرف بأي Model وبأي إصدار صدرت. الدقة لا تُفترض ولا تُكتب في التوثيق قبل قياسها على مجموعة
-  اختبار مستقلة؛ الجدول التالي يبقى فارغاً حتى تنتهي التجربة.</p>
+  <p>كل كشف يحمل <span class="mono">model_name</span> و <span class="mono">model_version</span>، وإصدار الحزمة
+  في <span class="mono">processing_jobs.model_bundle_version</span>، فتُفسَّر نتائج أي وظيفة لاحقاً. الدقة
+  تُقاس على مجموعة اختبار مستقلة ولا تُفترض؛ الجدول يبقى فارغاً حتى تنتهي التجربة.</p>
   <table class="tbl">
     <caption>جدول 10-3: نتائج تقييم الـ Models (يُملأ بعد التجربة)</caption>
     <thead><tr><th class="w30">الـ Model</th><th class="w22">مجموعة الاختبار</th><th>النتيجة</th></tr></thead>
@@ -278,8 +263,8 @@ PPE_CLASS_MAP = {
     </tbody>
   </table>
   <div class="callout note"><span class="co-title">لا ندمج بيانات تدريب مختلفة بلا تحقّق</span>
-    <p>إذا جاءت أوزان من مصادر مختلفة، يجب التحقق من خريطة الأصناف وتنسيق الـ annotation وطريقة تقسيم
-    (<span class="en">splits</span>) البيانات قبل أي دمج، وإلا كانت النتائج مضلّلة.</p></div>
+    <p>قبل دمج أوزان من مصادر مختلفة، تحقّق من خريطة الأصناف وتنسيق الـ annotation وتقسيم
+    (<span class="en">splits</span>) البيانات، وإلا كانت النتائج مضلّلة.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 10</div>

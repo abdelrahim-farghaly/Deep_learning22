@@ -8,10 +8,10 @@
     </div>
   </div>
 
-  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام: كل فيديو وكل واقعة وكل دليل وكل قرار مراجعة يُحفظ في صف واضح. في هذا الفصل نُثبّت مخططاً واحداً (<span class="en">schema</span>) يتفق عليه الفريق، ونكتب أول <span class="en">migration</span> تنشئه فعلياً في <span class="en">PostgreSQL</span>، فيستطيع أي عضو بناء القاعدة بأمر واحد.</p></div>
+  <div class="lead"><p>قاعدة البيانات هي الذاكرة طويلة المدى للنظام. في هذا الفصل نُثبّت مخططاً واحداً (<span class="en">schema</span>) ونكتب أول <span class="en">migration</span> تنشئه في <span class="en">PostgreSQL</span>، فيبني أي عضو القاعدة بأمر واحد.</p></div>
 
   <h3>8.1 مبادئ التصميم التي نلتزم بها</h3>
-  <p>قبل الجداول نفسها، نتفق على ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
+  <p>ستة مبادئ تحكم كل قرار تصميمي في هذا الفصل.</p>
   <table class="tbl">
     <caption>جدول 8-1: مبادئ تصميم قاعدة البيانات</caption>
     <thead><tr><th class="w25">المبدأ</th><th>المعنى العملي</th></tr></thead>
@@ -40,9 +40,8 @@
   </table>
 
   <h3>8.2 الـ Enums: القيم المسموح بها فقط</h3>
-  <p>نُعرّف ثمانية أنواع تعدادية (<span class="en">enum</span>) ونستخدمها في كل مكان بدل النصوص الحرة. هذا
-  القرار يمنع أشهر خطأ في المشاريع الطلابية: كتابة <span class="mono">"Done"</span> في مكان
-  <span class="mono">"processed"</span>. القيم التالية حرفية ومطابقة لعقد الـ API في الفصل 7.</p>
+  <p>ثمانية أنواع تعدادية (<span class="en">enum</span>) بدل النصوص الحرة، فلا يمكن كتابة حالة غير معروفة.
+  القيم التالية حرفية ومطابقة لعقد الـ API في الفصل 7.</p>
   <table class="tbl">
     <caption>جدول 8-2: أنواع الـ Enums وقيمها</caption>
     <thead><tr><th class="w28">الـ Enum</th><th>القيم المسموح بها</th></tr></thead>
@@ -118,13 +117,11 @@
 </pre></div>
 
   <h3>8.3 الجداول الأساسية في الـ MVP</h3>
-  <p>هذه هي الجداول التي نبنيها فعلاً في المرحلة الأولى. كل جدول مذكور بعمدته وأنواعه ومفاتيحه وقابليته
-  لأن يكون <span class="mono">NULL</span>، والغرض من كل عمود. الأسماء هنا حرفية ويجب ألا تتغيّر.</p>
+  <p>جداول المرحلة الأولى: العمود والنوع والمفتاح وقابلية <span class="mono">NULL</span> والغرض، بأسماء حرفية.</p>
 
   <h4>جدول <span class="mono">users</span> <span class="badge opt">اختياري</span></h4>
-  <p>يُنشأ فقط عند تفعيل المصادقة (<span class="mono">AUTH_ENABLED=true</span>). في وضع العرض التوضيحي
-  (<span class="mono">AUTH_ENABLED=false</span>) يتصرّف النظام كأن مستخدم <span class="mono">safety_officer</span>
-  افتراضياً هو المسجَّل دخوله. لا نخزّن كلمة المرور أبداً كنص صريح، بل كتجزئة <span class="en">bcrypt</span>.</p>
+  <p>يُنشأ فقط عند <span class="mono">AUTH_ENABLED=true</span>؛ وإلا يتصرّف النظام كأن
+  <span class="mono">safety_officer</span> افتراضي مسجَّل دخوله. كلمة المرور تُخزَّن كتجزئة <span class="en">bcrypt</span>.</p>
   <table class="tbl">
     <caption>جدول 8-3: أعمدة <span class="mono">users</span></caption>
     <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w14">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -140,10 +137,9 @@
   </table>
 
   <h4>جدول <span class="mono">videos</span> <span class="badge mvp">MVP</span></h4>
-  <p>الجدول المركزي: صف واحد لكل فيديو مرفوع. لاحظ أن الملف نفسه لا يُخزَّن هنا؛ العمود
-  <span class="mono">storage_key</span> هو مفتاح الوصول إليه في طبقة التخزين (الفصل 9). الأعمدة
-  <span class="mono">duration_seconds</span> و <span class="mono">fps</span> و <span class="mono">frame_count</span>
-  تُملأ بعد التحقق من الفيديو، لذلك تُقبل قيمتها <span class="mono">NULL</span> في لحظة الرفع.</p>
+  <p>صف واحد لكل فيديو مرفوع؛ الملف نفسه ليس هنا بل مفتاحه <span class="mono">storage_key</span> (الفصل 9).
+  أعمدة <span class="mono">duration_seconds</span> و <span class="mono">fps</span> و <span class="mono">frame_count</span>
+  تُملأ بعد التحقق فتُقبل <span class="mono">NULL</span> عند الرفع.</p>
   <table class="tbl">
     <caption>جدول 8-4: أعمدة <span class="mono">videos</span></caption>
     <thead><tr><th class="w22">العمود</th><th class="w20">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -167,8 +163,7 @@
   </table>
 
   <h4>جدول <span class="mono">processing_jobs</span> <span class="badge mvp">MVP</span></h4>
-  <p>صف واحد لكل تشغيل لخط المعالجة على فيديو. هنا تُتابَع حالة الـ job ونسبة التقدّم. القيد الحرج هنا هو
-  الفهرس الفريد الجزئي الذي يمنع وجود وظيفتين نشطتين لنفس الفيديو في نفس الوقت.</p>
+  <p>صف لكل تشغيل لخط المعالجة، تُتابَع فيه الحالة والتقدّم. الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</p>
   <table class="tbl">
     <caption>جدول 8-5: أعمدة <span class="mono">processing_jobs</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th class="w10">NULL</th><th>الغرض</th></tr></thead>
@@ -188,12 +183,11 @@
     </tbody>
   </table>
   <div class="callout info"><span class="co-title">الفهرس الفريد الجزئي</span>
-    <p>القيد <span class="mono">UNIQUE (video_id) WHERE status IN ('queued','running')</span> يمنع إنشاء وظيفتين
-    فعّالتين لنفس الفيديو. هذا هو خط الدفاع الأول ضد المعالجة المزدوجة الذي نشرحه تفصيلاً في الفصل 11.</p></div>
+    <p>القيد <span class="mono">UNIQUE (video_id) WHERE status IN ('queued','running')</span> هو خط الدفاع الأول
+    ضد المعالجة المزدوجة (تفصيلاً في الفصل 11).</p></div>
 
   <h4>جدول <span class="mono">detections</span> <span class="badge mvp">MVP</span></h4>
-  <p>كل كشف خام يُخرجه الـ Model يمكن أن يُكتب هنا: الصندوق المحيط، درجة الثقة، الإطار، والزمن، واسم
-  الـ Model وإصداره. هذا الجدول هو الأسرع نمواً في النظام بأكمله، لذلك نتعامل معه بحذر (انظر القسم 8.7).</p>
+  <p>كل كشف خام: الصندوق والثقة والإطار والزمن واسم الـ Model وإصداره. أسرع الجداول نمواً، فنتعامل معه بحذر (القسم 8.7).</p>
   <table class="tbl">
     <caption>جدول 8-6: أعمدة <span class="mono">detections</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w20">النوع</th><th class="w18">المفتاح</th><th>الغرض</th></tr></thead>
@@ -212,19 +206,15 @@
     </tbody>
   </table>
   <p class="small">الفهارس: <span class="mono">(job_id, frame_number)</span> و <span class="mono">(class_name)</span>
-  و <span class="mono">(video_id)</span>. الفهرس المركّب مهم لأن أكثر استعلام نتوقعه هو "أعطني الكشوفات
-  مرتبةً حسب الإطار داخل وظيفة معيّنة".</p>
+  و <span class="mono">(video_id)</span>.</p>
 
   <h4>جدول <span class="mono">tracks</span> <span class="badge opt">موصى به</span></h4>
-  <p>ملخّص لكل مسار تتبّع (<span class="en">track</span>) بدل تخزين كل إطار. عمود واحد لكل مسار مع أول وآخر
-  إطار وعدد مرات الظهور. القيد <span class="mono">UNIQUE (job_id, track_id)</span> يضمن عدم تكرار نفس المسار
-  داخل الوظيفة. التتبّع نفسه مسؤولية الـ <span class="en">ByteTrack</span> عبر
-  <span class="mono">model.track</span> (الفصل 10).</p>
+  <p>ملخّص لكل مسار تتبّع (<span class="en">track</span>) بأول وآخر إطار وعدد الظهور، بدل تخزين كل إطار.
+  القيد <span class="mono">UNIQUE (job_id, track_id)</span> يمنع التكرار؛ التتبّع عبر <span class="en">ByteTrack</span> (الفصل 10).</p>
 
   <h4>جدول <span class="mono">incidents</span> <span class="badge mvp">MVP</span></h4>
-  <p>هذا هو الجدول الذي يقرأه مسؤول السلامة في الواجهة. كل صف يمثّل واقعة لها نوع ودرجة خطورة وحالة
-  مراجعة، وزمن بداية وزمن نهاية. الحالة الافتراضية <span class="mono">detected</span>، والخطورة الافتراضية
-  <span class="mono">medium</span>، ويُحدَّثان لاحقاً حسب قواعد الفصل 12 ودورة الحياة في الفصل 13.</p>
+  <p>الجدول الذي يقرأه مسؤول السلامة: واقعة بنوع وخطورة وحالة، وزمن بداية ونهاية. الافتراضي
+  <span class="mono">detected</span> و <span class="mono">medium</span> (الفصلان 12 و 13).</p>
   <table class="tbl">
     <caption>جدول 8-7: أعمدة <span class="mono">incidents</span></caption>
     <thead><tr><th class="w24">العمود</th><th class="w18">النوع</th><th class="w16">المفتاح</th><th>الغرض</th></tr></thead>
@@ -248,12 +238,10 @@
     </tbody>
   </table>
   <p class="small">الفهارس: <span class="mono">(video_id)</span> و <span class="mono">(incident_type)</span>
-  و <span class="mono">(severity)</span> و <span class="mono">(status)</span> و <span class="mono">(created_at)</span>.
-  هذه الفهارس تخدم مباشرةً شاشة الـ Incidents التي تفلتر بالنوع والخطورة والحالة وتُرتّب بالتاريخ.</p>
+  و <span class="mono">(severity)</span> و <span class="mono">(status)</span> و <span class="mono">(created_at)</span> — تخدم فلاتر شاشة الـ Incidents.</p>
 
   <h4>جدول <span class="mono">evidence</span> <span class="badge mvp">MVP</span></h4>
-  <p>كل واقعة قد يكون لها أكثر من دليل: صورة مقتطعة من الإطار، أو مقطع قصير، أو ملف بيانات وصفية. الملف
-  نفسه محفوظ في طبقة التخزين، وهنا نحفظ فقط <span class="mono">storage_key</span> ونوع المحتوى والحجم.</p>
+  <p>دليل الواقعة: صورة أو مقطع أو بيانات وصفية. الملف في طبقة التخزين، وهنا <span class="mono">storage_key</span> ونوع المحتوى والحجم.</p>
   <table class="tbl">
     <caption>جدول 8-8: أعمدة <span class="mono">evidence</span></caption>
     <thead><tr><th class="w28">العمود</th><th class="w22">النوع</th><th>الغرض</th></tr></thead>
@@ -271,9 +259,8 @@
   </table>
 
   <h4>جدول <span class="mono">incident_reviews</span> <span class="badge mvp">MVP</span></h4>
-  <p>سجل تدقيق (<span class="en">audit log</span>) لا يُعدَّل ولا يُحذَف. كل إجراء مراجعة يُلحق صفاً جديداً
-  يحمل الحالة السابقة والحالة الجديدة والملاحظة. هذا هو أساس <span class="en">Auditability</span> الذي
-  نشرحه في الفصل 13.</p>
+  <p>سجل تدقيق (<span class="en">audit log</span>) لا يُعدَّل ولا يُحذَف: كل إجراء يُلحق صفاً بالحالة السابقة
+  والجديدة والملاحظة (الفصل 13).</p>
   <table class="tbl">
     <caption>جدول 8-9: أعمدة <span class="mono">incident_reviews</span></caption>
     <thead><tr><th class="w30">العمود</th><th class="w24">النوع</th><th>الغرض</th></tr></thead>
@@ -289,24 +276,20 @@
   </table>
 
   <h3>8.4 الجداول المؤجَّلة</h3>
-  <p>ثلاثة جداول مخطَّطة لكنها لا تدخل الـ MVP، ونذكرها هنا حتى لا يخترعها أحد لاحقاً بأسماء مختلفة.</p>
+  <p>ثلاثة جداول مخطَّطة خارج الـ MVP، نثبّت أسماءها حتى لا تختلط لاحقاً.</p>
   <div class="grid3">
     <div class="card navy"><h5>cameras <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">id</span> و <span class="mono">name</span> و <span class="mono">location_label</span>
-      و <span class="mono">description</span> و <span class="mono">created_at</span>. تُستخدم لربط الفيديو بكاميرا
-      محدّدة عند معايرة الموقع، و <span class="mono">videos.camera_id</span> يبقى <span class="mono">NULL</span> في الـ MVP.</p></div>
+      <p><span class="mono">id, name, location_label, description, created_at</span>. تربط الفيديو بكاميرا؛
+      <span class="mono">videos.camera_id</span> يبقى <span class="mono">NULL</span> في الـ MVP.</p></div>
     <div class="card orange"><h5>model_runs <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">job_id</span> و <span class="mono">model_name</span> و <span class="mono">model_version</span>
-      و <span class="mono">device</span> و <span class="mono">weights_path</span> و <span class="mono">classes_json</span>
-      و <span class="mono">duration_ms</span>. تسجّل تفاصيل كل تشغيل Model لأغراض التشخيص.</p></div>
+      <p><span class="mono">job_id, model_name, model_version, device, weights_path, classes_json, duration_ms</span>.
+      تسجّل تفاصيل كل تشغيل Model للتشخيص.</p></div>
     <div class="card green"><h5>notifications <span class="badge future">Future</span></h5>
-      <p>عمودها: <span class="mono">user_id</span> و <span class="mono">incident_id</span> و <span class="mono">channel</span>
-      و <span class="mono">status</span>. للتنبيهات الخارجية (بريد/رسالة) بعد استقرار الـ MVP.</p></div>
+      <p><span class="mono">user_id, incident_id, channel, status</span> — تنبيهات خارجية بعد استقرار الـ MVP.</p></div>
   </div>
 
   <h3>8.5 مخطط العلاقات (ER Diagram)</h3>
-  <p>يُلخّص الشكل التالي كل الجداول والعلاقات بينها. لاحظ أن كل العلاقات من نوع واحد إلى متعدّد
-  (<span class="en">1..N</span>)، وأن <span class="mono">videos</span> هو الجذر الذي تتفرّع منه بقية الكيانات.</p>
+  <p>كل الجداول وعلاقاتها من نوع <span class="en">1..N</span>، و <span class="mono">videos</span> جذر تتفرّع منه بقية الكيانات.</p>
   <div class="fig"><div class="er">
     <div class="er-table"><div class="er-name">users</div><ul><li class="pk">id</li><li>email</li><li>hashed_password</li><li>role</li></ul></div>
     <div class="er-table late"><div class="er-name">cameras</div><ul><li class="pk">id</li><li>name</li><li>location_label</li></ul></div>
@@ -336,8 +319,7 @@
   </table>
 
   <h3>8.6 الفهارس ودعم الفلترة والترتيب</h3>
-  <p>الفلترة في الواجهة ليست ميزة تجميلية؛ كل فلتر يعني شرط <span class="mono">WHERE</span> في الاستعلام،
-  وبدون فهرس مناسب يتحوّل إلى مسح كامل للجدول. لذلك نربط كل فهرس باستعلام حقيقي معروف.</p>
+  <p>كل فلتر شرط <span class="mono">WHERE</span>؛ نربط كل فهرس باستعلام حقيقي لتفادي المسح الكامل للجدول.</p>
   <table class="tbl">
     <caption>جدول 8-11: الفهارس ومبرّر كل واحد</caption>
     <thead><tr><th class="w30">الفهرس</th><th>الاستعلام الذي يخدمه</th></tr></thead>
@@ -353,25 +335,21 @@
       <tr><td class="mono">incidents(video_id)</td><td>جلب كل وقائع فيديو معيّن</td></tr>
     </tbody>
   </table>
-  <p>الفلترة المتعدّدة في الـ API (نوع + خطورة + حالة + نطاق تاريخ + فيديو) تُبنى كسلاسل شروط تُضاف تدريجياً،
-  مع ترقيم صفحات (<span class="en">pagination</span>) دائماً عبر <span class="mono">LIMIT</span> و
-  <span class="mono">OFFSET</span>. هذا يمنع إرجاع آلاف الصفوف في ردّ واحد.</p>
+  <p>الفلترة المتعدّدة تُبنى كسلاسل شروط، مع ترقيم صفحات (<span class="en">pagination</span>) دائماً عبر
+  <span class="mono">LIMIT</span> و <span class="mono">OFFSET</span>.</p>
 
   <h3>8.7 نمو جدول <span class="mono">detections</span> وخيار <span class="mono">PERSIST_ALL_DETECTIONS</span></h3>
-  <p>فيديو عشر دقائق بمعدّل 25 إطاراً/ثانية يعني 15000 إطار. تسجيل كل كشف في كل إطار يُنشئ ملايين الصفوف دون فائدة، لأن ما يهمّ المستخدم هو الوقائع لا كل كشف.</p>
+  <p>فيديو عشر دقائق = 15000 إطار؛ تسجيل كل كشف يُنشئ ملايين الصفوف بلا فائدة، فالمهمّ الوقائع لا كل كشف.</p>
   <ul>
-    <li><strong>القيمة الافتراضية:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=false</span>، فلا نكتب إلا
-    الكشوفات التي تهمّ (المرتبطة بوقائع أو بمخالفات محتملة) أو نأخذ عيّنات منها.</li>
-    <li><strong>عند التفعيل:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=true</span> يُستخدم أثناء
-    التطوير والتشخيص فقط، مع وعي كامل بضغط القرص والزمن.</li>
-    <li><strong>الربط بخط المعالجة:</strong> قرار الكتابة يُتخذ داخل الـ worker (الفصل 11)، لا داخل الـ Model نفسه.</li>
+    <li><strong>الافتراضي:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=false</span>، فلا نكتب إلا الكشوفات المهمّة أو عيّنات منها.</li>
+    <li><strong>عند التفعيل:</strong> <span class="mono">PERSIST_ALL_DETECTIONS=true</span> للتطوير والتشخيص فقط.</li>
+    <li><strong>الربط:</strong> قرار الكتابة داخل الـ worker (الفصل 11)، لا داخل الـ Model.</li>
   </ul>
   <div class="callout warn"><span class="co-title">تنبيه عملي</span>
-    <p>لا تُفعّل <span class="mono">PERSIST_ALL_DETECTIONS=true</span> على جهاز ضعيف أو قرص ممتلئ. ابدأ دائماً
-    بالقيمة الافتراضية، وارفعها مؤقتاً فقط عند تحقيقك في مشكلة كشف محدّدة.</p></div>
+    <p>ابدأ بالقيمة الافتراضية، وارفعها مؤقتاً فقط عند تحقيقك في مشكلة كشف، وتجنّبها على جهاز ضعيف أو قرص ممتلئ.</p></div>
 
   <h3>8.8 لماذا لا نخزّن الفيديو داخل <span class="en">PostgreSQL</span></h3>
-  <p>لماذا لا نضع ملف الفيديو في حقل <span class="mono">BYTEA</span>؟ لأن <span class="en">PostgreSQL</span> قاعدة علائقية، وحجم الفيديوهات والصور الدليلية سيضخّم النسخ الاحتياطي والاستعلام بلا داعٍ. نحفظ <strong>وصفاً صغيراً</strong> عن الملف، ويبقى الملف نفسه في نظام ملفات أو تخزين كائنات مستقل.</p>
+  <p>لماذا لا نضع الفيديو في حقل <span class="mono">BYTEA</span>؟ لأن حجمه يضخّم النسخ الاحتياطي والاستعلام. نحفظ <strong>وصفاً صغيراً</strong> فقط، ويبقى الملف في نظام ملفات أو تخزين كائنات مستقل.</p>
   <table class="tbl">
     <caption>جدول 8-12: أين يوضع كل شيء</caption>
     <thead><tr><th class="w33">البيانات</th><th class="w30">مكانها</th><th>السبب</th></tr></thead>
@@ -384,9 +362,8 @@
   </table>
 
   <h3>8.9 Alembic والمهاجرات الأولى</h3>
-  <p><strong>Alembic</strong> هو أداة إدارة المهاجرات (<span class="en">migrations</span>) الخاصة بـ
-  <span class="en">SQLAlchemy</span>: تحوّل تعريفات الـ Models إلى تغييرات فعلية في قاعدة البيانات، وتسمح
-  لكل عضو بإعادة بناء المخطط نفسه بأمر واحد بدل إنشاء الجداول يدوياً.</p>
+  <p><strong>Alembic</strong> أداة المهاجرات (<span class="en">migrations</span>) لـ
+  <span class="en">SQLAlchemy</span>: تحوّل تعريفات الـ Models إلى تغييرات فعلية، فيعيد أي عضو بناء المخطط بأمر واحد.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/models/video.py</span><span class="ftag">python</span></div>
 <pre><span class="cmt"># backend/app/models/video.py (abbreviated)</span>
 <span class="kw">import</span> uuid
@@ -432,14 +409,13 @@ $ alembic init migrations
 $ alembic revision --autogenerate -m "initial schema"
 $ alembic upgrade head
 </pre></div>
-  <p>بعد تنفيذ الأمر الأخير تصبح قاعدة البيانات مطابقة للمخطط. أمر <span class="mono">--autogenerate</span>
-  يقارن الـ Models بالوضع الحالي ويولّد ملف المهاجرة، لكن مراجعته يدوياً قبل التطبيق خطوة إلزامية.</p>
+  <p>بعد الأمر الأخير تطابق القاعدة المخطط. <span class="mono">--autogenerate</span> يولّد المهاجرة بمقارنة
+  الـ Models بالوضع الحالي، ومراجعتها يدوياً إلزامية.</p>
 
   <h3>8.10 الخصوصية: لا نخزّن هويات حقيقية للعاملين</h3>
-  <p>النظام يكتشف معدات الوقاية والاقتراب من المعدات، ولا يحتاج معرفة <em>من</em> هو العامل. لذلك لا نخزّن أسماء ولا صوراً تعريفية ولا أرقام هوية، بل <span class="mono">track_id</span> رقمياً مؤقّتاً داخل الوظيفة وصور دليل تخدم المراجعة فقط.</p>
+  <p>لا نحتاج معرفة <em>من</em> هو العامل، فلا نخزّن أسماء ولا صوراً تعريفية ولا أرقام هوية، بل <span class="mono">track_id</span> مؤقّتاً وصور دليل للمراجعة.</p>
   <div class="callout note"><span class="co-title">ملاحظة للجنة المناقشة</span>
-    <p>إذا سُئلنا عن الخصوصية، فالجواب: النظام يحفظ أدلة بصرية للحدث لا هويات أشخاص، ويُستخدم لمساعدة المراجعة
-    البشرية لا للتعقّب الفردي.</p></div>
+    <p>النظام يحفظ أدلة بصرية للحدث لا هويات أشخاص، ويساعد المراجعة البشرية لا التعقّب الفردي.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 8</div>

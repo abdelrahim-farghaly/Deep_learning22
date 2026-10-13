@@ -9,24 +9,22 @@
   </div>
 
   <div class="lead">
-    <p>الخطة ليست وعداً، بل أداة لتوزيع الوقت وكشف التعطّل مبكراً. هذا الفصل يقسّم المشروع إلى عشر مراحل
-    واضحة، لكل مرحلة مدة ومهام واعتماديات ومخرجات ومعايير قبول ومخاطر. المدد هنا تقديرية ويمكن تعديلها حسب
-    إيقاع الفريق، لكن ترتيب الاعتماديات لا يتغيّر.</p>
+    <p>الخطة أداة لتوزيع الوقت وكشف التعطّل. يقسّم الفصل المشروع إلى عشر مراحل بمدد ومهام واعتماديات
+    ومعايير قبول ومخاطر؛ وترتيب الاعتماديات ثابت.</p>
   </div>
 
   <h3>26.1 نظرة عامة</h3>
-  <p>نفترض خطة من <strong>عشرة أسابيع</strong>، قابلة للضغط إلى ثمانية أو التمديد قليلاً. الأسبوع الأول
-  للتثبيت والاتفاق، والأسابيع من الثاني إلى الثامن للتنفيذ المتوازي والتكامل المستمر، والأسبوعان الأخيران
-  للتجميد والاختبار والعرض. القاعدة الذهبية: <strong>لا نؤجّل التكامل إلى النهاية</strong>، بل ندمج كل أسبوع.</p>
+  <p>خطة من <strong>عشرة أسابيع</strong> قابلة للضغط إلى ثمانية: الأول للتثبيت، والثاني إلى الثامن للتنفيذ
+  المتوازي، والأخيران للتجميد والعرض. <strong>لا نؤجّل التكامل إلى النهاية</strong>.</p>
   <table class="tbl">
     <caption>جدول 26-1: توزيع الأسابيع على المحاور</caption>
     <thead><tr><th>الأسابيع</th><th>التركيز الأساسي</th><th>المخرج الرئيسي</th></tr></thead>
     <tbody>
-      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع والبيئة</td><td>مستودع يعمل واتفاق على عقد الـ API</td></tr>
-      <tr><td class="c">2&ndash;4</td><td>قاعدة البيانات، الـ Backend، دمج الـ inference</td><td>رفع فيديو ومعالجة أولية تنتج كشوفات</td></tr>
+      <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع</td><td>مستودع يعمل وعقد API متفق عليه</td></tr>
+      <tr><td class="c">2&ndash;4</td><td>قاعدة البيانات، الـ Backend، دمج الـ inference</td><td>رفع فيديو ومعالجة أولية</td></tr>
       <tr><td class="c">5&ndash;7</td><td>خط الوقائع والدليل، لوحة التحكم، التقارير</td><td>دورة كاملة من الرفع إلى التقرير</td></tr>
-      <tr><td class="c">8&ndash;9</td><td>التكامل والاختبارات والتغليف بـ Docker</td><td>نظام يعمل بأمر واحد ومُختبر</td></tr>
-      <tr><td class="c">10</td><td>تجميد، تدريب على العرض، قائمة التحقق النهائية</td><td>عرض توضيحي جاهز ومُختبر</td></tr>
+      <tr><td class="c">8&ndash;9</td><td>التكامل والاختبارات وDocker</td><td>نظام يعمل بأمر واحد ومُختبر</td></tr>
+      <tr><td class="c">10</td><td>تجميد وتدريب على العرض</td><td>عرض توضيحي جاهز ومُختبر</td></tr>
     </tbody>
   </table>
 
@@ -38,27 +36,27 @@
       <tr><td class="c">1</td><td>تثبيت المتطلبات وإعداد المستودع</td><td class="c">أسبوع 1</td>
         <td>جدول النطاق، عقد الـ API، <span class="mono">.gitignore</span>، <span class="mono">.env.example</span></td>
         <td>لا شيء</td><td><span class="mono">docs/SCOPE.md</span> و<span class="mono">docs/API_CHANGELOG.md</span></td>
-        <td>كل عضو يستطيع تشغيل المستودع</td><td>توسّع النطاق</td></tr>
+        <td>كل عضو يشغّل المستودع</td><td>توسّع النطاق</td></tr>
       <tr><td class="c">2</td><td>بيئة التطوير وعقد الـ API</td><td class="c">أسبوع 1&ndash;2</td>
-        <td>venv، Node، PostgreSQL، Swagger، تثبيت الهياكل</td>
+        <td>venv، Node، PostgreSQL، Swagger، الهياكل</td>
         <td>المرحلة 1</td><td>Backend وFrontend يعملان ويتحدثان</td>
         <td>طلب <span class="mono">GET /api/v1/health</span> ينجح من الواجهة</td><td>اختلاف الإصدارات</td></tr>
       <tr><td class="c">3</td><td>قاعدة البيانات وأساس الـ Backend</td><td class="c">أسبوع 2&ndash;3</td>
         <td>الجداول، ترحيلات <span class="mono">Alembic</span>، الراوترات، الـ Repository</td>
-        <td>المرحلة 2</td><td>قاعدة بيانات مهاجَرة ومسارات رفع/قائمة</td>
-        <td>رفع فيديو وحفظ بياناته الوصفية</td><td>تغيّر المخطط دون ترحيل</td></tr>
+        <td>المرحلة 2</td><td>قاعدة بيانات مهاجَرة ومسارات رفع</td>
+        <td>رفع فيديو وحفظ بياناته</td><td>تغيّر المخطط دون ترحيل</td></tr>
       <tr><td class="c">4</td><td>دمج الـ inference</td><td class="c">أسبوع 3&ndash;4</td>
         <td>تحميل الـ checkpoints، المخرج الموحّد، التتبّع</td>
         <td>المرحلة 1 للنطاق</td><td>وحدة <span class="mono">app/ai/</span> تعمل على فيديو</td>
-        <td>مخرج موحّد صالح لكل إطار معالج</td><td>نقص بيانات/أوزان</td></tr>
+        <td>مخرج موحّد صالح لكل إطار</td><td>نقص بيانات/أوزان</td></tr>
       <tr><td class="c">5</td><td>معالجة الفيديو والـ jobs</td><td class="c">أسبوع 4&ndash;5</td>
         <td>الـ worker، طابور المهام، التقدّم، <span class="mono">polling</span></td>
         <td>المراحل 3 و4</td><td>job من <span class="mono">queued</span> إلى <span class="mono">completed</span></td>
-        <td>تحديث نسبة التقدّم أثناء التشغيل</td><td>تعليق الـ worker</td></tr>
+        <td>تحديث التقدّم</td><td>تعليق الـ worker</td></tr>
       <tr><td class="c">6</td><td>خط الوقائع والدليل</td><td class="c">أسبوع 5&ndash;6</td>
         <td>محرّك القواعد، إنشاء الـ incidents، حفظ الصور</td>
         <td>المرحلة 5</td><td>جدولا <span class="mono">incidents</span> و<span class="mono">evidence</span></td>
-        <td>واقعة واحدة على الأقل لكل نوع من فيديو حقيقي</td><td>تكرار الوقائع</td></tr>
+        <td>واقعة لكل نوع من فيديو حقيقي</td><td>تكرار الوقائع</td></tr>
       <tr><td class="c">7</td><td>لوحة التحكم</td><td class="c">أسبوع 6&ndash;7</td>
         <td>صفحات الرفع والتقدّم والوقائع والمراجعة والتحليلات</td>
         <td>المرحلة 3 (العقد)</td><td>واجهة React متصلة بالـ API</td>
@@ -66,10 +64,10 @@
       <tr><td class="c">8</td><td>التقارير والمراجعة</td><td class="c">أسبوع 7&ndash;8</td>
         <td>التحليلات، التصدير <span class="mono">CSV</span>، إجراءات المراجعة</td>
         <td>المرحلتان 6 و7</td><td><span class="mono">/api/v1/reports/export</span> يعمل</td>
-        <td>تقرير يُصدَّر من سجلات حقيقية</td><td>حساب مؤشرات من بيانات وهمية</td></tr>
+        <td>تقرير من سجلات حقيقية</td><td>حساب مؤشرات من بيانات وهمية</td></tr>
       <tr><td class="c">9</td><td>التكامل والاختبارات</td><td class="c">أسبوع 8&ndash;9</td>
         <td>اختبارات الوحدة والتكامل، إصلاح الأخطاء، إدارة الفروع</td>
-        <td>كل المراحل السابقة</td><td>نسخة مستقرة ومسار اختبار</td>
+        <td>كل المراحل السابقة</td><td>نسخة مستقرة واختبار</td>
         <td>اجتياز سيناريو العرض بلا أخطاء حاجبة</td><td>أخطاء دمج متأخرة</td></tr>
       <tr><td class="c">10</td><td>Docker والعرض التوضيحي</td><td class="c">أسبوع 9&ndash;10</td>
         <td>التغليف، <span class="mono">docker-compose</span>، فيديو العرض، التدريب</td>
@@ -79,20 +77,19 @@
   </table>
 
   <h3>26.3 ما يمكن تنفيذه بالتوازي</h3>
-  <p>التوازي هو ما يحمي الخطة من التأخير، لكنه مشروط بأن يكون عقد الـ API مثبّتاً. نعرض المسارات المتوازية:</p>
+  <p>التوازي مشروط بتثبيت عقد الـ API:</p>
   <div class="grid2">
-    <div class="card teal"><h5>مسار متوازٍ A (بعد الأسبوع 1)</h5>
-      <ul><li><span class="mono">M3</span> يبني الـ Backend والجداول.</li>
-      <li><span class="mono">M4</span> يبني الواجهة على بيانات وهمية مطابقة للعقد.</li>
-      <li><span class="mono">M1</span> يجهّز النماذج بمعزل عن الـ Backend.</li></ul></div>
-    <div class="card green"><h5>مسار متوازٍ B (بعد الأسبوع 3)</h5>
-      <ul><li><span class="mono">M2</span> يربط القواعد بمخرج <span class="mono">M1</span>.</li>
-      <li><span class="mono">M5</span> يبني سكربتات الاختبار و<span class="mono">Docker</span> مبكراً.</li>
-      <li><span class="mono">M4</span> يبدّل mock بعنوان الـ API الحقيقي.</li></ul></div>
+    <div class="card teal"><h5>مسار A (بعد الأسبوع 1)</h5>
+      <ul><li><span class="mono">M3</span>: الـ Backend والجداول.</li>
+      <li><span class="mono">M4</span>: الواجهة على بيانات وهمية مطابقة للعقد.</li>
+      <li><span class="mono">M1</span>: تجهيز النماذج بمعزل.</li></ul></div>
+    <div class="card green"><h5>مسار B (بعد الأسبوع 3)</h5>
+      <ul><li><span class="mono">M2</span>: ربط القواعد بمخرج <span class="mono">M1</span>.</li>
+      <li><span class="mono">M5</span>: الاختبار و<span class="mono">Docker</span> مبكراً.</li>
+      <li><span class="mono">M4</span>: تبديل mock بعنوان الـ API.</li></ul></div>
   </div>
   <div class="callout info"><span class="co-title">ما لا يمكن توازيه</span>
-    <p>لا يمكن بناء خط الوقائع قبل توفر مخرج الكشف، ولا بناء التحليلات قبل وجود وقائع حقيقية. لذلك هذه المهام
-    تبقى متسلسلة، وما عداها يعمل بالتوازي.</p></div>
+    <p>لا يمكن بناء خط الوقائع قبل مخرج الكشف، ولا التحليلات قبل وقائع حقيقية؛ هذه المهام متسلسلة وما عداها متوازٍ.</p></div>
 
   <h3>26.4 المخطط الزمني المبسّط</h3>
   <div class="fig">
@@ -114,16 +111,16 @@
 
   <h3>26.5 قائمة تحقق المراحل</h3>
   <ul class="checklist">
-    <li>المرحلة 1: عقد الـ API مثبّت و<span class="mono">.env.example</span> موجود بلا أسرار.</li>
-    <li>المرحلة 2: الـ Frontend يقرأ <span class="mono">/api/v1/health</span> بنجاح.</li>
-    <li>المرحلة 3: ترحيل <span class="mono">Alembic</span> ينشئ كل الجداول على قاعدة نظيفة.</li>
-    <li>المرحلة 4: المخرج الموحّد صالح على فيديو اختبار قصير.</li>
-    <li>المرحلة 5: job يصل إلى <span class="mono">completed</span> مع نسبة تقدّم حقيقية.</li>
-    <li>المرحلة 6: واقعة واحدة على الأقل لكل نوع مع صورة دليل.</li>
-    <li>المرحلة 7: دورة كاملة من الرفع إلى المراجعة من المتصفح.</li>
-    <li>المرحلة 8: تصدير <span class="mono">CSV</span> من سجلات حقيقية.</li>
-    <li>المرحلة 9: سيناريو العرض يمر بلا أخطاء حاجبة.</li>
-    <li>المرحلة 10: تشغيل بأمر واحد على جهاز نظيف.</li>
+    <li>عقد الـ API مثبّت و<span class="mono">.env.example</span> بلا أسرار.</li>
+    <li>الـ Frontend يقرأ <span class="mono">/api/v1/health</span>.</li>
+    <li>ترحيل <span class="mono">Alembic</span> ينشئ كل الجداول.</li>
+    <li>المخرج الموحّد صالح على فيديو قصير.</li>
+    <li>job يصل إلى <span class="mono">completed</span> بتقدّم حقيقي.</li>
+    <li>واقعة لكل نوع مع صورة دليل.</li>
+    <li>دورة كاملة من الرفع إلى المراجعة.</li>
+    <li>تصدير <span class="mono">CSV</span> من سجلات حقيقية.</li>
+    <li>سيناريو العرض يمر بلا أخطاء حاجبة.</li>
+    <li>تشغيل بأمر واحد على جهاز نظيف.</li>
   </ul>
 
   <div class="eoc">

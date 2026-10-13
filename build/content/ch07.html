@@ -9,20 +9,19 @@
   </div>
 
   <div class="lead"><p>عقد الـ API (<span class="en">API contract</span>) هو الاتفاق الملزم بين الـ Backend والـ Frontend:
-  أسماء المسارات، وأشكال الطلب والرد، ورموز الحالة، وأشكال الخطأ. إذا ثبّتنا هذا العقد أولاً، يستطيع
-  عضوان أن يبنيا طرفي النظام بالتوازي دون انتظار أحدهما للآخر. هذا الفصل هو المرجع الحرفي لكل نداء في الفصول التالية.</p></div>
+  أسماء المسارات، وأشكال الطلب والرد، ورموز الحالة، وأشكال الخطأ. تثبيته أولاً يسمح ببناء الطرفين بالتوازي،
+  وهو المرجع الحرفي لكل نداء في الفصول التالية.</p></div>
 
   <h3>7.1 لماذا نكتب العقد أولاً</h3>
-  <p>الطريقة التقليدية هي أن يبني الـ Backend أولاً ثم ينتظر الـ Frontend، وهذا يضيّع أسابيع. البديل أن نتفق
-  على الـ Endpoints والأشكال مكتوبةً، فيبدأ الطرفان في نفس اليوم. القاعدة الحاكمة: <strong>أي تغيير في العقد
-  يُعلَن ويُوثَّق قبل تنفيذه</strong>، ولا يُغيَّر اسم حقل بصمت لأن ذلك يكسر الشاشات المعتمدة عليه.</p>
-  <p>كل المسارات تبدأ بالبادئة <span class="mono">/api/v1</span> على العنوان الأساسي
+  <p>البناء التسلسلي (Backend ثم Frontend) يضيّع أسابيع؛ البديل أن نتفق على الـ Endpoints والأشكال مكتوبةً
+  فيبدأ الطرفان معاً. القاعدة الحاكمة: <strong>أي تغيير في العقد يُعلَن ويُوثَّق قبل تنفيذه</strong>، ولا
+  يُغيَّر اسم حقل بصمت. كل المسارات تبدأ بـ <span class="mono">/api/v1</span> على
   <span class="mono">http://localhost:8000</span>، وكل الأجسام <span class="en">JSON</span> إلا الرفع.</p>
 
   <h3>7.2 جدول الـ Endpoints الكامل</h3>
   <p>الجدول التالي هو المصدر الوحيد للحقيقة. الرمز <span class="mono">yes*</span> يعني أن المصادقة تُفرض فقط
-  عند <span class="mono">AUTH_ENABLED=true</span>؛ في وضع العرض التوضيحي تكون القيمة <span class="mono">false</span>
-  ويعمل النظام كأن مستخدماً افتراضياً بدور <span class="mono">safety_officer</span> مسجَّل دخوله.</p>
+  عند <span class="mono">AUTH_ENABLED=true</span>؛ في وضع العرض (<span class="mono">false</span>) يعمل النظام
+  بمستخدم افتراضي دوره <span class="mono">safety_officer</span>.</p>
   <table class="tbl">
     <caption>جدول 7-1: عقد الـ REST API الكامل (البادئة /api/v1)</caption>
     <thead><tr><th class="w10">Method</th><th class="w20">Endpoint</th><th class="w18">Purpose</th><th class="w20">Request</th><th class="w16">Response</th><th class="w8">Auth</th><th>Errors</th></tr></thead>
@@ -50,8 +49,7 @@
   </table>
 
   <h3>7.3 رموز الحالة (Status Codes)</h3>
-  <p>نستخدم رموز الحالة القياسية في <span class="en">HTTP</span>، ولا نعيد أبداً <span class="mono">200</span>
-  عند الفشل. الجدول يوضّح متى يظهر كل رمز ولماذا.</p>
+  <p>نستخدم رموز <span class="en">HTTP</span> القياسية ولا نعيد <span class="mono">200</span> عند الفشل:</p>
   <table class="tbl">
     <caption>جدول 7-2: رموز الحالة المستخدمة ومعانيها</caption>
     <thead><tr><th class="w12">Code</th><th class="w28">المعنى</th><th>متى يظهر في نظامنا</th></tr></thead>
@@ -73,8 +71,8 @@
   </table>
 
   <h3>7.4 أمثلة JSON حقيقية</h3>
-  <p>هذه الأشكال مطابقة حرفياً لـ <span class="mono">SPEC.md</span>، ويجب أن تُستنسخ في أنواع الـ TypeScript
-  بنفس الأسماء دون تغيير حرف واحد. مثال رد الرفع والقراءة <span class="mono">VideoOut</span>:</p>
+  <p>هذه الأشكال مطابقة حرفياً لـ <span class="mono">SPEC.md</span> وتُستنسخ في أنواع TypeScript بنفس الأسماء.
+  رد الرفع/القراءة <span class="mono">VideoOut</span>:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/videos/{video_id} &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "id": "3f1a9c2e-0b7d-4e51-9a44-77d2c1b0e8f3",
@@ -105,8 +103,8 @@
   }
 }</pre></div>
 
-  <p>الواقعة <span class="mono">IncidentOut</span> تحمل مصفوفة دليل <span class="mono">evidence</span>، وكل عنصر
-  فيه رابط <span class="mono">file_url</span> جاهز للعرض دون بناء مسار في الواجهة:</p>
+  <p><span class="mono">IncidentOut</span> يحمل مصفوفة <span class="mono">evidence</span>، وكل عنصر فيه
+  <span class="mono">file_url</span> جاهز للعرض:</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">GET /api/v1/incidents/{incident_id} &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "id": "9d4c1b70-2e6a-4f13-8c55-1a2b3c4d5e6f",
@@ -141,9 +139,7 @@
   ]
 }</pre></div>
 
-  <p>الردود الإحصائية <span class="mono">AnalyticsOverview</span> و<span class="mono">TimeseriesPoint</span>
-  تُبنى من صفوف مخزَّنة، وكل كائنات التوزيع (<span class="mono">incidents_by_type</span> وغيره) هي كائنات
-  مفاتيحها قيم الـ enum:</p>
+  <p>الردود الإحصائية تُبنى من صفوف مخزَّنة، وكائنات التوزيع مفاتيحها قيم الـ enum:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/analytics/overview &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "total_videos": 14,
@@ -159,8 +155,8 @@
 }</pre></div>
 
   <h3>7.5 Pagination و Filtering و Sorting و Date-range</h3>
-  <p>كل مسارات القوائم تعيد نفس غلاف الصفحات (<span class="en">pagination envelope</span>)، فتُكتب منطقية
-  الترقيم مرة واحدة في الواجهة وتُعاد في كل الصفحات. الحد الأقصى لـ <span class="mono">page_size</span> هو 100.</p>
+  <p>كل مسارات القوائم تعيد غلاف الصفحات نفسه (<span class="en">pagination envelope</span>)؛ الحد الأقصى لـ
+  <span class="mono">page_size</span> هو 100.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">GET /api/v1/incidents?page=2&amp;page_size=20&amp;incident_type=ppe_violation&amp;sort=-created_at &mdash; 200 OK</span><span class="ftag">json</span></div>
 <pre>{
   "items": [ { "id": "9d4c1b70-...", "incident_type": "ppe_violation", "severity": "high" } ],
@@ -183,7 +179,7 @@
       <tr><td class="mono">video_id</td><td>UUID</td><td>وقائع فيديو واحد بعينه</td></tr>
     </tbody>
   </table>
-  <p>نكتب معاملات الترقيم والفلترة مرة واحدة في مخطط <span class="en">Pydantic</span> قابل لإعادة الاستخدام:</p>
+  <p>نكتب معاملات الترقيم مرة واحدة في مخطط <span class="en">Pydantic</span> قابل لإعادة الاستخدام:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">backend/app/schemas/common.py</span><span class="ftag">python</span></div>
 <pre>from typing import Generic, TypeVar
 
@@ -206,7 +202,7 @@ class Paginated(BaseModel, Generic[T]):
     pages: int = 0</pre></div>
 
   <h3>7.6 إبقاء العقد مستقراً أثناء العمل المتوازي</h3>
-  <p>العمل المتوازي لا ينجح إلا بأدوات تحمي العقد. نستخدم خمس أدوات بسيطة:</p>
+  <p>نحمي العقد بخمس أدوات:</p>
   <ul>
     <li><strong>ملف <span class="en">OpenAPI</span>:</strong> يولّده FastAPI تلقائياً على <span class="mono">/openapi.json</span>؛
     نصدّره إلى <span class="mono">docs/openapi.json</span> بعد كل تعديل مقصود.</li>
@@ -220,9 +216,9 @@ class Paginated(BaseModel, Generic[T]):
     ومسؤول الـ Frontend معاً قبل الدمج.</li>
   </ul>
   <div class="callout tip"><span class="co-title">نصيحة عملية</span>
-    <p>افتح <span class="mono">/docs</span> (<span class="en">Swagger UI</span>) بعد كل تشغيل للـ Backend، وجرّب
-    الـ Endpoints يدوياً قبل كتابة كود الواجهة. هذا يكشف أخطاء العقد مبكراً وبتكلفة قريبة من الصفر.</p></div>
-  <p>مثال نداء من الطرفية لإنشاء job ثم متابعته:</p>
+    <p>جرّب الـ Endpoints يدوياً على <span class="mono">/docs</span> (<span class="en">Swagger UI</span>) قبل
+    كتابة كود الواجهة.</p></div>
+  <p>مثال من الطرفية:</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">curl &mdash; create a processing job and poll it</span><span class="ftag">bash</span></div>
 <pre>$ curl -X POST http://localhost:8000/api/v1/videos/&lt;video_id&gt;/process
 # HTTP/1.1 202 Accepted
@@ -231,25 +227,21 @@ $ curl http://localhost:8000/api/v1/jobs/&lt;job_id&gt;
 # HTTP/1.1 200 OK  {"status":"running","progress":42.5}</pre></div>
 
   <h3>7.7 أخطاء الـ API الموحّدة</h3>
-  <p>لا نعيد أشكال خطأ مختلفة من كل endpoint. لكل خطأ شكل واحد فيه رمز آلي ورسالة صديقة للمستخدم،
-  فيستطيع الـ Frontend عرض رسالة مفهومة دون فحص نص الخطأ.</p>
+  <p>شكل خطأ واحد لكل الـ endpoints: رمز آلي ورسالة صديقة، فلا تفحص الواجهة نص الخطأ.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">Error response shape &mdash; 404 / 409 / 413</span><span class="ftag">json</span></div>
 <pre>{
   "detail": "Video not found",
   "code": "video_not_found"
 }</pre></div>
-  <p>أخطاء تحقق <span class="mono">422</span> تأتي من <span class="en">Pydantic</span> بشكل قياسي يحتوي
-  <span class="mono">detail</span> كمصفوفة عناصر لكل حقل مرفوض، ونتعامل معه في الواجهة بتحويل الحقل
-  <span class="mono">loc</span> إلى رسالة عربية.</p>
+  <p>أخطاء <span class="mono">422</span> تأتي من <span class="en">Pydantic</span> بـ <span class="mono">detail</span>
+  كمصفوفة لكل حقل مرفوض، ونحوّل <span class="mono">loc</span> إلى رسالة عربية في الواجهة.</p>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 7</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>ثبّتنا جدول الـ Endpoints الكامل بمعاملاته ورموز حالته، وعرفنا شكل كل كائن رد
-        (<span class="mono">VideoOut</span>, <span class="mono">JobOut</span>, <span class="mono">IncidentOut</span>,
-        <span class="mono">EvidenceOut</span>, <span class="mono">AnalyticsOverview</span>) وغلاف الصفحات،
-        وأدوات إبقاء العقد مستقراً أثناء البناء المتوازي.</p></div>
+        <p>ثبّتنا جدول الـ Endpoints ورموز الحالة، وأشكال كائنات الرد وغلاف الصفحات، وأدوات إبقاء العقد
+        مستقراً أثناء البناء المتوازي.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>تثبيت جدول 7-1 في <span class="mono">docs/API.md</span> كمرجع ملزم للفريقين.</li>

@@ -9,21 +9,18 @@
   </div>
 
   <div class="lead">
-    <p>حتى هذه اللحظة كان كل عضو يشغّل النظام بطريقته: نسخة Python هنا، ومنفذ مختلف هناك، وقاعدة بيانات
-    ثالثة على جهاز زميله. هذا الفصل يحلّ مشكلة "يعمل عندي ولا يعمل عندك" عبر تغليف كل مكوّن في حاوية
-    <span class="en">Container</span> وربطها بأمر واحد. الهدف العملي: أن يستطيع أي عضو — أو لجنة المناقشة —
-    تشغيل النظام كاملاً على جهاز نظيف دون تثبيت Python أو Node أو PostgreSQL يدوياً.</p>
+    <p>هذا الفصل يحلّ مشكلة "يعمل عندي ولا يعمل عندك": نغلّف كل مكوّن في حاوية
+    <span class="en">Container</span> ونربطها بأمر واحد، فيستطيع أي عضو — أو لجنة المناقشة — تشغيل النظام
+    كاملاً على جهاز نظيف دون تثبيت Python أو Node أو PostgreSQL يدوياً.</p>
   </div>
 
   <h3>19.1 شرح Docker و Docker Compose من البداية</h3>
-  <p><strong>Docker:</strong> أداة تُغلّف التطبيق مع كل ما يحتاجه (نسخة اللغة، المكتبات، إعدادات النظام) في
-  وحدة واحدة قابلة للتشغيل تسمّى <strong>Image (صورة)</strong>. عند تشغيل الصورة نحصل على
-  <strong>Container (حاوية)</strong>: عملية معزولة تشبه جهازاً صغيراً مستقلاً. الفائدة أن الحاوية تعطي نفس
-  النتيجة على Windows و Linux و macOS لأنها لا تعتمد على مكتبات الجهاز المضيف.</p>
-  <p><strong>Docker Compose:</strong> أداة تُشغّل عدة حاويات معاً من ملف واحد اسمه
-  <span class="mono">docker-compose.yml</span>. النظام عندنا يحتاج أربع حاويات (قاعدة بيانات، backend،
-  worker، frontend) تشتغل وتتحدّث مع بعضها، وبدون Compose كنّا سنكتب أربعة أوامر طويلة وننسى ترتيبها.
-  Compose ينشئ أيضاً <strong>network (شبكة)</strong> خاصة و<strong>volumes</strong> مشتركة تلقائياً.</p>
+  <p><strong>Docker:</strong> أداة تُغلّف التطبيق مع كل ما يحتاجه في وحدة قابلة للتشغيل تسمّى
+  <strong>Image (صورة)</strong>؛ وتشغيلها يُنتج <strong>Container (حاوية)</strong>: عملية معزولة تعطي نفس
+  النتيجة على Windows و Linux و macOS.</p>
+  <p><strong>Docker Compose:</strong> أداة تُشغّل عدة حاويات معاً من ملف واحد
+  <span class="mono">docker-compose.yml</span>، وتنشئ لهنّ <strong>network (شبكة)</strong> خاصة
+  و<strong>volumes</strong> مشتركة تلقائياً. نظامنا يحتاج أربع حاويات متصلة.</p>
   <table class="tbl">
     <caption>جدول 19-1: المصطلحات الأربعة التي يجب ألا يخلط بينها الفريق</caption>
     <thead><tr><th>المصطلح</th><th>المعنى بالعربية</th><th>مثال في مشروعنا</th></tr></thead>
@@ -36,7 +33,7 @@
   </table>
 
   <h3>19.2 الحاويات الأربع ومسؤولية كل واحدة</h3>
-  <p>لا نضع كل شيء في حاوية واحدة، ولا نُفرط في التقسيم. أربع حاويات هي الحد المعقول لمشروع طلابي:</p>
+  <p>أربع حاويات هي الحد المعقول لمشروع طلابي:</p>
   <table class="tbl">
     <caption>جدول 19-2: خدمات Docker Compose ومسؤولية كل خدمة</caption>
     <thead><tr><th>اسم الخدمة</th><th>المسؤولية</th><th>الصورة / البناء</th><th>المنفذ المنشور</th></tr></thead>
@@ -48,9 +45,8 @@
     </tbody>
   </table>
   <div class="callout note"><span class="co-title">لماذا الـ worker منفصل؟</span>
-    <p>لأن معالجة الفيديو تستهلك الوقت والذاكرة، ولا نريدها أن تُجمّد الـ API. الـ worker عملية مستقلة تقرأ
-    الـ jobs من قاعدة البيانات بالترتيب (<span class="en">DB-backed queue</span>)، ولذلك يمكن إيقافه وإعادة
-    تشغيله دون إسقاط الـ API.</p></div>
+    <p>لأن معالجة الفيديو تستهلك الوقت والذاكرة ولا نريدها أن تُجمّد الـ API. الـ worker عملية مستقلة تقرأ
+    الـ jobs من قاعدة البيانات بالترتيب (<span class="en">DB-backed queue</span>).</p></div>
 
   <h3>19.3 مخطط النشر بـ Docker</h3>
   <div class="fig">
@@ -84,11 +80,10 @@
   </div>
 
   <h3>19.4 شبكة الحاويات: أسماء الخدمات بدل localhost</h3>
-  <p>هذا أهم مفهوم يجب أن يفهمه الفريق قبل كتابة أي ملف. داخل شبكة Docker، كل حاوية لها عنوان IP خاص،
-  و<strong>لا يمكن استخدام <span class="mono">localhost</span></strong> للوصول إلى حاوية أخرى، لأن
-  <span class="mono">localhost</span> داخل حاوية الـ backend يشير إلى الـ backend نفسه لا إلى قاعدة البيانات.
-  لذلك نستخدم <strong>اسم الخدمة</strong> كاسم نطاق داخلي: الحاوية <span class="mono">db</span> تُنادى باسم
-  <span class="mono">db</span>، والـ <span class="mono">backend</span> يُنادى باسم <span class="mono">backend</span>.</p>
+  <p>داخل شبكة Docker لكل حاوية عنوان خاص، و<strong>لا يمكن استخدام <span class="mono">localhost</span></strong>
+  للوصول إلى حاوية أخرى: <span class="mono">localhost</span> داخل الـ backend يشير إليه هو لا إلى قاعدة
+  البيانات. لذلك نستخدم <strong>اسم الخدمة</strong> كاسم نطاق داخلي (<span class="mono">db</span>،
+  <span class="mono">backend</span>).</p>
   <table class="tbl">
     <caption>جدول 19-3: من يتحدّث إلى من، وبأي عنوان</caption>
     <thead><tr><th>المتصل</th><th>الهدف</th><th>العنوان داخل الحاويات</th><th>العنوان من المتصفح على الجهاز</th></tr></thead>
@@ -100,14 +95,13 @@
     </tbody>
   </table>
   <div class="callout warn"><span class="co-title">الخطأ الأشهر</span>
-    <p>كتابة <span class="mono">DATABASE_URL=...@localhost:5432/...</span> داخل حاوية الـ backend. هذه القيمة
-    صحيحة عند التشغيل المباشر على الجهاز، لكنها خاطئة داخل Docker ويظهر خطأ
-    <span class="mono">connection refused</span>. القيمة الصحيحة داخل الحاويات تستخدم اسم الخدمة
-    <span class="mono">db</span>. أمّا من المتصفح على الجهاز فنستخدم <span class="mono">localhost</span> لأن
-    المنافذ منشورة (published) على الجهاز المضيف.</p></div>
+    <p>كتابة <span class="mono">DATABASE_URL=...@localhost:5432/...</span> داخل حاوية الـ backend: صحيحة على
+    الجهاز، خاطئة داخل Docker (تظهر <span class="mono">connection refused</span>). داخل الحاويات نستخدم اسم
+    الخدمة <span class="mono">db</span>، ومن المتصفح نستخدم <span class="mono">localhost</span> لأن المنافذ
+    منشورة على الجهاز المضيف.</p></div>
 
   <h3>19.5 الـ Volumes: كيف تصل ملفات الـ Models والفيديوهات للحاويات</h3>
-  <p>الحاوية قابلة للحذف، ولذلك لا نضع فيها شيئاً نفقد فقدانه. ثلاثة أنواع من التخزين في مشروعنا:</p>
+  <p>الحاوية قابلة للحذف، فلا نضع فيها شيئاً نفقد فقدانه. ثلاثة أنواع تخزين:</p>
   <ul>
     <li><strong>pgdata</strong> (named volume): يحفظ ملفات PostgreSQL فيبقى كل شيء بعد إعادة تشغيل الحاوية.</li>
     <li><strong>storage</strong>: مجلد مشترك بين الـ backend والـ worker يحتوي الفيديوهات المرفوعة
@@ -116,14 +110,13 @@
       الجهاز، لأن ملفات الـ checkpoints كبيرة ولا تُرفع إلى Git ولا تُنسخ داخل الصورة.</li>
   </ul>
   <div class="callout info"><span class="co-title">لماذا bind mount للـ models؟</span>
-    <p>لأن مسار الـ checkpoint يُحدَّد من متغيّر <span class="mono">PPE_MODEL_PATH</span> و
-    <span class="mono">FIRE_SMOKE_MODEL_PATH</span>. ربط المجلد يجعل تغيير الـ checkpoint عملية نسخ ملف بسيطة
-    دون إعادة بناء الصورة. نضع <span class="mono">:ro</span> لضمان أن الحاوية تقرأ ولا تكتب.</p></div>
+    <p>مسار الـ checkpoint يُحدَّد من <span class="mono">PPE_MODEL_PATH</span> و
+    <span class="mono">FIRE_SMOKE_MODEL_PATH</span>؛ فربط المجلد يجعل تغييره نسخ ملف دون إعادة بناء الصورة،
+    مع <span class="mono">:ro</span> لضمان القراءة فقط.</p></div>
 
   <h3>19.6 ملف الـ Backend Dockerfile</h3>
-  <p>صورة الـ backend مبنية على Python 3.11، وتُثبّت المتطلبات أولاً ثم يُنسخ الكود، لأن Docker يخزّن كل خطوة
-  مؤقتاً (<span class="en">layer cache</span>) فلا يعيد التثبيت عند تغيير الكود فقط. نستخدم الـ worker نفس
-  الصورة مع أمر تشغيل مختلف.</p>
+  <p>صورة الـ backend مبنية على Python 3.11، وتُثبّت المتطلبات أولاً ثم يُنسخ الكود للاستفادة من
+  <span class="en">layer cache</span>. يستخدم الـ worker نفس الصورة بأمر تشغيل مختلف.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">backend/Dockerfile</span><span class="ftag">dockerfile</span></div>
 <pre># SafeVision AI - backend image (also used by the worker service)
 FROM python:3.11-slim
@@ -153,10 +146,9 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 </pre></div>
 
   <h3>19.7 ملف الـ Frontend Dockerfile</h3>
-  <p>نبني الواجهة في مرحلة أولى (builder) ثم ننقل الناتج الثابت إلى صورة nginx صغيرة. هذا نمط
-  <span class="en">multi-stage build</span> ويقلّل حجم الصورة كثيراً، لأن Node و
-  <span class="mono">node_modules</span> لا تدخل الصورة النهائية. قيمة
-  <span class="mono">VITE_API_BASE_URL</span> تُثبَّت وقت البناء لأن Vite يدمج المتغيّرات في ملفات الإنتاج.</p>
+  <p>نمط <span class="en">multi-stage build</span>: نبني الواجهة ثم ننقل الناتج الثابت إلى صورة nginx صغيرة،
+  فتبقى Node و<span class="mono">node_modules</span> خارج الصورة النهائية. تُثبَّت قيمة
+  <span class="mono">VITE_API_BASE_URL</span> وقت البناء لأن Vite يدمج المتغيّرات في ملفات الإنتاج.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/Dockerfile</span><span class="ftag">dockerfile</span></div>
 <pre># SafeVision AI - frontend image (multi-stage build)
 # ---- Stage 1: build the static assets ----
@@ -183,8 +175,8 @@ CMD ["nginx", "-g", "daemon off;"]
 </pre></div>
 
   <h3>19.8 ملف .dockerignore</h3>
-  <p>الملف <span class="mono">.dockerignore</span> يمنع إرسال الملفات غير الضرورية إلى محرّك Docker. الفائدة
-  مزدوجة: بناء أسرع، وحماية من تسريب الأسرار أو الفيديوهات الخاصة إلى داخل الصورة بالخطأ.</p>
+  <p><span class="mono">.dockerignore</span> يمنع إرسال الملفات غير الضرورية إلى محرّك Docker: بناء أسرع،
+  وحماية من تسريب الأسرار أو الفيديوهات داخل الصورة.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">.dockerignore</span><span class="ftag">text</span></div>
 <pre># Never ship secrets, big binaries or local artifacts inside an image
 .git
@@ -214,11 +206,10 @@ docs/
 </pre></div>
 
   <h3>19.9 ملف docker-compose.yml</h3>
-  <p>هذا الملف هو قلب التشغيل. لاحظ ثلاثة أمور: أسماء الخدمات (<span class="mono">db</span>,
-  <span class="mono">backend</span>, <span class="mono">worker</span>, <span class="mono">frontend</span>)،
-  و<span class="mono">DATABASE_URL</span> الذي يستخدم اسم الخدمة <span class="mono">db</span>،
-  و<span class="mono">depends_on</span> مع فحص الصحة <span class="mono">healthcheck</span> لضمان أن الـ backend
-  لا يبدأ قبل جاهزية قاعدة البيانات.</p>
+  <p>قلب التشغيل. لاحظ: أسماء الخدمات (<span class="mono">db</span>, <span class="mono">backend</span>,
+  <span class="mono">worker</span>, <span class="mono">frontend</span>)، و<span class="mono">DATABASE_URL</span>
+  باستخدام <span class="mono">db</span>، و<span class="mono">depends_on</span> مع
+  <span class="mono">healthcheck</span> حتى لا يبدأ الـ backend قبل جاهزية قاعدة البيانات.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">docker-compose.yml</span><span class="ftag">yaml</span></div>
 <pre>services:
   db:
@@ -294,13 +285,12 @@ networks:
 </pre></div>
   <div class="callout tip"><span class="co-title">ترتيب البدء</span>
     <p><span class="mono">depends_on</span> مع <span class="mono">condition: service_healthy</span> يجعل
-    Compose ينتظر حتى تجيب PostgreSQL على فحص <span class="mono">pg_isready</span> قبل تشغيل الـ backend.
-    هذا يمنع أشهر خطأ في النشر المحلي: بدء الـ API قبل جهوزية قاعدة البيانات.</p></div>
+    Compose ينتظر فحص <span class="mono">pg_isready</span> قبل تشغيل الـ backend، فيمنع بدء الـ API قبل
+    جهوزية قاعدة البيانات.</p></div>
 
   <h3>19.10 ملف .env.example الخاص بـ Docker</h3>
-  <p>القيم الحقيقية تُكتب في <span class="mono">.env</span> (وهو مستثنى من Git). ملف
-  <span class="mono">.env.example</span> يُرفع للمستودع ويحتوي قيماً توضيحية فقط، مع ملاحظة أن قاعدة البيانات
-  تُنادى باسم الخدمة <span class="mono">db</span>.</p>
+  <p>القيم الحقيقية في <span class="mono">.env</span> (مستثنى من Git)؛ و<span class="mono">.env.example</span>
+  يُرفع ويحتوي قيماً توضيحية فقط، مع استخدام اسم الخدمة <span class="mono">db</span>.</p>
   <div class="code-wrap"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">text</span></div>
 <pre># Copy to .env and replace every placeholder before running.
 APP_NAME=SafeVision AI
@@ -387,23 +377,19 @@ $ curl http://localhost:8000/api/v1/videos
   </table>
   <div class="callout danger"><span class="co-title">تحذير</span>
     <p><span class="mono">docker compose down -v</span> يحذف قاعدة البيانات والفيديوهات وصور الدليل نهائياً.
-    لا يُستخدم إلا عند الرغبة في البدء من الصفر، ولا يُشغَّل أبداً على نسخة فيها نتائج عرض توضيحي.</p></div>
+    لا يُشغَّل أبداً على نسخة فيها نتائج عرض توضيحي.</p></div>
 
   <h3>19.13 حدود دعم GPU في Docker وبديل CPU</h3>
-  <p>تشغيل PyTorch على GPU داخل Docker يحتاج تعريف الحاوية ببطاقة الرسوميات. على Linux يمكن ذلك عبر
-  <span class="en">NVIDIA Container Toolkit</span> وإضافة قسم <span class="mono">deploy.resources</span> في
-  Compose. أمّا على Windows فيعتمد الأمر على إصدار Docker Desktop ووجود WSL2 ودعم البطاقة، وقد لا يتوفّر
-  أصلاً على أجهزة الـ GPU المدمجة. لذلك نتبنّى قاعدة عملية واضحة:</p>
+  <p>تشغيل PyTorch على GPU داخل Docker يحتاج تعريف الحاوية بالبطاقة: على Linux عبر
+  <span class="en">NVIDIA Container Toolkit</span> وقسم <span class="mono">deploy.resources</span>، وعلى
+  Windows يعتمد على Docker Desktop و WSL2 ودعم البطاقة وقد لا يتوفّر. لذلك قاعدتان:</p>
   <ul>
-    <li><strong>وضع GPU:</strong> يضاف قسم الموارد، ويُضبط <span class="mono">MODEL_DEVICE=cuda</span>.
-      يُستخدم على جهاز الفريق الذي يملك بطاقة متوافقة عند الحاجة إلى سرعة أعلى.</li>
-    <li><strong>وضع CPU (الافتراضي للعرض):</strong> يبقى <span class="mono">MODEL_DEVICE=cpu</span>، ويعمل
-      النظام كاملاً بدون أي بطاقة. أبطأ، لكنه يعمل على أي جهاز ولجنة المناقشة.</li>
+    <li><strong>وضع GPU:</strong> يُضبط <span class="mono">MODEL_DEVICE=cuda</span> على جهاز يملك بطاقة متوافقة.</li>
+    <li><strong>وضع CPU (الافتراضي للعرض):</strong> <span class="mono">MODEL_DEVICE=cpu</span>، يعمل على أي جهاز بلا بطاقة.</li>
   </ul>
   <div class="callout warn"><span class="co-title">حدود GPU غير مضمونة</span>
-    <p>لا نضمن توفر GPU على جهاز العرض أو على أي استضافة. الأرقام المتعلقة بالسرعة تُقاس على الجهاز المستخدم
-    فعلاً وتُوثَّق في الفصل 23، ولا نفترض أن الحاوية سترى البطاقة تلقائياً. إن فشل تشغيل CUDA فالحل الآمن هو
-    العودة إلى <span class="mono">MODEL_DEVICE=cpu</span>، وهذا هو وضع العرض الافتراضي في الفصل 28.</p></div>
+    <p>لا نضمن توفر GPU على أي جهاز أو استضافة، ولا نفترض أن الحاوية سترى البطاقة تلقائياً. إن فشل CUDA فالحل
+    الآمن العودة إلى <span class="mono">MODEL_DEVICE=cpu</span>.</p></div>
   <div class="code-wrap"><div class="code-head"><span class="fname">docker-compose.override.yml &mdash; optional GPU block (Linux + NVIDIA)</span><span class="ftag">yaml</span></div>
 <pre># Optional file. Only use it on a machine that really exposes a GPU.
 services:
@@ -423,10 +409,8 @@ services:
     <div class="eoc-head">خلاصة الفصل 19</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>غلافنا النظام في أربع حاويات (<span class="mono">db</span>، <span class="mono">backend</span>،
-        <span class="mono">worker</span>، <span class="mono">frontend</span>) على شبكة واحدة، وفهمنا أن
-        الحاويات تتحدّث بأسماء الخدمات لا بـ <span class="mono">localhost</span>، وأن البيانات الدائمة تعيش في
-        الـ volumes. وثبّتنا وضع CPU كافتراضي ووضع GPU كخيار مشروط.</p></div>
+        <p>غلّفنا النظام في أربع حاويات على شبكة واحدة تتخاطب بأسماء الخدمات لا بـ
+        <span class="mono">localhost</span>، مع بيانات دائمة في الـ volumes، ووضع CPU افتراضي ووضع GPU مشروط.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>كتابة <span class="mono">backend/Dockerfile</span> و<span class="mono">frontend/Dockerfile</span>.</li>

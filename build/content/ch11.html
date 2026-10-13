@@ -8,15 +8,13 @@
     </div>
   </div>
 
-  <div class="lead"><p>معالجة فيديو دقائق قد تستغرق وقتاً أطول بكثير من مهلة أي طلب HTTP. لهذا نفصل الطلب عن التنفيذ:
-  الـ API ينشئ وظيفة (<span class="en">job</span>) ويعيد فوراً، وعملية مستقلة تُسمّى
-  <span class="en">worker</span> تلتقط الوظائف وتنفّذها وتُحدّث التقدّم في قاعدة البيانات.</p></div>
+  <div class="lead"><p>معالجة فيديو دقائق قد تتجاوز مهلة أي طلب HTTP. لذلك نفصل الطلب عن التنفيذ: الـ API
+  ينشئ وظيفة (<span class="en">job</span>) ويعيد فوراً، وعملية مستقلة (<span class="en">worker</span>) تنفّذها وتُحدّث التقدّم.</p></div>
 
   <h3>11.1 لماذا الطلب المتزامن خطأ</h3>
   <p>لو عالجنا الفيديو داخل <span class="mono">POST /api/v1/videos/{video_id}/process</span> مباشرةً، لانتظر
-  المتصفح دقائق حتى ينتهي الطلب، ثم قد يقطعه انقطاع الشبكة أو إعادة تحميل الصفحة، فتضيع كل النتيجة. كما أن
-  خادم <span class="en">Uvicorn</span> محدود بعدد العمليات، وقد يتجمّد عند معالجة عدّة فيديوهات معاً. الحل:
-  تنفيذ طويل ومنفصل، وواجهة تستعلم عن الحالة.</p>
+  المتصفح دقائق ثم قد يقطعه انقطاع الشبكة فتضيع النتيجة، ولتجمّد خادم <span class="en">Uvicorn</span> عند
+  عدّة فيديوهات. الحل: تنفيذ منفصل وواجهة تستعلم عن الحالة.</p>
 
   <h3>11.2 تصميم خط الـ Jobs في ست عشرة خطوة</h3>
   <ol>
@@ -39,54 +37,46 @@
   </ol>
 
   <h3>11.3 حالات الـ Job</h3>
-  <p>الحالة تتبع القيم الخمس في المواصفة: <span class="mono">queued</span> ثم <span class="mono">running</span>
-  ثم <span class="mono">completed</span> أو <span class="mono">failed</span>، ويمكن
-  <span class="mono">cancelled</span> قبل البدء. لا نخرج عن هذه القيم أبداً.</p>
+  <p>القيم الخمس في المواصفة: <span class="mono">queued</span> ثم <span class="mono">running</span> ثم
+  <span class="mono">completed</span> أو <span class="mono">failed</span>، و<span class="mono">cancelled</span> قبل البدء.</p>
 
   <h3>11.4 لماذا لا نستخدم <span class="mono">BackgroundTasks</span> كنظام jobs</h3>
-  <p>يوفّر <span class="en">FastAPI</span> آلية <span class="mono">BackgroundTasks</span> لتنفيذ عمل بعد إرجاع
-  الردّ، لكنها <strong>ليست نظام وظائف موثوقاً</strong> للأسباب التالية:</p>
+  <p>آلية <span class="mono">BackgroundTasks</span> في <span class="en">FastAPI</span> تنفّذ عملاً بعد الردّ، لكنها <strong>ليست نظام وظائف موثوقاً</strong>:</p>
   <ul>
-    <li><strong>تعيش داخل عملية الخادم:</strong> إذا أُعيد تشغيل الـ API أو تعطّل، تضيع المهمة بلا أثر.</li>
-    <li><strong>لا يوجد صف دائم:</strong> لا يوجد سجل يمكن الاستعلام عنه لمعرفة الحالة أو التقدّم.</li>
-    <li><strong>لا إعادة محاولة:</strong> لا توجد <span class="en">retries</span> ولا استئناف بعد الفشل.</li>
-    <li><strong>تنافس على الموارد:</strong> تعمل داخل نفس عملية الـ API فتنافس الطلبات على الـ CPU/GPU.</li>
+    <li><strong>تعيش داخل عملية الخادم:</strong> إعادة تشغيل الـ API أو تعطّله تضيّع المهمة بلا أثر.</li>
+    <li><strong>لا صف دائم:</strong> لا سجل يمكن الاستعلام عنه لمعرفة الحالة أو التقدّم.</li>
+    <li><strong>لا إعادة محاولة:</strong> لا <span class="en">retries</span> ولا استئناف بعد الفشل.</li>
+    <li><strong>تنافس على الموارد:</strong> تعمل داخل عملية الـ API فتنافس الطلبات على الـ CPU/GPU.</li>
     <li><strong>لا قابلية للتوسّع:</strong> لا يمكن تشغيل عدّة عمّال على أجهزة مختلفة.</li>
   </ul>
   <div class="callout warn"><span class="co-title">القاعدة</span>
-    <p>نستخدم <span class="mono">BackgroundTasks</span> لمهام صغيرة غير حرجة فقط (مثل كتابة سجل)، أما المعالجة
-    الثقيلة فمكانها الـ worker المستقل.</p></div>
+    <p>نستخدم <span class="mono">BackgroundTasks</span> لمهام صغيرة غير حرجة فقط (كتابة سجل)، والمعالجة الثقيلة في الـ worker المستقل.</p></div>
 
   <h3>11.5 الـ Worker المستقل وقائمة الوظائف المبنية على قاعدة البيانات</h3>
   <p>نستخدم <strong>طابور وظائف مدعوماً بقاعدة البيانات</strong> (<span class="en">DB-backed queue</span>):
-  الوظائف صفوف في <span class="mono">processing_jobs</span>، والـ worker عملية منفصلة تستعلم عنها. الحجز يتم
-  بـ <span class="mono">SELECT ... FOR UPDATE SKIP LOCKED</span> حتى لا يلتقط عاملان نفس الوظيفة. هذا يحقّق
-  الموثوقية بلا إدخال <span class="en">Redis</span> أو <span class="en">Celery</span> (المستبعدين من الـ MVP).</p>
+  الوظائف صفوف في <span class="mono">processing_jobs</span> والـ worker عملية منفصلة. الحجز بـ
+  <span class="mono">SELECT ... FOR UPDATE SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة، فنحقّق الموثوقية
+  بلا <span class="en">Redis</span> أو <span class="en">Celery</span> (المستبعدين من الـ MVP).</p>
 
   <h3>11.6 <span class="en">Frame sampling</span> كمعامل قابل للضبط</h3>
-  <p>لا نحلّل كل إطار؛ نختار إطاراً كل <span class="mono">FRAME_SAMPLE_EVERY_N</span> إطار (الافتراضي
-  <span class="mono">5</span>). يوفّر هذا وقتاً كبيراً، لكنه قد يُفوّت حدثاً قصيراً. لذلك نضبط القيمة بعد
-  التحقق من ثلاثة أمور: معدّل استرجاع الأحداث (<span class="en">event recall</span>)، ومدة الفيديو، وسرعة
-  المعالجة على العتاد المتاح. ونضع حدّاً أعلى للإطارات عبر <span class="mono">MAX_FRAMES_PER_JOB</span>.</p>
+  <p>نحلّل إطاراً كل <span class="mono">FRAME_SAMPLE_EVERY_N</span> (الافتراضي <span class="mono">5</span>):
+  يوفّر وقتاً لكنه قد يُفوّت حدثاً قصيراً، فنضبط القيمة بعد التحقق من استرجاع الأحداث
+  (<span class="en">event recall</span>) ومدة الفيديو وسرعة العتاد، بحدّ أعلى عبر <span class="mono">MAX_FRAMES_PER_JOB</span>.</p>
   <div class="callout info"><span class="co-title">كيف نختار N؟</span>
-    <p>ابدأ بـ <span class="mono">5</span> على فيديو عرض قصير، وقِس زمن المعالجة، ثم كبّر الرقم إذا كان الوقت
-    طويلاً جداً، أو صغّره إذا لاحظنا أحداثاً مفقودة.</p></div>
+    <p>ابدأ بـ <span class="mono">5</span> على فيديو قصير، وقِس الزمن، ثم كبّر الرقم إن كان طويلاً أو صغّره إن فُقدت أحداث.</p></div>
 
   <h3>11.7 منع المعالجة المزدوجة ونفاد الموارد</h3>
   <ul>
-    <li><strong>على مستوى قاعدة البيانات:</strong> الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</li>
-    <li><strong>على مستوى الحجز:</strong> <span class="mono">SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة.</li>
-    <li><strong>على مستوى الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة، و<span class="mono">WORKER_CONCURRENCY</span>
-    يحدّد عدد الوظائف المتزامنة في العامل، فنمنع تشغيل عدّة <span class="en">inference</span> ثقيلة معاً.</li>
-    <li><strong>عند الفشل:</strong> نُعيد الوظيفة أو نعلّمها <span class="mono">failed</span> حسب
-    <span class="mono">JOB_MAX_RETRIES</span>، مع تنظيف أي دليل ناقص.</li>
+    <li><strong>قاعدة البيانات:</strong> الفهرس الفريد الجزئي يمنع وظيفتين نشطتين لنفس الفيديو.</li>
+    <li><strong>الحجز:</strong> <span class="mono">SKIP LOCKED</span> يمنع عاملين من أخذ نفس الوظيفة.</li>
+    <li><strong>الموارد:</strong> الـ checkpoint يُحمَّل مرة واحدة، و<span class="mono">WORKER_CONCURRENCY</span> يحدّ الوظائف المتزامنة فنمنع عدّة <span class="en">inference</span> ثقيلة معاً.</li>
+    <li><strong>الفشل:</strong> إعادة المحاولة أو <span class="mono">failed</span> حسب <span class="mono">JOB_MAX_RETRIES</span>، مع تنظيف الدليل الناقص.</li>
   </ul>
 
   <h3>11.8 نسبة التقدّم ورسائل الخطأ</h3>
-  <p>نحسب <span class="mono">progress</span> كنسبة مئوية بين <span class="mono">frames_processed</span> و
-  <span class="mono">frames_total</span>، ونحدّثه دورياً (لا في كل إطار) لتقليل الكتابة. الواجهة تستعلم عبر
-  <span class="mono">GET /api/v1/jobs/{job_id}</span> وتعرض الشريط. عند الفشل نكتب سبباً واضحاً في
-  <span class="mono">error_message</span> بدل رسالة غامضة.</p>
+  <p><span class="mono">progress</span> نسبة بين <span class="mono">frames_processed</span> و
+  <span class="mono">frames_total</span>، نحدّثه دورياً (لا كل إطار). الواجهة تستعلم عبر
+  <span class="mono">GET /api/v1/jobs/{job_id}</span>، وعند الفشل نكتب سبباً واضحاً في <span class="mono">error_message</span>.</p>
 
   <h3>11.9 مخطط تسلسل معالجة الفيديو</h3>
   <div class="fig"><table class="seq">
@@ -249,12 +239,11 @@ JOB_MAX_RETRIES: int = <span class="num">1</span>
     على أجهزة مختلفة لأن الحجز عبر قاعدة البيانات آمن.</p></div>
 
   <h3>11.11 متى نحتاج <span class="en">Task Queue</span> فعلاً؟</h3>
-  <p>طابور قاعدة البيانات كافٍ لفريق طلابي وعدد محدود من العمّال على جهاز واحد. نحتاج نظاماً مثل
-  <span class="en">Redis</span> أو <span class="en">Celery</span> فقط عند تشغيل عمّال على عدّة أجهزة، أو
-  الحاجة إلى جدولة مؤقتة وأولويات معقّدة ومهام متكرّرة. كل هذا خارج نطاق الـ MVP، وذكره هنا ليعرف الفريق
-  حدّ التصميم الحالي.</p>
-  <p>أما إلغاء الوظيفة <span class="mono">cancelled</span> فيتاح فقط قبل بدء التنفيذ؛ فبعد أن يلتقط الـ worker
-  الوظيفة نتركه يُنهي الإطار الحالي بأمان بدل قتل العملية فجأة.</p>
+  <p>طابور قاعدة البيانات كافٍ لفريق طلابي وعدد محدود من العمّال على جهاز واحد. نحتاج <span class="en">Redis</span>
+  أو <span class="en">Celery</span> فقط لعمّال على عدّة أجهزة، أو لجدولة مؤقتة وأولويات ومهام متكرّرة — وكلها
+  خارج الـ MVP.</p>
+  <p>وإلغاء الوظيفة <span class="mono">cancelled</span> متاح فقط قبل بدء التنفيذ؛ فبعد الالتقاط نترك الـ worker
+  يُنهي الإطار الحالي بأمان.</p>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 11</div>

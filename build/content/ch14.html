@@ -8,14 +8,12 @@
     </div>
   </div>
 
-  <div class="lead"><p>هذا الفصل يضع هيكل واجهة المستخدم قبل كتابة مكوّناتها: كيف نقسّم الكود، وكيف ننظّم المسارات،
-  وكيف نطابق أنواع <span class="en">TypeScript</span> مع عقد الـ API حرفياً. الهدف أن يجد أي عضو مكانه بسرعة،
-  وأن تكون الشاشة العشر واضحة الغرض والبيانات قبل تنفيذها في الفصل التالي.</p></div>
+  <div class="lead"><p>هذا الفصل يضع هيكل الواجهة قبل كتابة مكوّناتها: تقسيم الكود، وتنظيم المسارات، ومطابقة
+  أنواع <span class="en">TypeScript</span> مع عقد الـ API حرفياً، وتوضيح الشاشات العشر قبل تنفيذها.</p></div>
 
   <h3>14.1 بنية تطبيق React</h3>
   <p>نقسّم <span class="mono">src</span> حسب <strong>الميزة (feature)</strong> لا حسب نوع الملف فقط، فيصبح كل
-  جزء مسؤولاً عن نفسه. الطبقة <span class="mono">api</span> تعزل نداءات الشبكة، و<span class="mono">hooks</span>
-  تحتوي المنطق القابل لإعادة الاستخدام، و<span class="mono">types</span> تحتوي عقد البيانات المشترك.</p>
+  جزء مسؤولاً عن نفسه:</p>
   <table class="tbl">
     <caption>جدول 14-1: طبقات الـ Frontend ومسؤولية كل طبقة</caption>
     <thead><tr><th class="w22">المجلّد</th><th>المسؤولية</th></tr></thead>
@@ -31,9 +29,9 @@
   </table>
 
   <h3>14.2 خريطة الصفحات والمسارات</h3>
-  <p>نستخدم <span class="mono">react-router-dom v6</span>، ونجمع الصفحات في ثلاثة أقسام: قسم المصادقة
-  (اختياري)، قسم التشغيل اليومي، وقسم التحليل والتقارير. المسارات المحمية تُحوَّل إلى <span class="mono">/login</span>
-  فقط عند <span class="mono">VITE_ENABLE_AUTH=true</span>.</p>
+  <p>نستخدم <span class="mono">react-router-dom v6</span> في ثلاثة أقسام: المصادقة (اختياري)، التشغيل اليومي،
+  والتحليل والتقارير. المسارات المحمية تُحوَّل إلى <span class="mono">/login</span> عند
+  <span class="mono">VITE_ENABLE_AUTH=true</span>.</p>
   <div class="fig"><div class="dg">
     <div class="dgroup"><div class="dg-title">Authentication (optional)</div>
       <div class="drow"><div class="dbox navy">/login<span class="dsub">LoginPage</span></div></div></div>
@@ -60,8 +58,7 @@
   </div><div class="fig-cap"><b>شكل 14-1:</b> خريطة صفحات الـ Frontend ومساراتها</div></div>
 
   <h3>14.3 وصف الصفحات العشر</h3>
-  <p>لكل صفحة غرض واحد واضح، ونداءات محدَّدة، وإجراءات مستخدم معروفة، وسلوك تحميل وخطأ صريح. لا نبني
-  صفحة "تاعمل كل حاجة"، بل نبني عشر شاشات مركّزة.</p>
+  <p>لكل صفحة غرض واحد ونداءات محدَّدة وسلوك تحميل/خطأ صريح:</p>
   <table class="tbl">
     <caption>جدول 14-2: الصفحات العشر ونداءاتها وسلوكها</caption>
     <thead><tr><th class="w20">الصفحة / المسار</th><th class="w26">الغرض والمكوّنات</th><th class="w30">نداءات الـ API</th><th>إجراءات المستخدم وسلوك التحميل/الخطأ</th></tr></thead>
@@ -80,8 +77,7 @@
   </table>
 
   <h3>14.4 Wireframes للصفحات الرئيسية</h3>
-  <p>رسومات مصغّرة تحدّد التخطيط قبل التنفيذ: أي عنصر في أي منطقة، وأين أزرار الإجراء. هذه الرسومات هي
-  مرجع التصميم المتجاوب، فالشريط الجانبي يتحوّل إلى قائمة منسدلة على الشاشات الصغيرة.</p>
+  <p>رسومات مصغّرة تحدّد التخطيط قبل التنفيذ؛ والشريط الجانبي يتحوّل إلى قائمة منسدلة على الشاشات الصغيرة.</p>
   <div class="grid2">
     <div class="wf"><div class="wf-top">Dashboard &mdash; /</div>
       <div class="wf-body"><div class="wf-side">Dashboard<br>Videos<br>Incidents<br>Analytics<br>Reports</div>
@@ -115,8 +111,7 @@
 
   <h3>14.5 أنواع TypeScript المشتركة</h3>
   <p>هذا الملف هو الجسر بين عقد الـ API والواجهة. كل واجهة هنا تطابق كائن رد في <span class="mono">SPEC.md</span>
-  بنفس أسماء الحقول؛ أي اختلاف حرف واحد يُعدّ خطأً يجب إصلاحه. الاتحادات (<span class="en">union types</span>)
-  تأتي من قيم الـ enum المتفق عليها.</p>
+  بنفس أسماء الحقول؛ أي اختلاف حرف واحد خطأ يجب إصلاحه.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src/types/api.ts</span><span class="ftag">typescript</span></div>
 <pre>// Mirrors SPEC.md response shapes exactly. Do not rename fields.
 
@@ -228,7 +223,7 @@ export interface Paginated&lt;T&gt; {
 }</pre></div>
 
   <h3>14.6 شجرة <span class="mono">frontend/src</span> الكاملة</h3>
-  <p>هذه الشجرة هي المرجع الحرفي لأماكن الملفات، وتطابق أسماء الملفات المستخدمة في الفصل التالي.</p>
+  <p>المرجع الحرفي لأماكن الملفات، ويطابق أسماء الفصل التالي:</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">frontend/src (tree)</span><span class="ftag">text</span></div>
 <pre>frontend/src/
   main.tsx                 # app bootstrap, router provider
@@ -270,8 +265,7 @@ export interface Paginated&lt;T&gt; {
       LoginPage.tsx          useAuth.ts</pre></div>
 
   <h3>14.7 الحالات والتجربة والهوية البصرية</h3>
-  <p>الواجهة الجيدة لا تُظهر شاشة بيضاء ولا خطأ صامتاً. لكل قائمة أو بطاقة ثلاث حالات صريحة، ونتعامل معها
-  بمكوّنات موحّدة بدل تكرار الشروط في كل صفحة.</p>
+  <p>لكل قائمة أو بطاقة ثلاث حالات صريحة بمكوّنات موحّدة:</p>
   <table class="tbl">
     <caption>جدول 14-3: الحالات الثلاث ومكوّناتها</caption>
     <thead><tr><th class="w20">الحالة</th><th class="w30">المكوّن</th><th>القاعدة</th></tr></thead>
@@ -282,26 +276,24 @@ export interface Paginated&lt;T&gt; {
     </tbody>
   </table>
   <ul>
-    <li><strong>النماذج (<span class="en">forms</span>):</strong> تحقق قبل الإرسال (حجم الملف، الامتداد، التاريخ)، وزر معطّل أثناء الإرسال لمنع الطلب المزدوج.</li>
-    <li><strong>الإشعارات (<span class="en">Toast</span>):</strong> تأكيد نجاح أو فشل الإجراء، وتُدار من سياق واحد أعلى الشجرة.</li>
-    <li><strong>حالة المصادقة:</strong> يعتمد سلوكها على <span class="mono">VITE_ENABLE_AUTH</span>؛ عند <span class="mono">false</span> نتجاوز شاشة الدخول، وعند <span class="mono">true</span> نحمي المسارات ونرسل التوكن.</li>
-    <li><strong>التصميم المتجاوب وإمكانية الوصول:</strong> تخطيط شبكي يتكيّف مع العرض، وتباين لوني كافٍ، ونصوص بديلة للصور، وتنقّل بلوحة المفاتيح.</li>
+    <li><strong>النماذج (<span class="en">forms</span>):</strong> تحقق قبل الإرسال وزر معطّل أثناءه لمنع الطلب المزدوج.</li>
+    <li><strong>الإشعارات (<span class="en">Toast</span>):</strong> تأكيد نجاح/فشل الإجراء من سياق واحد أعلى الشجرة.</li>
+    <li><strong>حالة المصادقة:</strong> تتبع <span class="mono">VITE_ENABLE_AUTH</span>؛ عند <span class="mono">false</span> نتجاوز الدخول، وعند <span class="mono">true</span> نحمي المسارات ونرسل التوكن.</li>
+    <li><strong>التجاوب وإمكانية الوصول:</strong> تخطيط شبكي، تباين كافٍ، نصوص بديلة، وتنقّل بلوحة المفاتيح.</li>
   </ul>
-  <p><strong>الهوية البصرية:</strong> <span class="en">Dark Navy</span> للبنية والعناوين، <span class="en">Teal</span>
-  للمعلومات، <span class="en">Orange</span> للتحذير، <span class="en">Red</span> للخطر، وخلفيات محايدة للنصوص.
-  نتجنّب التدرجات الزائدة والحركات غير الضرورية لأنها تشتّت عن المعلومة وتُثقل الأداء. ألوان الخطورة في الواجهة
-  تتبع الـ enum نفسه: <span class="mono">low, medium, high, critical</span>.</p>
+  <p><strong>الهوية البصرية:</strong> <span class="en">Dark Navy</span> للبنية، <span class="en">Teal</span>
+  للمعلومات، <span class="en">Orange</span> للتحذير، <span class="en">Red</span> للخطر، وخلفيات محايدة؛ بلا
+  تدرجات أو حركات زائدة. ألوان الخطورة تتبع الـ enum: <span class="mono">low, medium, high, critical</span>.</p>
   <div class="callout info"><span class="co-title">لا روابط إنتاج داخل المكوّنات</span>
-    <p>لا نكتب <span class="mono">http://localhost:8000</span> ولا أي عنوان إنتاجي داخل أي مكوّن. العنوان يأتي
-    دائماً من <span class="mono">import.meta.env.VITE_API_BASE_URL</span> عبر عميل واحد في
-    <span class="mono">api/client.ts</span>.</p></div>
+    <p>العنوان يأتي دائماً من <span class="mono">import.meta.env.VITE_API_BASE_URL</span> عبر عميل واحد في
+    <span class="mono">api/client.ts</span>، ولا يُكتب أي عنوان داخل مكوّن.</p></div>
 
   <div class="eoc">
     <div class="eoc-head">خلاصة الفصل 14</div>
     <div class="eoc-body">
       <div class="eoc-row"><h4>ما تعلّمناه</h4>
-        <p>قسّمنا الـ Frontend حسب الميزة، ورسمنا خريطة الصفحات والمسارات، ووصفنا الشاشات العشر بنداءاتها
-        وسلوكها، وأثبتنا أنواع TypeScript المطابقة للـ API، وثبّتنا حالات التحميل والخطأ والفراغ والهوية البصرية.</p></div>
+        <p>قسّمنا الـ Frontend حسب الميزة، ورسمنا خريطة الصفحات، ووصفنا الشاشات العشر، وأثبتنا أنواع
+        TypeScript المطابقة للـ API، وثبّتنا حالات التحميل/الخطأ/الفراغ والهوية البصرية.</p></div>
       <div class="eoc-row"><h4>ما يجب تنفيذه</h4>
         <ul class="checklist">
           <li>إنشاء مجلّدات <span class="mono">features/hooks/api/types</span> كما في الشجرة.</li>

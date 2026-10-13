@@ -9,15 +9,12 @@
   </div>
 
   <div class="lead">
-    <p>الهيكل المنظَّم للمجلدات هو أول انطباع يأخذه المشرف عن الفريق، وهو أيضاً أول شيء يمنع الفوضى أثناء
-    العمل المتوازي. في هذا الفصل نثبّت شجرة المجلدات كاملة، ونوضّح وظيفة كل مجلد، ونحدّد بدقة ما يُرفع إلى
-    GitHub وما لا يُرفع أبداً، مع ملفَّي <span class="mono">.gitignore</span> و<span class="mono">.env.example</span>
-    كاملين جاهزين للنسخ.</p>
+    <p>نثبّت هنا شجرة المجلدات كاملة، ووظيفة كل مجلد، وما يُرفع إلى GitHub وما لا يُرفع أبداً، مع ملفَّي
+    <span class="mono">.gitignore</span> و<span class="mono">.env.example</span> جاهزين للنسخ.</p>
   </div>
 
   <h3>4.1 شجرة المجلدات الكاملة</h3>
-  <p>هذه الشجرة هي المرجع الرسمي، وأي ملف جديد يجب أن يجد مكانه فيها. لا ننشئ مجلدات عشوائية ولا نضع ملف
-  Backend داخل الـ Frontend.</p>
+  <p>هذه الشجرة هي المرجع الرسمي؛ كل ملف جديد يجب أن يجد مكانه فيها، ولا ننشئ مجلدات عشوائية.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">repository tree</span><span class="ftag">text</span></div>
 <pre>safevision-ai/
   backend/                 # FastAPI application (package name: app)
@@ -79,23 +76,21 @@
   </table>
 
   <h3>4.3 ما لا يجب أن يدخل Git أبداً ولماذا</h3>
-  <p><strong>Git:</strong> نظام تتبّع الإصدارات الذي يحفظ تاريخ كل تغيير. لكن Git مصمَّم للنصوص الصغيرة لا
-  للملفات الضخمة. لذلك هناك ثلاثة أصناف لا نرفعها:</p>
+  <p><strong>Git:</strong> نظام تتبّع الإصدارات، وهو مصمَّم للنصوص الصغيرة لا للملفات الضخمة، لذلك ثلاثة
+  أصناف لا نرفعها:</p>
   <ul>
-    <li><strong>الملفات الكبيرة (Binaries):</strong> الفيديوهات المرفوعة وأوزان الـ Models. رفعها يجعل حجم
-    المستودع ينتفخ، وكل عضو سيضطر لتنزيل جيجابايتات عند كل <span class="mono">git clone</span>.</li>
-    <li><strong>البيانات المولَّدة (Generated):</strong> صور الدليل والتقارير. هذه مخرجات تشغيل وليست كوداً،
-    ويمكن إعادة توليدها.</li>
-    <li><strong>الأسرار (Secrets):</strong> كلمة مرور قاعدة البيانات، و<span class="mono">SECRET_KEY</span>،
-    ومفاتيح S3. تسريبها على GitHub خطر أمني حقيقي ولو كان المستودع خاصاً.</li>
+    <li><strong>الملفات الكبيرة (Binaries):</strong> الفيديوهات وأوزان الـ Models؛ رفعها يُنتفخ حجم المستودع
+    ويجعل كل <span class="mono">git clone</span> بطيئاً.</li>
+    <li><strong>البيانات المولَّدة (Generated):</strong> صور الدليل والتقارير؛ مخرجات تشغيل يمكن إعادة توليدها.</li>
+    <li><strong>الأسرار (Secrets):</strong> كلمة مرور قاعدة البيانات و<span class="mono">SECRET_KEY</span>
+    ومفاتيح S3؛ تسريبها خطر أمني حقيقي.</li>
   </ul>
   <div class="callout danger"><span class="co-title">خطر</span>
-    <p>رفع ملف <span class="mono">.env</span> أو أي مفتاح حقيقي إلى GitHub خطأ لا يُصلَح بمجرد الحذف، لأن
-    التاريخ يحتفظ به. القاعدة: نرفع <span class="mono">.env.example</span> فقط، وننشئ <span class="mono">.env</span>
-    محلياً على كل جهاز.</p></div>
+    <p>رفع ملف <span class="mono">.env</span> أو أي مفتاح حقيقي خطأ لا يُصلَح بمجرد الحذف لأن التاريخ يحتفظ به.
+    نرفع <span class="mono">.env.example</span> فقط وننشئ <span class="mono">.env</span> محلياً.</p></div>
 
   <h3>4.4 ملف <span class="mono">.gitignore</span> كامل</h3>
-  <p>هذا الملف يخبر Git بالملفات التي يتجاهلها. يوضع في جذر المستودع، ويُكتب بترتيب واضح حسب النوع.</p>
+  <p>يوضع في جذر المستودع ويخبر Git بالملفات التي يتجاهلها، مرتّبة حسب النوع.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">.gitignore</span><span class="ftag">gitignore</span></div>
 <pre># ---- Python ----
 __pycache__/
@@ -159,13 +154,12 @@ Thumbs.db
 *.pid
 docker-compose.override.yml</pre></div>
   <div class="callout note"><span class="co-title">ملاحظة</span>
-    <p>السطر <span class="mono">!.env.example</span> استثناء مهم: نمنع <span class="mono">.env</span> الحقيقي
-    ونسمح بالقالب فقط. و<span class="mono">!data/sample/**</span> يسمح برفع عيّنات صغيرة للاختبار.</p></div>
+    <p>السطر <span class="mono">!.env.example</span> يسمح بالقالب فقط، و<span class="mono">!data/sample/**</span>
+    يسمح برفع عيّنات صغيرة للاختبار.</p></div>
 
   <h3>4.5 ملف <span class="mono">.env.example</span> بقيم Placeholder فقط</h3>
-  <p>هذا القالب يُرفع إلى GitHub، ويُنسخ على كل جهاز إلى <span class="mono">.env</span> ثم تُملأ قيمه الحقيقية
-  محلياً. كل القيم هنا Placeholder بالشكل <span class="mono">&lt;NAME&gt;</span> ولا يجوز وضع سرّ حقيقي فيه.
-  أسماء المتغيّرات مطابقة تماماً لما في SPEC.md.</p>
+  <p>قالب يُرفع إلى GitHub ويُنسخ على كل جهاز إلى <span class="mono">.env</span>. قيمه Placeholder بالشكل
+  <span class="mono">&lt;NAME&gt;</span>، وأسماء المتغيّرات مطابقة لـ SPEC.md.</p>
   <div class="code-wrap long"><div class="code-head"><span class="fname">.env.example</span><span class="ftag">ini</span></div>
 <pre># ---- Application ----
 APP_NAME=SafeVision AI
@@ -235,9 +229,8 @@ JOB_MAX_RETRIES=2
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_ENABLE_AUTH=false</pre></div>
   <div class="callout info"><span class="co-title">لماذا قيم Placeholder؟</span>
-    <p>لأن <span class="mono">.env.example</span> يوثّق <strong>أسماء</strong> المتغيّرات المطلوبة، لا قيمها.
-    كل عضو ينسخه ويضع قيمه الخاصة. و<span class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</span> هو مسار أوزان
-    الـ Model الذي يحدّده فريق الذكاء الاصطناعي عند توفّر الـ checkpoint.</p></div>
+    <p>لأن القالب يوثّق <strong>أسماء</strong> المتغيّرات لا قيمها؛ كل عضو يضع قيمه الخاصة، مثل
+    <span class="mono">&lt;PPE_MODEL_CHECKPOINT_PATH&gt;</span> الذي يحدّده فريق الذكاء الاصطناعي.</p></div>
 
   <h3>4.6 اتفاقيات تسمية الملفات والفروع</h3>
   <p>اتفاق التسمية يمنع الالتباس ويسهّل البحث. نلتزم بالقواعد التالية دون استثناء:</p>
