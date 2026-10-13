@@ -8,3 +8,14 @@ build/preview/
 build/httpd.log
 __pycache__/
 *.pyc
+build/t.html
+build/t.pdf
+build/*.log
+build/content.html
+build/cover.html
+build/front.html
+build/metas.json
+build/pagemap.json
+build/merged.pdf
+build/footed.pdf
+build/checkpoint-*.pdf
